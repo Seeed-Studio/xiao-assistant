@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { XIAOAssistant } from '@seeedstudio/xiao-sdk';
+import { XIAOAssistant, type XIAOBoard } from '@seeedstudio/xiao-sdk';
 
 class XIAOMcpServer {
   private server: Server;
@@ -100,6 +100,10 @@ class XIAOMcpServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
+      if (!args) {
+        throw new McpError(ErrorCode.InvalidParams, 'Arguments are required');
+      }
+
       try {
         switch (name) {
           case 'get_board_info':
@@ -144,7 +148,7 @@ class XIAOMcpServer {
               content: [
                 {
                   type: 'text',
-                  text: `Supported XIAO boards:\n${boards.map(b => `- ${b.name}`).join('\n')}`,
+                  text: `Supported XIAO boards:\n${boards.map((b: XIAOBoard) => `- ${b.name}`).join('\n')}`,
                 },
               ],
             };
