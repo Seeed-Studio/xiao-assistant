@@ -1,0 +1,52 @@
+{
+  "name": "@seeedstudio/xiao-cli",
+  "version": "0.1.0",
+  "description": "XIAO CLI - Command-line tools for XIAO development assistance",
+  "type": "module",
+  "bin": {
+    "xiao": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --fix",
+    "lint:check": "eslint src",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "clean": "rm -rf dist node_modules",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.2.0",
+    "commander": "^13.1.0",
+    "figlet": "^1.9.4",
+    "open": "^10.1.0",
+    "ora": "^9.0.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seeedstudio/xiao-assistant.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "xiao",
+    "cli",
+    "seeed-studio",
+    "iot",
+    "development-tools"
+  ],
+  "author": "Seeed Studio",
+  "license": "MIT"
+}

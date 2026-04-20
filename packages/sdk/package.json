@@ -1,0 +1,49 @@
+{
+  "name": "@seeedstudio/xiao-sdk",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript SDK for XIAO Assistant",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint .",
+    "lint:check": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seeedstudio/xiao-assistant.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "xiao",
+    "sdk",
+    "seeed-studio",
+    "iot",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Seeed Studio",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
