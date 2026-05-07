@@ -1,8 +1,11 @@
-#!/usr/bin/env node
-
 import { Command } from 'commander';
 import figlet from 'figlet';
 import pc from 'picocolors';
+import { registerInitCommand } from './commands/init.js';
+import { registerPinoutCommand } from './commands/pinout.js';
+import { registerSearchCommand } from './commands/search.js';
+import { registerExampleCommand } from './commands/example.js';
+import { registerBoardsCommand } from './commands/boards.js';
 
 const program = new Command();
 
@@ -12,38 +15,26 @@ program
   .version('0.1.0');
 
 program
-  .command('init')
-  .description('Initialize a new XIAO project')
+  .command('help')
+  .description('Show detailed help information')
   .action(() => {
-    console.log(pc.cyan(figlet.textSync('XIAO Assistant', { horizontalLayout: 'full' })));
-    console.log(pc.green('🚀 Welcome to XIAO Assistant!'));
-    console.log(pc.yellow('Initializing XIAO project...'));
-    // TODO: Implement project initialization
+    console.log(pc.cyan(figlet.textSync('XIAO', { font: 'Speed' })));
+    console.log(pc.green('\n  XIAO Assistant - AI-powered development tools for Seeed Studio XIAO\n'));
+    console.log('  Commands:');
+    console.log(`    ${pc.cyan('xiao init')}          - Initialize a new XIAO project`);
+    console.log(`    ${pc.cyan('xiao pinout <board>')} - Show pinout diagram for a board`);
+    console.log(`    ${pc.cyan('xiao boards')}        - List all supported XIAO boards`);
+    console.log(`    ${pc.cyan('xiao search <query>')} - Search examples and docs`);
+    console.log(`    ${pc.cyan('xiao example <name>')} - Show a code example`);
+    console.log(`\n  Example: ${pc.yellow('xiao pinout esp32c3')}`);
+    console.log(`  Example: ${pc.yellow('xiao search wifi --lang arduino')}`);
+    console.log(`  Example: ${pc.yellow('xiao example blink-arduino')}\n`);
   });
 
-program
-  .command('pinout <board>')
-  .description('Show pinout diagram for XIAO board')
-  .action((board: string) => {
-    console.log(pc.blue(`📌 XIAO ${board.toUpperCase()} Pinout:`));
-    // TODO: Implement pinout display
-    console.log(`Board: ${board}`);
-  });
-
-program
-  .command('search <query>')
-  .description('Search for XIAO-related libraries and examples')
-  .action((query: string) => {
-    console.log(pc.magenta(`🔍 Searching for: ${query}`));
-    // TODO: Implement search functionality
-  });
-
-program
-  .command('example <name>')
-  .description('Show code example for XIAO development')
-  .action((name: string) => {
-    console.log(pc.yellow(`💡 XIAO Example: ${name}`));
-    // TODO: Implement example display
-  });
+registerInitCommand(program);
+registerPinoutCommand(program);
+registerBoardsCommand(program);
+registerSearchCommand(program);
+registerExampleCommand(program);
 
 program.parse();
