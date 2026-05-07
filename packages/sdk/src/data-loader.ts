@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry } from './types.js';
+import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, XIAOKnowledge } from './types.js';
 
 // Works for both ESM and CJS
 const _dirname = typeof __dirname !== 'undefined'
@@ -91,4 +91,8 @@ export function loadSynonyms(): Record<string, string[]> {
   const filePath = join(getDataDir(), 'synonyms.yaml');
   if (!existsSync(filePath)) return {};
   return readYamlFile<Record<string, string[]>>(filePath);
+}
+
+export function loadKnowledge(): XIAOKnowledge[] {
+  return readYamlDir<XIAOKnowledge>(join(getDataDir(), 'knowledge'));
 }

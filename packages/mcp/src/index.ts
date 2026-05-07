@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult } from '@seeedstudio/xiao-sdk';
+import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from '@seeedstudio/xiao-sdk';
 
 const assistant = new XIAOAssistant();
 
@@ -184,6 +184,33 @@ Returns diagnosis steps and solutions.`,
       },
       annotations: { readOnlyHint: true },
     },
+    {
+      name: 'search_knowledge',
+      title: 'Search XIAO Internal Knowledge',
+      description: `Search internal knowledge base for advanced XIAO topics, hard-to-solve problems, and real-world experience from customer support. This includes issues not documented in public wiki, such as:
+- Low power optimization tricks and deep sleep gotchas
+- Hardware-specific quirks (GPIO hold, USB CDC, PSRAM usage)
+- WiFi/BLE coexistence issues
+- Voltage level compatibility warnings
+- Battery management tips
+
+Returns detailed problem descriptions, solutions, and often working code.`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          query: {
+            type: 'string',
+            description: 'Search query (e.g. "deep sleep gpio", "battery voltage", "psram", "ble mac address")',
+          },
+          board: {
+            type: 'string',
+            description: 'Optional board ID to filter results',
+          },
+        },
+        required: ['query'],
+      },
+      annotations: { readOnlyHint: true },
+    },
   ],
 }));
 
@@ -349,6 +376,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               results.map((r: WikiSearchResult) =>
                 `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`
               ).join('\n\n'),
+          }],
+        };
+      }
+
+      case 'search_knowledge': {
+        const query = args.query as string;
+        const board = args.board as string | undefined;
+        const entries = assistant.searchKnowledge(query, board ? { board } : undefined);
+
+        if (entries.length === 0) {
+          return {
+            content: [{ type: 'text', text: `No internal knowledge found for "${query}". Try related terms, or use search_wiki for public documentation.` }],
+          };
+        }
+
+        return {
+          content: [{
+            type: 'text',
+            text: entries.map((e: XIAOKnowledge) =>
+              `## ${e.title}\n\n` +
+              `**Severity**: ${e.severity} | **Category**: ${e.category} | **Source**: ${e.source}\n` +
+              `**Applies to**: ${e.boards.join(', ')}\n\n` +
+              `${e.summary}\n\n` +
+              `### Problem\n${e.problem}\n\n` +
+              `### Solution\n${e.solution}` +
+              (e.code ? `\n\n\`\`\`cpp\n${e.code}\n\`\`\`` : '') +
+              (e.workaround ? `\n\n### Workaround\n${e.workaround}` : '')
+            ).join('\n\n---\n\n'),
           }],
         };
       }

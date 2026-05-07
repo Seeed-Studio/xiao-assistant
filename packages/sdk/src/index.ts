@@ -1,5 +1,5 @@
-import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, WikiSearchResult } from './types.js';
-import { loadBoards, loadExamples, loadDocuments, loadTroubleshootEntries, loadSynonyms } from './data-loader.js';
+import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, WikiSearchResult, XIAOKnowledge } from './types.js';
+import { loadBoards, loadExamples, loadDocuments, loadTroubleshootEntries, loadSynonyms, loadKnowledge } from './data-loader.js';
 import { searchWiki } from './wiki-service.js';
 
 export class XIAOAssistant {
@@ -7,6 +7,7 @@ export class XIAOAssistant {
   private examples: XIAOExample[];
   private documents: XIAODocument[];
   private troubleshootEntries: XIAOTroubleshootEntry[];
+  private knowledge: XIAOKnowledge[];
   private synonyms: Record<string, string[]>;
 
   constructor() {
@@ -16,6 +17,7 @@ export class XIAOAssistant {
     this.examples = loadExamples();
     this.documents = loadDocuments();
     this.troubleshootEntries = loadTroubleshootEntries();
+    this.knowledge = loadKnowledge();
     this.synonyms = loadSynonyms();
   }
 
@@ -263,6 +265,52 @@ export class XIAOAssistant {
     return searchWiki(query);
   }
 
+  // --- Knowledge search ---
+
+  searchKnowledge(query: string, options?: { board?: string; severity?: string }): XIAOKnowledge[] {
+    const q = query.toLowerCase();
+    const expanded = this.expandQuery(q);
+    const results: Array<{ entry: XIAOKnowledge; score: number }> = [];
+
+    for (const entry of this.knowledge) {
+      if (options?.board && !entry.boards.includes(options.board)) continue;
+      if (options?.severity && entry.severity !== options.severity) continue;
+
+      let score = 0;
+      const tags = entry.tags.map((t) => t.toLowerCase());
+      const fields = [entry.title, entry.summary, entry.problem, entry.solution, entry.category].map((f) => f.toLowerCase());
+
+      // Exact query match
+      for (const field of fields) {
+        if (field.includes(q)) score += 5;
+      }
+      for (const tag of tags) {
+        if (tag === q || q.includes(tag)) score += 5;
+      }
+
+      // Expanded synonym match
+      for (const term of expanded) {
+        for (const field of fields) {
+          if (field.includes(term)) score += 3;
+        }
+        for (const tag of tags) {
+          if (tag === term || tag.includes(term)) score += 3;
+        }
+      }
+
+      // Word-level match
+      for (const word of q.split(/\s+/)) {
+        for (const field of fields) {
+          if (field.includes(word)) score += 2;
+        }
+      }
+
+      if (score > 0) results.push({ entry, score });
+    }
+
+    return results.sort((a, b) => b.score - a.score).map((r) => r.entry);
+  }
+
   // --- Fallback methods ---
 
   async searchExamplesWithFallback(
@@ -302,5 +350,5 @@ export class XIAOAssistant {
   }
 }
 
-export { type XIAOBoard, type XIAOExample, type XIAODocument, type XIAOTroubleshootEntry, type WikiSearchResult } from './types.js';
+export { type XIAOBoard, type XIAOExample, type XIAODocument, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from './types.js';
 export default XIAOAssistant;

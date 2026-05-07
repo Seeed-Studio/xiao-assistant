@@ -68,3 +68,18 @@ export interface XIAOTroubleshootEntry {
   solutions: string[];
   wikiUrl?: string;
 }
+
+export interface XIAOKnowledge {
+  id: string;
+  title: string;
+  tags: string[];
+  boards: string[];
+  category: string;
+  severity: 'easy' | 'medium' | 'hard';
+  source: 'support-ticket' | 'internal-test' | 'community' | 'wiki';
+  summary: string;
+  problem: string;
+  solution: string;
+  code?: string;
+  workaround?: string;
+}

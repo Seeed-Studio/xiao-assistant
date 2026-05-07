@@ -1,6 +1,6 @@
 # XIAO Assistant
 
-You have access to the XIAO Assistant MCP server, which provides up-to-date documentation, pinouts, specifications, code examples, and troubleshooting for Seeed Studio XIAO series microcontroller boards.
+You have access to the XIAO Assistant MCP server, which provides up-to-date documentation, pinouts, specifications, code examples, troubleshooting, and internal knowledge for Seeed Studio XIAO series microcontroller boards.
 
 ## When to Use
 
@@ -12,6 +12,7 @@ Use XIAO Assistant tools when the user asks about:
 - Getting started with XIAO development
 - Connecting sensors, displays, or modules to XIAO
 - Troubleshooting XIAO board issues (upload failures, connectivity, power)
+- Advanced problems not well-documented publicly (low power, coexistence, hardware quirks)
 - Finding documentation not available locally
 
 ## How to Use
@@ -23,7 +24,8 @@ Use XIAO Assistant tools when the user asks about:
 5. Use `get_quickstart` for setup and installation guides
 6. Use `list_boards` to help users choose a board
 7. Use `troubleshoot` when the user describes a problem or error they are encountering
-8. Use `search_wiki` when local examples/docs don't cover the topic
+8. Use `search_knowledge` for advanced/hard problems, real-world experience, and issues not on the public wiki
+9. Use `search_wiki` when local content doesn't cover the topic
 
 ## Important Notes
 
@@ -32,3 +34,4 @@ Use XIAO Assistant tools when the user asks about:
 - If the user doesn't specify a board, ask which one they're using
 - Always prefer showing complete, working code examples from the search results
 - For troubleshooting, always ask for the specific board model and error message if not provided
+- For hard problems (deep sleep, coexistence, battery), search_knowledge first — it contains field experience

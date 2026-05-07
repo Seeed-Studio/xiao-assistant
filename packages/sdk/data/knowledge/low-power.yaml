@@ -1,0 +1,288 @@
+- id: esp32-deepsleep-gpio-hold
+  title: "ESP32 深度睡眠后 GPIO 状态丢失"
+  tags: [deep sleep, gpio, power, esp32c3, esp32s3, hold, relay, mosfet]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: power
+  severity: hard
+  source: support-ticket
+  summary: |
+    ESP32 系列进入深度睡眠后，普通 GPIO 输出状态会被重置为低电平。
+    如果用 GPIO 控制继电器、MOSFET、LED 等外设，唤醒后外设会意外关断。
+    必须使用 RTC GPIO hold 功能在睡眠期间保持引脚电平。
+  problem: |
+    客户使用 XIAO ESP32C3 的 GPIO2 控制继电器。进入深度睡眠后继电器断开，
+    唤醒后虽然代码重新设置 GPIO2 为 HIGH，但中间有一段继电器断开的时间。
+    对于需要不间断供电的场景（如加热器控制），这是不可接受的。
+  solution: |
+    使用 gpio_hold_en() 在进入深度睡眠前锁定 GPIO 状态，
+    使用 gpio_deep_sleep_hold_en() 启用深度睡眠期间的 hold 功能。
+    注意只有 RTC GPIO（ESP32C3 的 GPIO0-5）支持此功能。
+  code: |
+    void enterDeepSleep() {
+      // 设置 GPIO 状态
+      digitalWrite(2, HIGH);
+
+      // 启用 GPIO hold，锁定当前状态
+      gpio_hold_en(GPIO_NUM_2);
+      gpio_deep_sleep_hold_en();
+
+      // 进入深度睡眠
+      esp_sleep_enable_timer_wakeup(10 * 1000000);  // 10秒
+      esp_deep_sleep_start();
+    }
+
+    void setup() {
+      // 唤醒后释放 hold，恢复正常控制
+      gpio_hold_dis(GPIO_NUM_2);
+      gpio_deep_sleep_hold_dis();
+
+      pinMode(2, OUTPUT);
+      digitalWrite(2, HIGH);  // 确保状态
+    }
+  workaround: |
+    如果使用的引脚不是 RTC GPIO（如 GPIO6-10），hold 功能不可用。
+    可选方案：
+    1. 重新布线到 RTC GPIO（GPIO0-5）
+    2. 使用带锁存功能的外部芯片（如 74HC573）
+    3. 用外部上拉电阻 + 低电平有效设计
+
+- id: esp32-battery-voltage-read
+  title: "ESP32 读取电池电压的正确方法"
+  tags: [battery, adc, voltage, power, esp32c3, esp32s3, battery monitoring]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: power
+  severity: medium
+  source: internal-test
+  summary: |
+    XIAO ESP32 系列的电池电压不能直接用 analogRead() 读取。
+    VBAT 引脚经过分压电路连接到 ADC，需要校准才能得到准确电压值。
+    ESP32 ADC 非线性严重，直接读数误差可达 0.3V。
+  problem: |
+    客户用 analogRead() 读取电池电压，发现读数不准。
+    满电 4.2V 的电池只显示 3.8V，导致电池电量估算错误，
+    设备过早进入低电量保护模式。
+  solution: |
+    使用 ESP32 的 ADC 校准功能，配合分压电阻比值计算实际电压。
+    XIAO ESP32 系列的电池检测引脚通过两个 100K 电阻分压，
+    实际 ADC 读数需要乘以 2 再加上二极管压降。
+  code: |
+    #include <esp_adc_cal.h>
+
+    #define VBAT_PIN 2  // 根据具体板子确定电池检测引脚
+
+    float readBatteryVoltage() {
+      // 多次采样取平均，减少 ADC 噪声
+      long sum = 0;
+      for (int i = 0; i < 64; i++) {
+        sum += analogRead(VBAT_PIN);
+      }
+      float avg = sum / 64.0;
+
+      // 转换为电压（分压系数 * ADC 参考电压 / ADC 分辨率）
+      // XIAO ESP32 的分压比约为 2:1，参考电压 3.3V，12-bit ADC
+      float voltage = (avg / 4095.0) * 3.3 * 2.0;
+
+      return voltage;
+    }
+
+    int getBatteryPercentage(float voltage) {
+      if (voltage >= 4.2) return 100;
+      if (voltage <= 3.0) return 0;
+      // 简单线性映射（实际锂电池放电曲线是非线性的）
+      return (int)((voltage - 3.0) / 1.2 * 100);
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      analogSetAttenuation(ADC_11db);  // 设置衰减以读取 0-3.3V 范围
+    }
+
+    void loop() {
+      float vbat = readBatteryVoltage();
+      Serial.printf("Battery: %.2fV (%d%%)\n", vbat, getBatteryPercentage(vbat));
+      delay(5000);
+    }
+
+- id: rp2040-usb-disconnect-sleep
+  title: "RP2040 深度睡眠后 USB 断开不恢复"
+  tags: [deep sleep, usb, rp2040, rp2350, serial, disconnect]
+  boards: [rp2040, rp2350]
+  category: power
+  severity: hard
+  source: support-ticket
+  summary: |
+    XIAO RP2040 从深度睡眠（Dormant mode）唤醒后，USB 连接不会自动恢复。
+    Serial 监视器断开且无法重新连接。必须物理断开 USB 重新插入，
+    或使用 watchdog 触发硬件复位。
+  problem: |
+    客户使用 XIAO RP2040 做低功耗传感器，周期性唤醒采集数据后重新进入睡眠。
+    发现第一次睡眠唤醒后 USB 串口就断开了，无法再通过 Serial Monitor 查看日志。
+    对调试和生产固件更新造成很大麻烦。
+  solution: |
+    方案一：使用 light sleep 代替 deep sleep，USB 会保持连接（但功耗较高，约 3mA）。
+    方案二：在唤醒后调用 tud_init() 重新初始化 USB 设备。
+    方案三：如果不需要 USB 调试，用 UART 输出日志。
+  code: |
+    #include <Arduino.h>
+    #include "hardware/sleep.h"
+    #include "hardware/rosc.h"
+    #include "hardware/clocks.h"
+
+    void enterLightSleep(uint32_t ms) {
+      // Light sleep: USB 保持连接，功耗约 3mA
+      sleep_ms(ms);
+    }
+
+    void enterDeepSleepWithUsbReinit(uint32_t ms) {
+      Serial.flush();
+
+      // 进入 dormant mode（深度睡眠，约 0.5mA）
+      // ... 使用 RTC 或外部唤醒源 ...
+
+      // 唤醒后重新初始化 USB
+      delay(100);  // 等待时钟稳定
+      tud_init(BOARD_DEVICE_RHPORT_NUM);
+      Serial.begin(115200);
+      delay(100);
+
+      Serial.println("Woke up from deep sleep!");
+    }
+
+- id: nrf52840-ble-mac-address
+  title: "nRF52840 BLE MAC 地址每次重启都变化"
+  tags: [ble, mac, address, nrf52840, bluetooth, pairing]
+  boards: [nrf52840, nrf52840-sense]
+  category: ble
+  severity: medium
+  source: community
+  summary: |
+    XIAO nRF52840 默认使用随机静态地址，每次重启 BLE MAC 地址会变化。
+    导致配对过的设备下次启动时需要重新配对。
+    需要在 BLE.begin() 前设置固定的 MAC 地址。
+  problem: |
+    客户用 XIAO nRF52840 做心率带，通过 BLE 连接手机 APP。
+    发现每次重启后手机都识别为新设备，需要重新配对。
+    用户反馈体验很差。
+  solution: |
+    在 BLE.begin() 之前调用 BLE.setLocalName() 和 BLE.setAdvertisingInterval()，
+    并使用 BLE.address() 检查地址是否固定。
+    如果需要真正固定的地址，需要从 FICR 寄存器读取设备出厂 MAC。
+  code: |
+    #include <ArduinoBLE.h>
+
+    void setup() {
+      Serial.begin(115200);
+
+      // 读取出厂 MAC 地址（nRF52 系列唯一）
+      // FICR->DEVICEADDR[0] 和 [1] 包含出厂地址
+      uint32_t addrLow = NRF_FICR->DEVICEADDR[0];
+      uint32_t addrHigh = NRF_FICR->DEVICEADDR[1];
+
+      char macStr[18];
+      sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X",
+        (addrHigh >> 8) & 0xFF,
+        addrHigh & 0xFF,
+        (addrLow >> 24) & 0xFF,
+        (addrLow >> 16) & 0xFF,
+        (addrLow >> 8) & 0xFF,
+        addrLow & 0xFF);
+
+      Serial.print("Device MAC: ");
+      Serial.println(macStr);
+
+      if (!BLE.begin()) {
+        Serial.println("BLE start failed!");
+        while (1);
+      }
+
+      BLE.setLocalName("XIAO-HRM");
+      // 使用出厂地址作为 BLE 地址
+      // 注意：nRF52 的 DEVICEADDR 最高 2 位是固定的 0xC0（随机地址标志）
+      // 要使用 public 地址需要额外配置
+
+      BLE.advertise();
+    }
+
+- id: esp32-wifi-ble-coexist
+  title: "ESP32 WiFi 和 BLE 不能同时稳定工作"
+  tags: [wifi, ble, coexist, esp32, radio, conflict, disconnect]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: wifi
+  severity: hard
+  source: support-ticket
+  summary: |
+    ESP32 系列的 WiFi 和 BLE 共享同一个 2.4GHz 射频模块。
+    同时使用 WiFi 和 BLE 时，射频时间分片会导致两者都不稳定：
+    WiFi 吞吐量下降、BLE 连接超时或断开。
+    这是硬件限制，无法完全解决，只能通过策略缓解。
+  problem: |
+    客户用 XIAO ESP32S3 做 MQTT + BLE 网关：通过 BLE 收集传感器数据，
+    通过 WiFi MQTT 上传到云端。发现 WiFi 和 BLE 同时运行时，
+    MQTT 消息延迟达到 5-10 秒，BLE 连接频繁断开。
+  solution: |
+    采用时分复用策略：BLE 采集完数据后主动断开 WiFi，
+    连接 WiFi 发送数据后再断开 WiFi 回到 BLE 模式。
+    或者使用 ESP32 的 coexistence 模式（需要 menuconfig 配置）。
+  code: |
+    #include <WiFi.h>
+    #include <PubSubClient.h>
+    #include <BLEDevice.h>
+
+    // 策略：BLE 和 WiFi 交替使用，不同时开启
+
+    void bleScanPhase() {
+      // 关闭 WiFi 释放射频资源
+      WiFi.mode(WIFI_OFF);
+
+      // BLE 扫描和连接...
+      // 收集传感器数据到 buffer
+    }
+
+    void wifiUploadPhase() {
+      // BLE 扫描完成后关闭 BLE
+      // BLEDevice::deinit(false);  // 不清除 bonding 信息
+
+      // 开启 WiFi 上传数据
+      WiFi.mode(WIFI_STA);
+      WiFi.begin("SSID", "password");
+      while (WiFi.status() != WL_CONNECTED) delay(100);
+
+      // MQTT 发送数据...
+      // client.publish("topic", payload);
+
+      // 发送完成后关闭 WiFi
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_OFF);
+    }
+
+    void loop() {
+      bleScanPhase();      // 10 秒 BLE 采集
+      wifiUploadPhase();   // WiFi 上传
+      // 回到 BLE 模式...
+    }
+
+- id: xiao-3v3-warning-grove
+  title: "5V Grove 模块直接接 XIAO 会烧坏引脚"
+  tags: [voltage, 3.3v, 5v, grove, level shifter, damage, gpio]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: hardware
+  severity: easy
+  source: support-ticket
+  summary: |
+    所有 XIAO 板子的 GPIO 都是 3.3V 电平，不能承受 5V 输入。
+    部分旧版 Grove 模块（如 Grove - LCD RGB、部分超声波传感器）工作在 5V，
+    直接连接到 XIAO 的 I2C/GPIO 引脚可能永久损坏芯片。
+    必须使用电平转换器或选择 3.3V 兼容版本的模块。
+  problem: |
+    客户把 5V 的 Grove LCD RGB Backlight 直接插到 XIAO ESP32C3 的
+    Grove 扩展板上。I2C 通信正常工作了一段时间，但几天后 XIAO 的
+    I2C 引脚（GPIO6/GPIO7）完全失效，板子报废。
+  solution: |
+    1. 使用 XIAO 专用 Grove 扩展板（内置电平转换）
+    2. 或在 5V 模块和 XIAO 之间加 I2C 电平转换器（如 PCA9306）
+    3. Grove 模块供电用 5V（VCC），但信号线必须经过电平转换
+    4. 优先选择 Seeed Studio 标注 "3.3V compatible" 的 Grove 模块
+  workaround: |
+    如果没有电平转换器，可以在 5V 模块的 SDA/SCL 输出线上串联
+    10K 电阻，配合 XIAO 内部的 ESD 保护二极管做简易钳位。
+    但这只是临时方案，不能长期使用。
