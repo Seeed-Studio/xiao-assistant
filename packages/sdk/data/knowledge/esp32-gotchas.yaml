@@ -1,32 +1,33 @@
 - id: esp32c3-usb-cdc-reset
-  title: "ESP32C3 上传后串口消失（USB CDC 模式）"
+  title: "ESP32C3 Serial Port Disappears After Upload (USB CDC Mode)"
   tags: [usb, serial, cdc, upload, esp32c3, reset, disappear]
   boards: [esp32c3]
   category: usb
   severity: medium
   source: support-ticket
   summary: |
-    ESP32C3 使用 USB CDC 作为串口（非传统 UART）。上传新固件后，
-    有时 COM 口会从设备管理器消失，需要手动复位或重新插拔 USB。
-    这是因为固件上传后 USB 外设没有正确重新枚举。
+    ESP32C3 uses USB CDC for serial communication (not traditional UART). After
+    uploading new firmware, the COM port sometimes disappears from Device Manager,
+    requiring a manual reset or USB replug. This happens because the USB peripheral
+    does not properly re-enumerate after firmware upload.
   problem: |
-    客户在 Arduino IDE 上传代码到 XIAO ESP32C3 后，串口监视器打不开。
-    设备管理器中 COM 口消失。重新插拔 USB 后恢复，但每次上传都会复现。
+    Customer uploaded code to XIAO ESP32C3 via Arduino IDE and the Serial Monitor
+    could not open. COM port disappeared from Device Manager. Unplugging and
+    replugging USB fixed it, but the issue recurred on every upload.
   solution: |
-    方案一：在 Arduino IDE 中设置 USB CDC On Boot 为 "Enabled"，
-    这样固件启动时会自动初始化 USB CDC。
-    方案二：在代码中显式初始化 USB CDC。
+    Option 1: In Arduino IDE, set "USB CDC On Boot" to "Enabled" so firmware
+    automatically initializes USB CDC on startup.
+    Option 2: Explicitly initialize USB CDC in code with a timeout.
   code: |
-    // 方案一：Arduino IDE 设置
+    // Option 1: Arduino IDE setting
     // Tools > USB CDC On Boot > Enabled
 
-    // 方案二：代码中确保 USB 初始化
+    // Option 2: Explicit USB initialization with timeout
     void setup() {
       Serial.begin(115200);
-      // 对于 USB CDC 模式，需要等待 USB 连接
+      // For USB CDC mode, wait for USB connection with timeout
       while (!Serial) {
         delay(10);
-        // 超时保护，避免卡死
         static unsigned long start = millis();
         if (millis() - start > 3000) break;
       }
@@ -34,37 +35,38 @@
     }
 
 - id: esp32s3-psram-usage
-  title: "ESP32S3 PSRAM 配置和使用注意事项"
+  title: "ESP32S3 PSRAM Configuration and Usage Notes"
   tags: [psram, memory, esp32s3, allocation, camera, buffer]
   boards: [esp32s3, esp32s3-sense]
   category: memory
   severity: medium
   source: internal-test
   summary: |
-    XIAO ESP32S3 有 8MB PSRAM，但 Arduino IDE 默认不启用。
-    需要手动在菜单中开启 PSRAM，大缓冲区（如相机帧缓冲）才不会 OOM。
-    另外，PSRAM 不能用作 DMA 缓冲区，且访问速度比 SRAM 慢约 5 倍。
+    XIAO ESP32S3 has 8MB PSRAM, but Arduino IDE does not enable it by default.
+    PSRAM must be manually enabled in the menu for large buffers (e.g. camera frame
+    buffers) to avoid OOM. Additionally, PSRAM cannot be used for DMA buffers and
+    has ~5x slower access than SRAM.
   problem: |
-    客户用 XIAO ESP32S3 Sense 拍照，连续拍摄几张后板子重启。
-    Serial 输出显示 "Guru Meditation Error: Core 0 panic'ed (LoadStoreError)"
-    或 "out of memory"。
+    Customer used XIAO ESP32S3 Sense for camera capture. After taking several photos,
+    the board reset with "Guru Meditation Error: Core 0 panic'ed (LoadStoreError)"
+    or "out of memory" in serial output.
   solution: |
     1. Arduino IDE > Tools > PSRAM > Enabled
-    2. 大数组用 ps_malloc() 或 heap_caps_malloc() 分配到 PSRAM
-    3. 相机帧缓冲已在 esp_camera 库内部使用 PSRAM
-    4. 不要对 PSRAM 地址使用 DMA（SPI/I2S DMA 只能用内部 SRAM）
+    2. Use ps_malloc() or heap_caps_malloc() for large arrays to allocate in PSRAM
+    3. Camera frame buffer already uses PSRAM internally in esp_camera library
+    4. Do not use PSRAM addresses for DMA (SPI/I2S DMA requires internal SRAM)
   code: |
-    // 启用 PSRAM 后，大数组自动分配到 PSRAM
+    // After enabling PSRAM, large arrays are automatically allocated in PSRAM
     // Arduino IDE: Tools > PSRAM > OPI PSRAM > Enabled
 
-    // 手动分配到 PSRAM
+    // Manual PSRAM allocation
     uint8_t* bigBuffer = (uint8_t*) ps_malloc(1024 * 1024);  // 1MB
     if (bigBuffer == NULL) {
       Serial.println("PSRAM allocation failed!");
     }
 
-    // 或者使用 heap_caps_malloc 指定 PSRAM
+    // Or use heap_caps_malloc to specify PSRAM
     uint8_t* imgBuffer = (uint8_t*) heap_caps_malloc(300000, MALLOC_CAP_SPIRAM);
 
-    // 注意：DMA 缓冲区必须用内部 SRAM
+    // Note: DMA buffers must use internal SRAM
     uint8_t* dmaBuffer = (uint8_t*) heap_caps_malloc(4096, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
