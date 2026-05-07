@@ -1,168 +1,223 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XIAO Knowledge Editor</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-.header { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-.header h1 { font-size: 20px; color: #38bdf8; }
-.header .stats { font-size: 13px; color: #94a3b8; }
-.container { display: flex; height: calc(100vh - 57px); }
-.list-panel { width: 340px; background: #1e293b; border-right: 1px solid #334155; overflow-y: auto; flex-shrink: 0; }
-.list-panel .list-header { padding: 16px; border-bottom: 1px solid #334155; font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
-.list-panel .list-header span { color: #38bdf8; font-weight: 600; }
-.list-item { padding: 12px 16px; border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.15s; }
-.list-item:hover { background: #334155; }
-.list-item.active { background: #334155; border-left: 3px solid #38bdf8; }
-.list-item .title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-.list-item .meta { font-size: 12px; color: #94a3b8; display: flex; gap: 8px; }
-.severity { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-.severity.easy { background: #064e3b; color: #6ee7b7; }
-.severity.medium { background: #78350f; color: #fbbf24; }
-.severity.hard { background: #7f1d1d; color: #fca5a5; }
-.form-panel { flex: 1; overflow-y: auto; padding: 24px 32px; }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 6px; }
-.form-group input[type="text"], .form-group textarea, .form-group select {
-  width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px;
-  color: #e2e8f0; font-size: 14px; font-family: inherit; outline: none; transition: border 0.15s;
+:root {
+  --seeed-green: #8FC31F;
+  --seeed-green-dark: #6FA316;
+  --seeed-green-light: #E8F5B5;
+  --seeed-teal: #003A4A;
+  --seeed-teal-light: #E8F0F2;
+  --bg: #F7F8FA;
+  --card: #FFFFFF;
+  --border: #E1E4E8;
+  --text: #1F2328;
+  --text-secondary: #656D76;
+  --danger: #CF222E;
+  --danger-bg: #FFEBE9;
 }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #38bdf8; }
-.form-group textarea { min-height: 100px; resize: vertical; }
-.form-group textarea.code { min-height: 120px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 13px; }
-.inline-group { display: flex; gap: 16px; }
-.inline-group .form-group { flex: 1; }
-.boards-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.boards-grid label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; transition: all 0.15s; }
-.boards-grid label:has(input:checked) { background: #0c4a6e; border-color: #38bdf8; color: #38bdf8; }
-.boards-grid input { display: none; }
-.actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #334155; }
-.btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-.btn-primary { background: #0284c7; color: white; }
-.btn-primary:hover { background: #0369a1; }
-.btn-danger { background: #7f1d1d; color: #fca5a5; }
-.btn-danger:hover { background: #991b1b; }
-.btn-secondary { background: #334155; color: #e2e8f0; }
-.btn-secondary:hover { background: #475569; }
-.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; z-index: 100; }
-.toast.success { background: #064e3b; color: #6ee7b7; }
-.toast.error { background: #7f1d1d; color: #fca5a5; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+.header { background: var(--seeed-teal); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header h1 { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: 0.3px; }
+.header .divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+.header .subtitle { font-size: 13px; color: rgba(255,255,255,0.7); }
+.header .stats { font-size: 12px; color: rgba(255,255,255,0.6); }
+
+/* Layout */
+.container { display: flex; height: calc(100vh - 52px); }
+
+/* Sidebar */
+.sidebar { width: 320px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header .count { font-size: 13px; color: var(--text-secondary); }
+.sidebar-header .count span { color: var(--seeed-teal); font-weight: 600; }
+.btn { padding: 6px 14px; border: none; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.btn-green { background: var(--seeed-green); color: #fff; }
+.btn-green:hover { background: var(--seeed-green-dark); }
+.btn-outline { background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--seeed-green); color: var(--seeed-green-dark); }
+.btn-danger { background: var(--card); color: var(--danger); border: 1px solid var(--border); }
+.btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+.sidebar-list { flex: 1; overflow-y: auto; }
+.list-item { padding: 12px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+.list-item:hover { background: var(--seeed-teal-light); }
+.list-item.active { background: var(--seeed-green-light); border-left: 3px solid var(--seeed-green); padding-left: 17px; }
+.list-item .title { font-size: 13px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+.list-item .meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.severity { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+.severity.easy { background: #E6F4D8; color: #3D7A0D; }
+.severity.medium { background: #FFF3CD; color: #856404; }
+.severity.hard { background: #FFEBE9; color: #CF222E; }
+.list-item .cat { font-size: 11px; color: var(--text-secondary); }
+
+/* Main panel */
+.main { flex: 1; overflow-y: auto; padding: 28px 36px; }
+
+/* Empty state */
+.empty { text-align: center; padding: 80px 24px; }
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty h2 { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+.empty p { font-size: 14px; color: var(--text-secondary); }
+
+/* Form */
+#entryForm { max-width: 720px; }
+.form-section { margin-bottom: 28px; }
+.form-section-title { font-size: 13px; font-weight: 600; color: var(--seeed-teal); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+.form-group label .req { color: var(--danger); }
+.form-group input[type="text"], .form-group textarea, .form-group select {
+  width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border 0.15s;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--seeed-green); box-shadow: 0 0 0 2px var(--seeed-green-light); }
+.form-group textarea { min-height: 80px; resize: vertical; }
+.form-group textarea.code { min-height: 120px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; background: #0D1117; color: #E6EDF3; border-color: #30363D; }
+.form-group textarea.code:focus { border-color: var(--seeed-green); }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+
+/* Board chips */
+.boards-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.board-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 16px; cursor: pointer; transition: all 0.15s; user-select: none; color: var(--text-secondary); }
+.board-chip:hover { border-color: var(--seeed-green); }
+.board-chip.selected { background: var(--seeed-teal); color: #fff; border-color: var(--seeed-teal); }
+
+/* Tags */
+.tag-input { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; min-height: 38px; align-items: center; transition: border 0.15s; }
+.tag-input:focus-within { border-color: var(--seeed-green); box-shadow: 0 0 0 2px var(--seeed-green-light); }
+.tag { background: var(--seeed-teal-light); color: var(--seeed-teal); padding: 2px 8px; border-radius: 3px; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+.tag button { background: none; border: none; color: var(--seeed-teal); cursor: pointer; font-size: 14px; padding: 0; opacity: 0.6; }
+.tag button:hover { opacity: 1; }
+.tag-input input { flex: 1; min-width: 80px; background: none; border: none; color: var(--text); font-size: 13px; outline: none; padding: 2px; }
+
+/* Actions */
+.actions { display: flex; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.actions .btn { padding: 8px 20px; font-size: 14px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.toast.success { background: #1B5E20; color: #E8F5E9; }
+.toast.error { background: #B71C1C; color: #FFEBEE; }
 .toast.show { opacity: 1; }
-.empty { text-align: center; padding: 60px 24px; color: #64748b; }
-.empty h2 { margin-bottom: 8px; color: #94a3b8; }
-.tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; min-height: 42px; align-items: center; }
-.tag-input .tag { background: #0c4a6e; color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
-.tag-input .tag button { background: none; border: none; color: #38bdf8; cursor: pointer; font-size: 14px; padding: 0; }
-.tag-input input { flex: 1; min-width: 100px; background: none; border: none; color: #e2e8f0; font-size: 14px; outline: none; padding: 4px; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>XIAO Knowledge Editor</h1>
-  <div class="stats" id="stats">Loading...</div>
+  <div class="header-left">
+    <h1>SEEED STUDIO</h1>
+    <div class="divider"></div>
+    <div class="subtitle">XIAO Knowledge Editor</div>
+  </div>
+  <div class="stats" id="stats"></div>
 </div>
 
 <div class="container">
-  <div class="list-panel">
-    <div class="list-header">
-      <div>Entries: <span id="count">0</span></div>
-      <button class="btn btn-primary" style="padding:5px 12px;font-size:12px" onclick="newEntry()">+ New</button>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="count">Entries <span id="count">0</span></div>
+      <button class="btn btn-green" onclick="newEntry()">+ New</button>
     </div>
-    <div id="entryList"></div>
+    <div class="sidebar-list" id="entryList"></div>
   </div>
 
-  <div class="form-panel" id="formPanel">
+  <div class="main" id="formPanel">
     <div class="empty" id="emptyState">
+      <div class="empty-icon">&#x1F4D8;</div>
       <h2>Select or create an entry</h2>
-      <p>Click an entry on the left to view/edit, or click "+ New" to add one.</p>
+      <p>Pick an entry from the sidebar or click "+ New" to add one.</p>
     </div>
     <div id="entryForm" style="display:none">
-      <div class="form-group">
-        <label>Title *</label>
-        <input type="text" id="f_title" placeholder="e.g. ESP32C3 deep sleep GPIO hold issue">
-      </div>
 
-      <div class="inline-group">
+      <div class="form-section">
+        <div class="form-section-title">Basic Info</div>
         <div class="form-group">
-          <label>Category</label>
-          <select id="f_category">
-            <option value="power">Power / Low Power</option>
-            <option value="wifi">WiFi</option>
-            <option value="ble">Bluetooth / BLE</option>
-            <option value="usb">USB / Serial</option>
-            <option value="memory">Memory / PSRAM</option>
-            <option value="hardware">Hardware / Voltage</option>
-            <option value="display">Display</option>
-            <option value="i2c">I2C</option>
-            <option value="spi">SPI</option>
-            <option value="camera">Camera</option>
-            <option value="storage">Storage</option>
-            <option value="general">General</option>
-          </select>
+          <label>Title <span class="req">*</span></label>
+          <input type="text" id="f_title" placeholder="e.g. ESP32C3 deep sleep GPIO hold issue">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="f_category">
+              <option value="power">Power / Low Power</option>
+              <option value="wifi">WiFi</option>
+              <option value="ble">Bluetooth / BLE</option>
+              <option value="usb">USB / Serial</option>
+              <option value="memory">Memory / PSRAM</option>
+              <option value="hardware">Hardware / Voltage</option>
+              <option value="display">Display</option>
+              <option value="i2c">I2C</option>
+              <option value="spi">SPI</option>
+              <option value="camera">Camera</option>
+              <option value="storage">Storage</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Severity</label>
+            <select id="f_severity">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <select id="f_source">
+              <option value="support-ticket">Support Ticket</option>
+              <option value="internal-test">Internal Test</option>
+              <option value="community">Community</option>
+              <option value="wiki">Wiki</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
-          <label>Severity</label>
-          <select id="f_severity">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
+          <label>Boards</label>
+          <div class="boards-grid" id="boardsGrid"></div>
         </div>
         <div class="form-group">
-          <label>Source</label>
-          <select id="f_source">
-            <option value="support-ticket">Support Ticket</option>
-            <option value="internal-test">Internal Test</option>
-            <option value="community">Community</option>
-            <option value="wiki">Wiki</option>
-          </select>
+          <label>Tags</label>
+          <div class="tag-input" id="tagInput">
+            <input type="text" id="f_tag_text" placeholder="Type and press Enter">
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Boards</label>
-        <div class="boards-grid" id="boardsGrid"></div>
-      </div>
-
-      <div class="form-group">
-        <label>Tags</label>
-        <div class="tag-input" id="tagInput">
-          <input type="text" id="f_tag_text" placeholder="Type and press Enter to add tags">
+      <div class="form-section">
+        <div class="form-section-title">Problem & Solution</div>
+        <div class="form-group">
+          <label>Summary <span class="req">*</span></label>
+          <textarea id="f_summary" rows="2" placeholder="One-paragraph summary of the issue and fix"></textarea>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label>Summary *</label>
-        <textarea id="f_summary" placeholder="One-paragraph summary of the issue and fix"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Problem Description *</label>
-        <textarea id="f_problem" placeholder="What the customer reported or what went wrong"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Solution *</label>
-        <textarea id="f_solution" placeholder="How to fix it"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Code (optional)</label>
-        <textarea id="f_code" class="code" placeholder="// Working code example if applicable"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Workaround (optional)</label>
-        <textarea id="f_workaround" placeholder="Alternative approach if main solution doesn't apply"></textarea>
+        <div class="form-group">
+          <label>Problem Description <span class="req">*</span></label>
+          <textarea id="f_problem" rows="3" placeholder="What the customer reported or what went wrong"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Solution <span class="req">*</span></label>
+          <textarea id="f_solution" rows="3" placeholder="How to fix it"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Code (optional)</label>
+          <textarea id="f_code" class="code" rows="6" placeholder="// Working code example if applicable"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Workaround (optional)</label>
+          <textarea id="f_workaround" rows="2" placeholder="Alternative approach if main solution doesn't apply"></textarea>
+        </div>
       </div>
 
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveEntry()">Save</button>
-        <button class="btn btn-secondary" onclick="clearForm()">Cancel</button>
+        <button class="btn btn-green" onclick="saveEntry()">Save</button>
+        <button class="btn btn-outline" onclick="clearForm()">Cancel</button>
         <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteEntry()">Delete</button>
       </div>
     </div>
@@ -186,15 +241,15 @@ async function init() {
     renderBoards();
     updateStats();
   } catch (e) {
-    showToast('Failed to load data: ' + e.message, 'error');
+    showToast('Failed to load: ' + e.message, 'error');
   }
 }
 
 function updateStats() {
-  const hard = entries.filter(e => e.severity === 'hard').length;
-  const medium = entries.filter(e => e.severity === 'medium').length;
-  const easy = entries.filter(e => e.severity === 'easy').length;
-  document.getElementById('stats').textContent = `${entries.length} entries | Hard: ${hard}  Medium: ${medium}  Easy: ${easy}`;
+  const h = entries.filter(e => e.severity === 'hard').length;
+  const m = entries.filter(e => e.severity === 'medium').length;
+  const e2 = entries.filter(e => e.severity === 'easy').length;
+  document.getElementById('stats').textContent = `${entries.length} entries · Hard ${h} · Medium ${m} · Easy ${e2}`;
   document.getElementById('count').textContent = entries.length;
 }
 
@@ -205,8 +260,7 @@ function renderList() {
       <div class="title">${esc(e.title)}</div>
       <div class="meta">
         <span class="severity ${e.severity}">${e.severity}</span>
-        <span>${e.category}</span>
-        <span>${e.source}</span>
+        <span class="cat">${e.category}</span>
       </div>
     </div>
   `).join('');
@@ -215,8 +269,22 @@ function renderList() {
 function renderBoards() {
   const el = document.getElementById('boardsGrid');
   el.innerHTML = boards.map(b =>
-    `<label><input type="checkbox" value="${b}">${b}</label>`
+    `<div class="board-chip" data-board="${b}" onclick="toggleBoard(this)">${b}</div>`
   ).join('');
+}
+
+function toggleBoard(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedBoards() {
+  return Array.from(document.querySelectorAll('.board-chip.selected')).map(el => el.dataset.board);
+}
+
+function setSelectedBoards(selected) {
+  document.querySelectorAll('.board-chip').forEach(el => {
+    el.classList.toggle('selected', selected.includes(el.dataset.board));
+  });
 }
 
 function loadEntry(id) {
@@ -237,12 +305,7 @@ function loadEntry(id) {
   document.getElementById('f_code').value = e.code || '';
   document.getElementById('f_workaround').value = e.workaround || '';
 
-  // Boards
-  document.querySelectorAll('#boardsGrid input').forEach(cb => {
-    cb.checked = (e.boards || []).includes(cb.value);
-  });
-
-  // Tags
+  setSelectedBoards(e.boards || []);
   currentTags = [...(e.tags || [])];
   renderTags();
   renderList();
@@ -271,13 +334,9 @@ function clearFormFields() {
   document.getElementById('f_category').value = 'general';
   document.getElementById('f_severity').value = 'medium';
   document.getElementById('f_source').value = 'support-ticket';
-  document.querySelectorAll('#boardsGrid input').forEach(cb => cb.checked = false);
+  setSelectedBoards([]);
   currentTags = [];
   renderTags();
-}
-
-function getSelectedBoards() {
-  return Array.from(document.querySelectorAll('#boardsGrid input:checked')).map(cb => cb.value);
 }
 
 // Tags
@@ -339,7 +398,6 @@ async function saveEntry() {
 
   if (editingId) {
     entry.id = editingId;
-    // Delete old, then create new (simple approach)
     await fetch(`/api/knowledge/${editingId}`, { method: 'DELETE' });
   }
 
@@ -350,13 +408,9 @@ async function saveEntry() {
       body: JSON.stringify(entry),
     });
     const data = await res.json();
-    if (!res.ok) {
-      showToast(data.error || 'Save failed', 'error');
-      return;
-    }
+    if (!res.ok) { showToast(data.error || 'Save failed', 'error'); return; }
     showToast(`Saved to ${data.file} (id: ${data.id})`, 'success');
     editingId = data.id;
-    // Reload
     const kbRes = await fetch('/api/knowledge');
     entries = await kbRes.json();
     renderList();
@@ -367,9 +421,7 @@ async function saveEntry() {
 }
 
 async function deleteEntry() {
-  if (!editingId) return;
-  if (!confirm(`Delete "${editingId}"?`)) return;
-
+  if (!editingId || !confirm(`Delete "${editingId}"?`)) return;
   try {
     await fetch(`/api/knowledge/${editingId}`, { method: 'DELETE' });
     showToast('Deleted', 'success');
