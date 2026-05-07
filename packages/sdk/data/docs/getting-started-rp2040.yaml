@@ -1,0 +1,37 @@
+- id: getting-started-rp2040
+  title: "Getting Started with XIAO RP2040/RP2350"
+  content: |
+    # Getting Started with XIAO RP2040/RP2350
+
+    ## Prerequisites
+    - Arduino IDE 2.x or Thonny (for MicroPython)
+    - USB-C cable
+
+    ## Setup with Arduino IDE
+
+    1. **Install RP2040 Board Package:**
+       - Go to File > Preferences
+       - Add to "Additional Board Manager URLs":
+         `https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json`
+       - Go to Tools > Board > Boards Manager
+       - Search "rp2040" and install "Raspberry Pi Pico/RP2040"
+
+    2. **Select board:**
+       - Tools > Board > Raspberry Pi Pico/RP2040 > Seeed XIAO RP2040
+
+    ## Setup with MicroPython (Thonny)
+
+    1. Download and install [Thonny IDE](https://thonny.org/)
+    2. Connect XIAO RP2040 via USB while holding BOOT button
+    3. In Thonny: Tools > Options > Interpreter > MicroPython (Raspberry Pi Pico)
+    4. Click "Install MicroPython" to flash firmware
+
+    ## Setup with CircuitPython
+
+    1. Download CircuitPython UF2 from [circuitpython.org](https://circuitpython.org/board/seeeduino_xiao_rp2040/)
+    2. Hold BOOT button, connect USB, release BOOT
+    3. Drag the UF2 file to the RPI-RP2 drive that appears
+    4. After flashing, a CIRCUITPY drive appears
+  category: getting-started
+  boards: [rp2040, rp2350]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO-RP2040/

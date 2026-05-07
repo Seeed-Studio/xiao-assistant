@@ -1,0 +1,327 @@
+- id: spi-display-arduino
+  title: SSD1306 OLED Display
+  description: Display text and graphics on a 128x64 SSD1306 OLED via I2C
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [oled, ssd1306, i2c, display, graphics, text]
+  code: |
+    // SSD1306 OLED via I2C - XIAO
+    #include <Adafruit_GFX.h>
+    #include <Adafruit_SSD1306.h>
+
+    #define SCREEN_WIDTH 128
+    #define SCREEN_HEIGHT 64
+    #define OLED_RESET -1
+
+    // Using I2C (more common for SSD1306)
+    Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+    void setup() {
+      Serial.begin(115200);
+
+      if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        Serial.println("SSD1306 allocation failed");
+        while (1);
+      }
+
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(SSD1306_WHITE);
+      display.setCursor(10, 10);
+      display.println("XIAO");
+      display.setTextSize(1);
+      display.setCursor(10, 40);
+      display.println("Hello World!");
+      display.display();
+    }
+
+    void loop() {
+      // Nothing here
+    }
+  requirements: [Adafruit SSD1306, Adafruit GFX Library]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: st7789-tft-arduino
+  title: ST7789 TFT Display
+  description: Drive a color ST7789 TFT display over SPI with text and graphics
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [tft, st7789, spi, display, color, graphics, lcd]
+  code: |
+    // ST7789 TFT Display - XIAO
+    #include <Adafruit_GFX.h>
+    #include <Adafruit_ST7789.h>
+    #include <SPI.h>
+
+    #define TFT_CS    1     // Chip select
+    #define TFT_DC    3     // Data/Command
+    #define TFT_RST   2     // Reset
+    #define TFT_BL    4     // Backlight (optional)
+
+    Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+
+    void setup() {
+      Serial.begin(115200);
+
+      tft.init(240, 240);  // Initialize with 240x240 resolution
+      tft.setRotation(2);
+      tft.fillScreen(ST77XX_BLACK);
+
+      // Draw text
+      tft.setTextSize(2);
+      tft.setTextColor(ST77XX_WHITE);
+      tft.setCursor(20, 30);
+      tft.println("XIAO");
+
+      tft.setTextSize(1);
+      tft.setTextColor(ST77XX_GREEN);
+      tft.setCursor(20, 70);
+      tft.println("ST7789 TFT Display");
+
+      // Draw some shapes
+      tft.drawRect(10, 10, 220, 220, ST77XX_BLUE);
+      tft.fillCircle(120, 150, 30, ST77XX_RED);
+
+      Serial.println("Display initialized");
+    }
+
+    void loop() {
+      // Update display here
+      delay(1000);
+    }
+  requirements: [Adafruit ST7789 and GFX Library, Adafruit GFX Library]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: lcd1602-i2c-arduino
+  title: LCD1602 with I2C Backpack
+  description: Display text on a 16x2 character LCD using an I2C backpack
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [lcd, lcd1602, i2c, character, display, text, hd44780]
+  code: |
+    // LCD1602 with I2C Backpack - XIAO
+    #include <Wire.h>
+    #include <LiquidCrystal_I2C.h>
+
+    // I2C address is usually 0x27 or 0x3F
+    LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+    void setup() {
+      Serial.begin(115200);
+
+      lcd.init();
+      lcd.backlight();
+
+      // Display on line 1
+      lcd.setCursor(0, 0);
+      lcd.print("XIAO Board");
+      // Display on line 2
+      lcd.setCursor(0, 1);
+      lcd.print("Hello World!");
+
+      Serial.println("LCD1602 initialized");
+    }
+
+    void loop() {
+      // Scroll text demonstration
+      for (int i = 0; i < 13; i++) {
+        lcd.scrollDisplayLeft();
+        delay(300);
+      }
+      for (int i = 0; i < 26; i++) {
+        lcd.scrollDisplayRight();
+        delay(300);
+      }
+      for (int i = 0; i < 13; i++) {
+        lcd.scrollDisplayLeft();
+        delay(300);
+      }
+      delay(1000);
+    }
+  requirements: [LiquidCrystal I2C]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: epaper-arduino
+  title: E-Paper Display
+  description: Drive a 1.54-inch e-paper display with partial refresh support
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [epaper, eink, spi, display, low power, persistent, graphics]
+  code: |
+    // E-Paper Display (1.54 inch, 200x200) - XIAO
+    #include <GxEPD2_BW.h>
+    #include <Adafruit_GFX.h>
+    #include <SPI.h>
+
+    #define CS_PIN   1
+    #define DC_PIN   3
+    #define RST_PIN  2
+    #define BUSY_PIN 0
+
+    // 1.54 inch, 200x200, SSD1681 controller
+    GxEPD2_BW<GxEPD2_154_GDEY0154D67, GxEPD2_154_GDEY0154D67::HEIGHT>
+      display(GxEPD2_154_GDEY0154D67(CS_PIN, DC_PIN, RST_PIN, BUSY_PIN));
+
+    void setup() {
+      Serial.begin(115200);
+      display.init(115200, true, 2, false);
+
+      display.setRotation(1);
+      display.setFullWindow();
+
+      display.firstPage();
+      do {
+        display.fillScreen(GxEPD_WHITE);
+        display.setTextColor(GxEPD_BLACK);
+        display.setTextSize(2);
+        display.setCursor(30, 80);
+        display.print("XIAO");
+        display.setTextSize(1);
+        display.setCursor(30, 120);
+        display.print("E-Paper Display");
+      } while (display.nextPage());
+
+      Serial.println("E-Paper display initialized");
+      display.hibernate();  // Save power
+    }
+
+    void loop() {
+      // E-Paper retains the image even with no power
+      delay(10000);
+    }
+  requirements: [GxEPD2]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: oled-graph-arduino
+  title: OLED Real-Time Graph
+  description: Display a scrolling real-time data graph on an SSD1306 OLED
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [oled, ssd1306, graph, chart, real-time, data, visualization]
+  code: |
+    // OLED Real-Time Graph - XIAO
+    #include <Adafruit_GFX.h>
+    #include <Adafruit_SSD1306.h>
+    #include <Wire.h>
+
+    #define SCREEN_WIDTH 128
+    #define SCREEN_HEIGHT 64
+
+    Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+    int graphData[SCREEN_WIDTH];  // One data point per pixel column
+    int dataIndex = 0;
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        Serial.println("SSD1306 init failed");
+        while (1);
+      }
+
+      memset(graphData, 0, sizeof(graphData));
+      display.clearDisplay();
+      display.display();
+    }
+
+    void drawGraph() {
+      display.clearDisplay();
+
+      // Draw border
+      display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+
+      // Draw graph
+      for (int i = 1; i < SCREEN_WIDTH; i++) {
+        int prev = constrain(graphData[i - 1], 0, SCREEN_HEIGHT - 2);
+        int curr = constrain(graphData[i], 0, SCREEN_HEIGHT - 2);
+        display.drawLine(i - 1, SCREEN_HEIGHT - 1 - prev,
+                        i, SCREEN_HEIGHT - 1 - curr, SSD1306_WHITE);
+      }
+
+      // Show current value
+      display.setTextSize(1);
+      display.setCursor(2, 2);
+      display.printf("Val:%d", graphData[dataIndex]);
+
+      display.display();
+    }
+
+    void loop() {
+      // Simulate sensor data (replace with real sensor reading)
+      int value = random(10, 55);
+      graphData[dataIndex] = value;
+      dataIndex = (dataIndex + 1) % SCREEN_WIDTH;
+
+      drawGraph();
+      delay(100);
+    }
+  requirements: [Adafruit SSD1306, Adafruit GFX Library]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: tft-sprite-arduino
+  title: TFT Sprite Animation
+  description: Use sprites to create smooth animations on a TFT display
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: displays
+  tags: [tft, sprite, animation, graphics, display, motion, game]
+  code: |
+    // TFT Sprite Animation - XIAO
+    // Uses TFT_eSPI sprites for flicker-free animation
+    #include <TFT_eSPI.h>
+    #include <SPI.h>
+
+    TFT_eSPI tft = TFT_eSPI();
+    TFT_eSprite sprite = TFT_eSprite(&tft);
+
+    int ballX = 60, ballY = 60;
+    int velX = 2, velY = 1;
+    int ballRadius = 8;
+    int screenWidth = 240, screenHeight = 240;
+
+    void setup() {
+      Serial.begin(115200);
+      tft.init();
+      tft.setRotation(2);
+      tft.fillScreen(TFT_BLACK);
+
+      sprite.createSprite(screenWidth, screenHeight);
+    }
+
+    void loop() {
+      // Update ball position
+      ballX += velX;
+      ballY += velY;
+
+      // Bounce off walls
+      if (ballX <= ballRadius || ballX >= screenWidth - ballRadius) velX = -velX;
+      if (ballY <= ballRadius || ballY >= screenHeight - ballRadius) velY = -velY;
+
+      // Draw to sprite (offscreen buffer)
+      sprite.fillSprite(TFT_BLACK);
+
+      // Draw trail
+      for (int i = 3; i > 0; i--) {
+        int trailX = ballX - velX * i;
+        int trailY = ballY - velY * i;
+        uint16_t color = tft.color565(50 * i, 0, 100 * i);
+        sprite.fillCircle(trailX, trailY, ballRadius - i, color);
+      }
+
+      // Draw ball
+      sprite.fillCircle(ballX, ballY, ballRadius, TFT_GREEN);
+
+      // Push sprite to display
+      sprite.pushSprite(0, 0);
+
+      delay(20);
+    }
+  requirements: [TFT_eSPI]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/

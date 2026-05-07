@@ -1,0 +1,241 @@
+- id: ble-uart-arduino
+  title: BLE UART Service
+  description: Create a BLE UART service for bidirectional serial communication
+  language: arduino
+  boards: [nrf52840, nrf52840-sense, samd21, ra4m1]
+  category: communication
+  tags: [ble, bluetooth, uart, nordic, serial, nus, wireless]
+  code: |
+    // BLE UART Service - XIAO nRF52840
+    // For ESP32 series, use BLEDevice.h instead
+    #include <ArduinoBLE.h>
+
+    BLEService uartService("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+    BLEStringCharacteristic txChar("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLERead | BLENotify, 20);
+    BLEStringCharacteristic rxChar("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 20);
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!BLE.begin()) {
+        Serial.println("Starting BLE failed!");
+        while (1);
+      }
+
+      BLE.setLocalName("XIAO-BLE-UART");
+      BLE.setAdvertisedService(uartService);
+      uartService.addCharacteristic(txChar);
+      uartService.addCharacteristic(rxChar);
+      BLE.addService(uartService);
+
+      BLE.advertise();
+      Serial.println("BLE UART service active. Waiting for connection...");
+    }
+
+    void loop() {
+      BLEDevice central = BLE.central();
+
+      if (central) {
+        Serial.print("Connected to: ");
+        Serial.println(central.address());
+
+        while (central.connected()) {
+          if (rxChar.written()) {
+            String value = rxChar.value();
+            Serial.print("Received: ");
+            Serial.println(value);
+            txChar.writeValue("Echo: " + value);
+          }
+        }
+
+        Serial.println("Disconnected");
+      }
+    }
+  requirements: [ArduinoBLE]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/
+
+- id: ble-beacon-arduino
+  title: BLE iBeacon
+  description: Broadcast an iBeacon advertising packet for proximity detection
+  language: arduino
+  boards: [nrf52840, nrf52840-sense, samd21, ra4m1]
+  category: communication
+  tags: [ble, beacon, ibeacon, advertising, proximity, location]
+  code: |
+    // BLE iBeacon - XIAO nRF52840
+    #include <ArduinoBLE.h>
+
+    // iBeacon UUID (change to your own)
+    const char* beaconUUID = "E2C56DB5-DFFB-48D2-B060-D0F5A71096E0";
+    uint16_t major = 1;
+    uint16_t minor = 1;
+    int8_t txPower = -59;  // Measured TX power at 1 meter
+
+    BLEService beaconService("180A");  // Device Information Service
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!BLE.begin()) {
+        Serial.println("Starting BLE failed!");
+        while (1);
+      }
+
+      // Build iBeacon manufacturer data
+      uint8_t beaconData[25];
+      beaconData[0] = 0x02; beaconData[1] = 0x15;  // iBeacon prefix
+      // Parse UUID string into bytes
+      uint8_t uuid[16];
+      sscanf(beaconUUID, "%2hhx%2hhx%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",
+        &uuid[0], &uuid[1], &uuid[2], &uuid[3], &uuid[4], &uuid[5], &uuid[6], &uuid[7],
+        &uuid[8], &uuid[9], &uuid[10], &uuid[11], &uuid[12], &uuid[13], &uuid[14], &uuid[15]);
+      memcpy(&beaconData[2], uuid, 16);
+      beaconData[18] = major >> 8; beaconData[19] = major & 0xFF;
+      beaconData[20] = minor >> 8; beaconData[21] = minor & 0xFF;
+      beaconData[22] = txPower;
+
+      BLE.setManufacturerData(beaconData, 23);
+      BLE.setLocalName("XIAO-iBeacon");
+
+      BLE.advertise();
+      Serial.println("iBeacon advertising...");
+      Serial.printf("UUID: %s\nMajor: %d, Minor: %d\n", beaconUUID, major, minor);
+    }
+
+    void loop() {
+      // iBeacon just advertises; no connections needed
+      delay(1000);
+    }
+  requirements: [ArduinoBLE]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/
+
+- id: ble-sensor-advertise-arduino
+  title: BLE Sensor Advertise
+  description: Advertise sensor readings via BLE without requiring a connection
+  language: arduino
+  boards: [nrf52840, nrf52840-sense, samd21, ra4m1]
+  category: communication
+  tags: [ble, advertise, sensor, broadcast, temperature, connectionless]
+  code: |
+    // BLE Sensor Broadcast - XIAO nRF52840 Sense
+    // Advertise temperature and humidity without connection
+    #include <ArduinoBLE.h>
+
+    // Custom service UUID
+    BLEService sensorService("181A");  // Environmental Sensing
+    BLEFloatCharacteristic tempChar("2A6E", BLERead | BLENotify);
+    BLEFloatCharacteristic humidChar("2A6F", BLERead | BLENotify);
+
+    // Simulated sensor readings (replace with real sensors)
+    float readTemperature() { return 22.5 + random(-20, 20) / 10.0; }
+    float readHumidity() { return 55.0 + random(-100, 100) / 10.0; }
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!BLE.begin()) {
+        Serial.println("BLE init failed!");
+        while (1);
+      }
+
+      BLE.setLocalName("XIAO-Sensor");
+      BLE.setAdvertisedService(sensorService);
+      sensorService.addCharacteristic(tempChar);
+      sensorService.addCharacteristic(humidChar);
+      BLE.addService(sensorService);
+
+      BLE.advertise();
+      Serial.println("BLE sensor broadcast active");
+    }
+
+    void loop() {
+      float temp = readTemperature();
+      float humid = readHumidity();
+
+      tempChar.writeValue(temp);
+      humidChar.writeValue(humid);
+
+      Serial.printf("Broadcasting: %.1f C, %.1f %%\n", temp, humid);
+      delay(5000);
+    }
+  requirements: [ArduinoBLE]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/
+
+- id: ble-esp32-arduino
+  title: BLE Server (ESP32)
+  description: Create a BLE GATT server on ESP32 using the NimBLE stack
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [ble, bluetooth, esp32, nimble, gatt, server, low energy]
+  code: |
+    // BLE Server - XIAO ESP32 Series
+    // Uses ESP32 NimBLE stack (no extra library needed)
+    #include <BLEDevice.h>
+    #include <BLEServer.h>
+    #include <BLEUtils.h>
+    #include <BLE2902.h>
+
+    #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+    #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+
+    BLEServer* pServer = nullptr;
+    BLECharacteristic* pCharacteristic = nullptr;
+    bool deviceConnected = false;
+
+    class MyServerCallbacks : public BLEServerCallbacks {
+      void onConnect(BLEServer* pServer) {
+        deviceConnected = true;
+        Serial.println("Client connected");
+      }
+      void onDisconnect(BLEServer* pServer) {
+        deviceConnected = false;
+        Serial.println("Client disconnected");
+        pServer->getAdvertising()->start();
+      }
+    };
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      BLEDevice::init("XIAO-ESP32");
+      pServer = BLEDevice::createServer();
+      pServer->setCallbacks(new MyServerCallbacks());
+
+      BLEService* pService = pServer->createService(SERVICE_UUID);
+      pCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_UUID,
+        BLECharacteristic::PROPERTY_READ |
+        BLECharacteristic::PROPERTY_WRITE |
+        BLECharacteristic::PROPERTY_NOTIFY
+      );
+      pCharacteristic->addDescriptor(new BLE2902());
+      pCharacteristic->setValue("Hello from XIAO");
+
+      pService->start();
+      BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
+      pAdvertising->addServiceUUID(SERVICE_UUID);
+      pAdvertising->start();
+
+      Serial.println("BLE server advertising...");
+    }
+
+    void loop() {
+      if (deviceConnected) {
+        static unsigned long lastUpdate = 0;
+        if (millis() - lastUpdate > 2000) {
+          lastUpdate = millis();
+          String value = "Time: " + String(millis() / 1000) + "s";
+          pCharacteristic->setValue(value.c_str());
+          pCharacteristic->notify();
+          Serial.println("Sent: " + value);
+        }
+      }
+      delay(10);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

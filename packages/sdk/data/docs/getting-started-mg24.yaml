@@ -1,0 +1,26 @@
+- id: getting-started-mg24
+  title: "Getting Started with XIAO MG24"
+  content: |
+    # Getting Started with XIAO MG24
+
+    ## Prerequisites
+    - Arduino IDE 2.x
+    - USB-C cable
+
+    ## Setup Arduino IDE
+
+    1. **Install Silicon Labs Board Package:**
+       - Go to Tools > Board > Boards Manager
+       - Search "silabs" and install
+
+    2. **Select board:**
+       - Tools > Board > Seeeduino XIAO MG24
+
+    ## Key Features
+    - Silicon Labs EFR32MG24 (ARM Cortex-M33)
+    - Matter, OpenThread, Zigbee, Bluetooth 5.3
+    - Ultra-low power: 1.95μA deep sleep
+    - Ideal for smart home applications
+  category: getting-started
+  boards: [mg24, mg24-sense]
+  wikiUrl: https://wiki.seeedstudio.com/xiao_mg24_getting_started/

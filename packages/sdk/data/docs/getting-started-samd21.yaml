@@ -1,0 +1,29 @@
+- id: getting-started-samd21
+  title: "Getting Started with XIAO SAMD21"
+  content: |
+    # Getting Started with XIAO SAMD21
+
+    ## Prerequisites
+    - Arduino IDE 2.x
+    - USB-C cable
+
+    ## Setup Arduino IDE
+
+    1. **Install SAMD Board Package:**
+       - Go to Tools > Board > Boards Manager
+       - Search "samd" and install "Arduino SAMD Boards (32-bits ARM Cortex-M0+)"
+
+    2. **Select board:**
+       - Tools > Board > Arduino SAMD Boards > Seeeduino XIAO
+
+    3. **Select port:**
+       - Tools > Port > select the COM port
+
+    ## Notes
+    - The SAMD21 is the original XIAO board - simple and reliable
+    - No onboard WiFi or Bluetooth
+    - No battery charging circuit
+    - Great for learning Arduino basics
+  category: getting-started
+  boards: [samd21]
+  wikiUrl: https://wiki.seeedstudio.com/Seeeduino-XIAO/

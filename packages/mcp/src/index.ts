@@ -8,14 +8,14 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { XIAOAssistant, type XIAOBoard, type XIAOExample } from '@seeedstudio/xiao-sdk';
+import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult } from '@seeedstudio/xiao-sdk';
 
 const assistant = new XIAOAssistant();
 
 const server = new Server(
   {
     name: 'xiao-assistant',
-    version: '0.1.0',
+    version: '0.2.0',
   },
   {
     capabilities: {
@@ -94,7 +94,7 @@ IMPORTANT: Always call this before get_board_info unless the user provides an ex
       title: 'Search XIAO Code Examples',
       description: `Search for code examples for XIAO development. Returns matching examples with full source code, compatible boards, and required libraries.
 
-Examples cover: LED blink, WiFi, Bluetooth, I2C, SPI, sensors, deep sleep, MQTT, camera, PWM, displays, and more.
+Examples cover: LED blink, WiFi, Bluetooth, I2C, SPI, sensors, deep sleep, MQTT, camera, PWM, displays, motors, audio, storage, and more.
 
 Each result includes the complete source code ready to use.`,
       inputSchema: {
@@ -141,6 +141,46 @@ Each result includes the complete source code ready to use.`,
           },
         },
         required: ['board'],
+      },
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: 'troubleshoot',
+      title: 'Troubleshoot XIAO Issues',
+      description: `Diagnose and fix common XIAO problems. Describe the symptoms you are experiencing and optionally specify which board you are using.
+
+Covers: boot mode failures, USB driver issues, upload timeouts, WiFi problems, serial output issues, power/brownout, I2C detection, camera init, display issues, BLE connection drops, and more.
+
+Returns diagnosis steps and solutions.`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          symptoms: {
+            type: 'string',
+            description: 'Description of the problem (e.g. "upload fails", "no serial port", "WiFi not connecting", "board not detected")',
+          },
+          board: {
+            type: 'string',
+            description: 'Optional board ID to narrow down solutions',
+          },
+        },
+        required: ['symptoms'],
+      },
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: 'search_wiki',
+      title: 'Search XIAO Wiki',
+      description: `Search wiki.seeedstudio.com for XIAO documentation. Use this when local examples and docs do not cover the user query, or for the latest documentation.`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          query: {
+            type: 'string',
+            description: 'Search query for the XIAO wiki',
+          },
+        },
+        required: ['query'],
       },
       annotations: { readOnlyHint: true },
     },
@@ -250,6 +290,66 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         return {
           content: [{ type: 'text', text: doc.content }],
+        };
+      }
+
+      case 'troubleshoot': {
+        const symptoms = args.symptoms as string;
+        const board = args.board as string | undefined;
+        const entries = assistant.troubleshoot(symptoms, board);
+
+        if (entries.length === 0) {
+          // Fallback to wiki search
+          const wikiResults = await assistant.searchWikiOnline(symptoms);
+          if (wikiResults.length > 0) {
+            return {
+              content: [{
+                type: 'text',
+                text: `No local troubleshooting entries found for "${symptoms}". Here are relevant wiki results:\n\n` +
+                  wikiResults.map((r: WikiSearchResult) =>
+                    `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`
+                  ).join('\n\n'),
+              }],
+            };
+          }
+          return {
+            content: [{ type: 'text', text: `No troubleshooting entries found for "${symptoms}". Try describing the issue differently, or search the wiki with search_wiki.` }],
+          };
+        }
+
+        return {
+          content: [{
+            type: 'text',
+            text: entries.map((e: XIAOTroubleshootEntry) =>
+              `## ${e.title}\n\n` +
+              `**Category**: ${e.category}\n` +
+              `**Applies to**: ${e.boards.join(', ')}\n\n` +
+              `### Diagnosis\n${e.diagnosis.map((d: string) => `- ${d}`).join('\n')}\n\n` +
+              `### Solutions\n${e.solutions.map((s: string) => `- ${s}`).join('\n')}` +
+              (e.wikiUrl ? `\n\n📖 [More info](${e.wikiUrl})` : '')
+            ).join('\n\n---\n\n'),
+          }],
+        };
+      }
+
+      case 'search_wiki': {
+        const query = args.query as string;
+        const results = await assistant.searchWikiOnline(query);
+
+        if (results.length === 0) {
+          return {
+            content: [{ type: 'text', text: `No wiki results found for "${query}".` }],
+          };
+        }
+
+        return {
+          content: [{
+            type: 'text',
+            text: `# Wiki Results for "${query}"\n\n` +
+              results.map((r: WikiSearchResult) =>
+                `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`
+              ).join('\n\n'),
+          }],
         };
       }
 

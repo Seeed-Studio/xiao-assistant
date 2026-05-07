@@ -37,6 +37,7 @@ export interface XIAOExample {
   language: 'arduino' | 'micropython' | 'circuitpython';
   boards: string[];
   category: string;
+  tags?: string[];
   code: string;
   requirements?: string[];
   wikiUrl?: string;
@@ -48,5 +49,22 @@ export interface XIAODocument {
   content: string;
   category: string;
   boards: string[];
+  wikiUrl?: string;
+}
+
+export interface WikiSearchResult {
+  title: string;
+  snippet: string;
+  url: string;
+}
+
+export interface XIAOTroubleshootEntry {
+  id: string;
+  title: string;
+  symptoms: string[];
+  boards: string[];
+  category: string;
+  diagnosis: string[];
+  solutions: string[];
   wikiUrl?: string;
 }

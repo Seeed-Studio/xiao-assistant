@@ -1,0 +1,313 @@
+- id: camera-capture-arduino
+  title: Camera Capture
+  description: Capture JPEG images from the onboard camera on XIAO ESP32S3 Sense
+  language: arduino
+  boards: [esp32s3-sense]
+  category: camera
+  tags: [camera, image, capture, jpeg, esp32s3, sense, ov2640]
+  code: |
+    // Camera Capture - XIAO ESP32S3 Sense
+    #include <camera_pins.h>
+    #include "esp_camera.h"
+
+    #define PWDN_GPIO_NUM     -1
+    #define RESET_GPIO_NUM    -1
+    #define XCLK_GPIO_NUM     10
+    #define SIOD_GPIO_NUM     40
+    #define SIOC_GPIO_NUM     39
+    #define Y9_GPIO_NUM       15
+    #define Y8_GPIO_NUM       16
+    #define Y7_GPIO_NUM       18
+    #define Y6_GPIO_NUM       12
+    #define Y5_GPIO_NUM       17
+    #define Y4_GPIO_NUM       23
+    #define Y3_GPIO_NUM       4
+    #define Y2_GPIO_NUM       5
+    #define VSYNC_GPIO_NUM    6
+    #define HREF_GPIO_NUM     7
+    #define PCLK_GPIO_NUM     13
+
+    void setup() {
+      Serial.begin(115200);
+
+      camera_config_t config;
+      config.ledc_channel = LEDC_CHANNEL_0;
+      config.ledc_timer = LEDC_TIMER_0;
+      config.pin_d0 = Y2_GPIO_NUM;
+      config.pin_d1 = Y3_GPIO_NUM;
+      config.pin_d2 = Y4_GPIO_NUM;
+      config.pin_d3 = Y5_GPIO_NUM;
+      config.pin_d4 = Y6_GPIO_NUM;
+      config.pin_d5 = Y7_GPIO_NUM;
+      config.pin_d6 = Y8_GPIO_NUM;
+      config.pin_d7 = Y9_GPIO_NUM;
+      config.pin_xclk = XCLK_GPIO_NUM;
+      config.pin_pclk = PCLK_GPIO_NUM;
+      config.pin_vsync = VSYNC_GPIO_NUM;
+      config.pin_href = HREF_GPIO_NUM;
+      config.pin_sccb_sda = SIOD_GPIO_NUM;
+      config.pin_sccb_scl = SIOC_GPIO_NUM;
+      config.pin_pwdn = PWDN_GPIO_NUM;
+      config.pin_reset = RESET_GPIO_NUM;
+      config.xclk_freq_hz = 20000000;
+      config.pixel_format = PIXFORMAT_JPEG;
+      config.frame_size = FRAMESIZE_UXGA;
+      config.jpeg_quality = 12;
+      config.fb_count = 2;
+
+      esp_err_t err = esp_camera_init(&config);
+      if (err != ESP_OK) {
+        Serial.printf("Camera init failed with error 0x%x", err);
+        return;
+      }
+      Serial.println("Camera initialized successfully!");
+    }
+
+    void loop() {
+      camera_fb_t *fb = esp_camera_fb_get();
+      if (!fb) {
+        Serial.println("Camera capture failed");
+        return;
+      }
+      Serial.printf("Image captured! Size: %u bytes\n", fb->len);
+      esp_camera_fb_return(fb);
+      delay(5000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/
+
+- id: camera-stream-http-arduino
+  title: Camera HTTP Stream
+  description: Stream live video from the camera over HTTP as an MJPEG stream
+  language: arduino
+  boards: [esp32s3-sense]
+  category: camera
+  tags: [camera, stream, http, mjpeg, video, live, esp32s3, sense]
+  code: |
+    // Camera HTTP Stream - XIAO ESP32S3 Sense
+    // Streams MJPEG video over HTTP
+    #include <WiFi.h>
+    #include <WebServer.h>
+    #include "esp_camera.h"
+    #include <camera_pins.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+
+    WebServer server(80);
+
+    // Camera pin definitions (XIAO ESP32S3 Sense)
+    #define PWDN_GPIO_NUM  -1
+    #define RESET_GPIO_NUM -1
+    #define XCLK_GPIO_NUM  10
+    #define SIOD_GPIO_NUM  40
+    #define SIOC_GPIO_NUM  39
+    #define Y9_GPIO_NUM    15
+    #define Y8_GPIO_NUM    16
+    #define Y7_GPIO_NUM    18
+    #define Y6_GPIO_NUM    12
+    #define Y5_GPIO_NUM    17
+    #define Y4_GPIO_NUM    23
+    #define Y3_GPIO_NUM    4
+    #define Y2_GPIO_NUM    5
+    #define VSYNC_GPIO_NUM 6
+    #define HREF_GPIO_NUM  7
+    #define PCLK_GPIO_NUM  13
+
+    void handleStream() {
+      WiFiClient client = server.client();
+      String header = "HTTP/1.1 200 OK\r\n"
+                      "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
+                      "Access-Control-Allow-Origin: *\r\n\r\n";
+      client.print(header);
+
+      while (client.connected()) {
+        camera_fb_t *fb = esp_camera_fb_get();
+        if (!fb) break;
+
+        client.printf("--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", fb->len);
+        client.write(fb->buf, fb->len);
+        client.print("\r\n");
+        esp_camera_fb_return(fb);
+        delay(30);  // ~30 fps max
+      }
+    }
+
+    void handleRoot() {
+      String html = "<html><body><h1>XIAO Camera Stream</h1>"
+                    "<img src='/stream' style='max-width:100%'></body></html>";
+      server.send(200, "text/html", html);
+    }
+
+    bool initCamera() {
+      camera_config_t config;
+      config.ledc_channel = LEDC_CHANNEL_0;
+      config.ledc_timer = LEDC_TIMER_0;
+      config.pin_d0 = Y2_GPIO_NUM;
+      config.pin_d1 = Y3_GPIO_NUM;
+      config.pin_d2 = Y4_GPIO_NUM;
+      config.pin_d3 = Y5_GPIO_NUM;
+      config.pin_d4 = Y6_GPIO_NUM;
+      config.pin_d5 = Y7_GPIO_NUM;
+      config.pin_d6 = Y8_GPIO_NUM;
+      config.pin_d7 = Y9_GPIO_NUM;
+      config.pin_xclk = XCLK_GPIO_NUM;
+      config.pin_pclk = PCLK_GPIO_NUM;
+      config.pin_vsync = VSYNC_GPIO_NUM;
+      config.pin_href = HREF_GPIO_NUM;
+      config.pin_sccb_sda = SIOD_GPIO_NUM;
+      config.pin_sccb_scl = SIOC_GPIO_NUM;
+      config.pin_pwdn = PWDN_GPIO_NUM;
+      config.pin_reset = RESET_GPIO_NUM;
+      config.xclk_freq_hz = 20000000;
+      config.pixel_format = PIXFORMAT_JPEG;
+      config.frame_size = FRAMESIZE_VGA;
+      config.jpeg_quality = 12;
+      config.fb_count = 2;
+      return esp_camera_init(&config) == ESP_OK;
+    }
+
+    void setup() {
+      Serial.begin(115200);
+
+      if (!initCamera()) {
+        Serial.println("Camera init failed!");
+        while (1);
+      }
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+
+      server.on("/", handleRoot);
+      server.on("/stream", HTTP_GET, handleStream);
+      server.begin();
+
+      Serial.printf("Stream at: http://%s/stream\n", WiFi.localIP().toString().c_str());
+    }
+
+    void loop() {
+      server.handleClient();
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/
+
+- id: camera-timelapse-arduino
+  title: Camera Timelapse
+  description: Capture images at regular intervals and save timestamps for timelapse
+  language: arduino
+  boards: [esp32s3-sense]
+  category: camera
+  tags: [camera, timelapse, interval, capture, scheduled, photography]
+  code: |
+    // Camera Timelapse - XIAO ESP32S3 Sense
+    // Captures images at regular intervals with SD card storage
+    #include "esp_camera.h"
+    #include <camera_pins.h>
+    #include <SD.h>
+    #include <SPI.h>
+
+    #define CAPTURE_INTERVAL_MS 10000  // Capture every 10 seconds
+    #define SD_CS_PIN 2
+
+    // Camera pin definitions (XIAO ESP32S3 Sense)
+    #define PWDN_GPIO_NUM  -1
+    #define RESET_GPIO_NUM -1
+    #define XCLK_GPIO_NUM  10
+    #define SIOD_GPIO_NUM  40
+    #define SIOC_GPIO_NUM  39
+    #define Y9_GPIO_NUM    15
+    #define Y8_GPIO_NUM    16
+    #define Y7_GPIO_NUM    18
+    #define Y6_GPIO_NUM    12
+    #define Y5_GPIO_NUM    17
+    #define Y4_GPIO_NUM    23
+    #define Y3_GPIO_NUM    4
+    #define Y2_GPIO_NUM    5
+    #define VSYNC_GPIO_NUM 6
+    #define HREF_GPIO_NUM  7
+    #define PCLK_GPIO_NUM  13
+
+    unsigned long captureCount = 0;
+
+    bool initCamera() {
+      camera_config_t config;
+      config.ledc_channel = LEDC_CHANNEL_0;
+      config.ledc_timer = LEDC_TIMER_0;
+      config.pin_d0 = Y2_GPIO_NUM;
+      config.pin_d1 = Y3_GPIO_NUM;
+      config.pin_d2 = Y4_GPIO_NUM;
+      config.pin_d3 = Y5_GPIO_NUM;
+      config.pin_d4 = Y6_GPIO_NUM;
+      config.pin_d5 = Y7_GPIO_NUM;
+      config.pin_d6 = Y8_GPIO_NUM;
+      config.pin_d7 = Y9_GPIO_NUM;
+      config.pin_xclk = XCLK_GPIO_NUM;
+      config.pin_pclk = PCLK_GPIO_NUM;
+      config.pin_vsync = VSYNC_GPIO_NUM;
+      config.pin_href = HREF_GPIO_NUM;
+      config.pin_sccb_sda = SIOD_GPIO_NUM;
+      config.pin_sccb_scl = SIOC_GPIO_NUM;
+      config.pin_pwdn = PWDN_GPIO_NUM;
+      config.pin_reset = RESET_GPIO_NUM;
+      config.xclk_freq_hz = 20000000;
+      config.pixel_format = PIXFORMAT_JPEG;
+      config.frame_size = FRAMESIZE_SVGA;
+      config.jpeg_quality = 10;
+      config.fb_count = 2;
+      return esp_camera_init(&config) == ESP_OK;
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!initCamera()) {
+        Serial.println("Camera init failed!");
+        while (1);
+      }
+      Serial.println("Camera ready");
+
+      if (!SD.begin(SD_CS_PIN)) {
+        Serial.println("SD card mount failed! Running in serial-only mode.");
+      } else {
+        Serial.printf("SD card ready. Capacity: %llu bytes\n", SD.cardSize());
+      }
+
+      // Create directory for this session
+      String dir = "/timelapse_" + String(millis());
+      SD.mkdir(dir.c_str());
+      Serial.printf("Saving to: %s\n", dir.c_str());
+    }
+
+    void loop() {
+      static unsigned long lastCapture = 0;
+
+      if (millis() - lastCapture >= CAPTURE_INTERVAL_MS) {
+        lastCapture = millis();
+        captureCount++;
+
+        camera_fb_t *fb = esp_camera_fb_get();
+        if (!fb) {
+          Serial.println("Capture failed");
+          return;
+        }
+
+        // Save to SD card
+        String filename = "/timelapse_" + String(millis() / 1000) + ".jpg";
+        File file = SD.open(filename.c_str(), FILE_WRITE);
+        if (file) {
+          file.write(fb->buf, fb->len);
+          file.close();
+          Serial.printf("[%lu] Saved %s (%u bytes)\n",
+            captureCount, filename.c_str(), fb->len);
+        } else {
+          Serial.printf("[%lu] SD write failed, image size: %u bytes\n",
+            captureCount, fb->len);
+        }
+
+        esp_camera_fb_return(fb);
+      }
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/

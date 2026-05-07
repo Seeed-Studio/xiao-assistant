@@ -1,0 +1,170 @@
+- id: boot-mode-failure
+  title: "Cannot Enter Boot/Download Mode"
+  symptoms: ["upload fails", "board not detected", "connecting timeout", "no serial port", "cannot flash"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense, nrf54l15, nrf54l15-sense]
+  category: boot
+  diagnosis:
+    - "Check if the BOOT button is held during USB connection"
+    - "Verify USB cable supports data (not charge-only)"
+    - "Try a different USB port or cable"
+    - "Check if another program is using the serial port"
+  solutions:
+    - "ESP32 series: Hold BOOT button, connect USB, release BOOT when 'Connecting...' appears in Arduino IDE"
+    - "RP2040/RP2350: Hold BOOT, press RESET, release BOOT (appears as RPI-RP2 drive)"
+    - "nRF52840: Double-click RESET button to enter bootloader mode"
+    - "Install USB drivers: CP210x for ESP32, CH340 for some clones"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: usb-driver-issues
+  title: "USB Driver Not Recognized"
+  symptoms: ["no serial port", "device descriptor failed", "unknown device", "driver error"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  category: usb
+  diagnosis:
+    - "Open Device Manager (Windows) and check for unknown devices"
+    - "Check if the board appears as a COM port"
+    - "Try a different USB cable (must support data, not just charging)"
+  solutions:
+    - "Install CP210x USB driver for ESP32 series: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers"
+    - "Install CH340 driver for clone boards: https://www.wch-ic.com/downloads/CH341SER_EXE.html"
+    - "On Linux: Add user to dialout group: sudo usermod -a -G dialout $USER"
+    - "On macOS: No driver needed for most boards, try different USB-C cable"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: upload-timeout
+  title: "Upload Timeout / Connection Failed"
+  symptoms: ["upload timeout", "connection failed", "espcomm_open", "failed to connect", "sync failed"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: upload
+  diagnosis:
+    - "Check baud rate setting (try 115200)"
+    - "Verify correct board is selected in Arduino IDE"
+    - "Check if BOOT button was held during connection"
+  solutions:
+    - "Hold BOOT button, click Upload, release BOOT when 'Connecting...' appears"
+    - "Set upload speed to 115200: Tools > Upload Speed > 115200"
+    - "Try erasing flash first: Tools > Erase All Flash Before Sketch Upload > Enabled"
+    - "Use esptool.py directly: esptool.py --port /dev/ttyUSB0 erase_flash"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: wifi-not-connecting
+  title: "WiFi Not Connecting"
+  symptoms: ["wifi not connecting", "wifi fail", "no wifi", "connection refused", "wl_connected failed"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: wifi
+  diagnosis:
+    - "Verify SSID and password are correct"
+    - "Check if router uses 2.4GHz (ESP32 does NOT support 5GHz)"
+    - "Check WiFi signal strength"
+    - "Verify router is not blocking the device MAC address"
+  solutions:
+    - "Use 2.4GHz network only (not 5GHz)"
+    - "Check for special characters in SSID/password"
+    - "Add delay after WiFi.begin() before checking status"
+    - "Try WiFi.begin(ssid, password) with explicit channel: WiFi.begin(ssid, password, channel)"
+    - "Reset network settings: WiFi.disconnect(true); delay(1000);"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: serial-no-output
+  title: "No Serial Output"
+  symptoms: ["no serial output", "blank serial monitor", "serial not working", "no data in monitor"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: serial
+  diagnosis:
+    - "Check baud rate matches Serial.begin() value in code"
+    - "Verify correct COM port is selected"
+    - "Check if Serial.begin() is called in setup()"
+    - "For ESP32C3: Serial may need while(!Serial) delay"
+  solutions:
+    - "Set baud rate to 115200 (must match Serial.begin() value)"
+    - "Add while(!Serial) { delay(10); } after Serial.begin() for USB CDC boards"
+    - "For ESP32: Use Serial.begin(115200) and ensure USB CDC is enabled"
+    - "Close other serial monitor instances (port can only be used by one program)"
+    - "Try pressing the RESET button after opening serial monitor"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: power-brownout
+  title: "Board Resets Unexpectedly / Brown-out"
+  symptoms: ["random reset", "brown out", "keeps restarting", "crash", "wdt reset", "unstable"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  category: power
+  diagnosis:
+    - "Check USB cable quality (thin cables cause voltage drops)"
+    - "Check if too many peripherals are connected"
+    - "Monitor serial output for brown-out detector messages"
+  solutions:
+    - "Use a shorter, higher-quality USB cable"
+    - "Power peripherals from a separate power supply, not the XIAO's 3.3V pin"
+    - "Add a 100μF capacitor between 3.3V and GND near the board"
+    - "For ESP32: Disable brown-out detector (not recommended for production)"
+    - "Reduce WiFi TX power: WiFi.setTxPower(WIFI_POWER_8_5dBm)"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: i2c-device-not-found
+  title: "I2C Device Not Detected"
+  symptoms: ["i2c not found", "wire scan empty", "device not responding", "i2c error"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: i2c
+  diagnosis:
+    - "Run I2C scanner sketch to verify device address"
+    - "Check wiring: SDA to SDA, SCL to SCL"
+    - "Verify pull-up resistors are present (most modules have them)"
+    - "Check if device is powered (3.3V for XIAO)"
+  solutions:
+    - "Verify correct I2C pins: ESP32C3 SDA=GPIO6/SCL=GPIO7, RP2040 SDA=GPIO6/SCL=GPIO7, nRF52840 SDA=GPIO4/SCL=GPIO5"
+    - "Add external 4.7kΩ pull-up resistors on SDA and SCL lines"
+    - "Try lower I2C speed: Wire.setClock(100000)"
+    - "Ensure all devices share a common ground"
+    - "Check I2C address (0x3C for most OLEDs, 0x76/0x77 for BME280)"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: camera-init-failed
+  title: "Camera Initialization Failed"
+  symptoms: ["camera init failed", "camera error", "frame buffer error", "camera not detected"]
+  boards: [esp32s3-sense]
+  category: camera
+  diagnosis:
+    - "Check error code in serial output (0x20001 = no camera detected)"
+    - "Verify camera ribbon cable is properly seated"
+    - "Check if camera module is damaged"
+  solutions:
+    - "Re-seat the camera ribbon cable (press firmly until it clicks)"
+    - "Verify camera pins match XIAO ESP32S3 Sense configuration"
+    - "Try lower resolution: config.frame_size = FRAMESIZE_VGA"
+    - "Ensure sufficient power supply (camera draws significant current)"
+    - "Update ESP32 board package to latest version"
+  wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
+
+- id: display-not-working
+  title: "Display Not Showing Anything"
+  symptoms: ["oled blank", "display not working", "screen black", "no display", "ssd1306 fail"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21]
+  category: display
+  diagnosis:
+    - "Run I2C scanner to check if display is detected"
+    - "Verify I2C address (0x3C or 0x3D for SSD1306)"
+    - "Check wiring connections"
+  solutions:
+    - "Verify I2C address: try both 0x3C and 0x3D"
+    - "Check SDA/SCL pin assignments for your board"
+    - "Ensure display is powered (3.3V or 5V depending on module)"
+    - "Add pull-up resistors if I2C bus is unstable"
+    - "For SSD1306: Try display.begin(SSD1306_SWITCHCAPVCC, 0x3C) with correct address"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/
+
+- id: ble-connection-drops
+  title: "BLE Connection Drops / Unstable"
+  symptoms: ["ble disconnect", "ble unstable", "bluetooth drops", "ble timeout"]
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, nrf52840, nrf52840-sense, mg24, mg24-sense]
+  category: ble
+  diagnosis:
+    - "Check signal strength (RSSI)"
+    - "Verify BLE library version matches board"
+    - "Check if too many BLE connections are active"
+  solutions:
+    - "Keep BLE devices within 10 meters without obstacles"
+    - "For nRF52840: Use ArduinoBLE library (not Adafruit BLE)"
+    - "For ESP32: Use ESP32 BLE Arduino library"
+    - "Increase connection interval: BLE.setConnectionInterval(0x06, 0x12)"
+    - "Avoid WiFi and BLE simultaneous use on ESP32 (shared radio)"
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_BLE/

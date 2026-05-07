@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "JavaScript/TypeScript SDK for XIAO Assistant",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && cp -r data dist/data",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
@@ -38,8 +38,12 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "data"
   ],
+  "dependencies": {
+    "yaml": "^2.7.1"
+  },
   "devDependencies": {
     "@types/node": "^25.0.3",
     "tsup": "^8.4.0",

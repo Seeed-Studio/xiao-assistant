@@ -1,0 +1,34 @@
+- id: esp32c6
+  name: XIAO ESP32C6
+  fullName: Seeed Studio XIAO ESP32C6
+  microcontroller: ESP32-C6
+  architecture: "RISC-V (dual-core: high-performance 160MHz + low-power 20MHz)"
+  clockSpeed: 160 MHz
+  flashSize: 4MB
+  ramSize: 512KB SRAM
+  onboardFlash: "N/A"
+  pins:
+    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    analog: [0, 1, 2, 3, 4, 5, 6]
+    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    i2c:
+      - sda: 5
+        scl: 6
+    spi:
+      - mosi: 9
+        miso: 8
+        sck: 10
+        cs: 3
+    uart:
+      - tx: 21
+        rx: 20
+  features: [USB-C, Battery charging, Boot button, Reset button, User LED]
+  connectivity: ["WiFi 6 (802.11 ax)", "Bluetooth 5 (LE)", Zigbee, "Thread (Matter)"]
+  builtinSensors: []
+  supportedLanguages: [arduino, micropython, platformio, zephyr]
+  lowPowerMode: "15μA (deep sleep)"
+  hasResetButton: true
+  hasBootButton: true
+  hasBatteryCharging: true
+  wikiUrl: https://wiki.seeedstudio.com/xiao_esp32c6_getting_started/
+  sku: "113991254"

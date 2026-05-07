@@ -1,0 +1,191 @@
+- id: rest-client-get-arduino
+  title: REST API GET Request
+  description: Make a GET request to a REST API and parse the JSON response
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [http, rest, api, json, get, client, web request]
+  code: |
+    // REST API GET Request - XIAO ESP32 Series
+    #include <WiFi.h>
+    #include <HTTPClient.h>
+    #include <ArduinoJson.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+    }
+
+    void fetchWeather() {
+      HTTPClient http;
+      http.begin("https://api.open-meteo.com/v1/forecast?latitude=22.5&longitude=114.0&current_weather=true");
+      http.setTimeout(10000);
+
+      int httpCode = http.GET();
+      if (httpCode == 200) {
+        String payload = http.getString();
+
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (!error) {
+          float temp = doc["current_weather"]["temperature"];
+          float wind = doc["current_weather"]["windspeed"];
+          Serial.printf("Temperature: %.1f C\n", temp);
+          Serial.printf("Wind Speed: %.1f km/h\n", wind);
+        } else {
+          Serial.printf("JSON parse error: %s\n", error.c_str());
+        }
+      } else {
+        Serial.printf("HTTP error: %d\n", httpCode);
+      }
+      http.end();
+    }
+
+    void loop() {
+      if (WiFi.status() == WL_CONNECTED) {
+        fetchWeather();
+      }
+      delay(60000);
+    }
+  requirements: [ArduinoJson]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: webhook-post-arduino
+  title: Webhook POST
+  description: Send a POST request with JSON payload to a webhook endpoint
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [http, post, webhook, json, notification, api, event]
+  code: |
+    // Webhook POST - XIAO ESP32 Series
+    // Sends a JSON POST request to a webhook URL
+    #include <WiFi.h>
+    #include <HTTPClient.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* webhookUrl = "https://hooks.example.com/webhook/your-id";
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+    }
+
+    bool sendWebhook(float temperature, float humidity) {
+      HTTPClient http;
+      http.begin(webhookUrl);
+      http.addHeader("Content-Type", "application/json");
+      http.setTimeout(5000);
+
+      String json = "{\"event\":\"sensor_update\",";
+      json += "\"device\":\"xiao-esp32c3\",";
+      json += "\"temperature\":" + String(temperature, 1) + ",";
+      json += "\"humidity\":" + String(humidity, 1) + ",";
+      json += "\"timestamp\":" + String(millis()) + "}";
+
+      int httpCode = http.POST(json);
+      http.end();
+
+      if (httpCode > 0) {
+        Serial.printf("Webhook sent, response: %d\n", httpCode);
+        return httpCode >= 200 && httpCode < 300;
+      }
+      Serial.printf("Webhook failed: %d\n", httpCode);
+      return false;
+    }
+
+    void loop() {
+      if (WiFi.status() == WL_CONNECTED) {
+        float temp = 22.0 + random(-20, 20) / 10.0;
+        float hum = 55.0 + random(-100, 100) / 10.0;
+        sendWebhook(temp, hum);
+      }
+      delay(30000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: ota-version-check-arduino
+  title: OTA Version Check
+  description: Check a remote server for firmware updates and display version info
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [ota, update, version, firmware, http, check, upgrade]
+  code: |
+    // OTA Version Check - XIAO ESP32 Series
+    // Checks a server for new firmware versions
+    #include <WiFi.h>
+    #include <HTTPClient.h>
+    #include <ArduinoJson.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* versionUrl = "https://your-server.com/api/firmware/latest.json";
+
+    const char* currentVersion = "1.0.0";
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      Serial.printf("Firmware version: %s\n", currentVersion);
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+    }
+
+    void checkForUpdate() {
+      HTTPClient http;
+      http.begin(versionUrl);
+      http.setTimeout(10000);
+
+      int httpCode = http.GET();
+      if (httpCode == 200) {
+        String payload = http.getString();
+
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (!error) {
+          String latestVersion = doc["version"].as<String>();
+          String downloadUrl = doc["url"].as<String>();
+          String changelog = doc["changelog"].as<String>();
+
+          Serial.printf("Current: %s, Latest: %s\n", currentVersion, latestVersion.c_str());
+
+          if (latestVersion != currentVersion) {
+            Serial.println("Update available!");
+            Serial.printf("Download: %s\n", downloadUrl.c_str());
+            Serial.printf("Changelog: %s\n", changelog.c_str());
+            // Trigger OTA update here using ArduinoOTA or HTTPUpdate
+          } else {
+            Serial.println("Firmware is up to date.");
+          }
+        }
+      } else {
+        Serial.printf("Version check failed: %d\n", httpCode);
+      }
+      http.end();
+    }
+
+    void loop() {
+      if (WiFi.status() == WL_CONNECTED) {
+        checkForUpdate();
+      }
+      delay(3600000);  // Check every hour
+    }
+  requirements: [ArduinoJson]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

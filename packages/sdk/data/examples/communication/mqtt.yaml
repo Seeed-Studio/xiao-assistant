@@ -1,0 +1,307 @@
+- id: mqtt-esp32-arduino
+  title: MQTT Client
+  description: Connect to an MQTT broker and publish/subscribe to topics
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [mqtt, pubsub, broker, iot, publish, subscribe, messaging]
+  code: |
+    // MQTT Client - XIAO ESP32 Series
+    #include <WiFi.h>
+    #include <PubSubClient.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* mqttServer = "broker.emqx.io";
+    const int mqttPort = 1883;
+
+    WiFiClient espClient;
+    PubSubClient client(espClient);
+
+    void callback(char* topic, byte* payload, unsigned int length) {
+      String message;
+      for (unsigned int i = 0; i < length; i++) {
+        message += (char)payload[i];
+      }
+      Serial.printf("Message arrived [%s]: %s\n", topic, message.c_str());
+    }
+
+    void reconnect() {
+      while (!client.connected()) {
+        String clientId = "XIAO-" + String(random(0xffff), HEX);
+        if (client.connect(clientId.c_str())) {
+          Serial.println("MQTT connected");
+          client.subscribe("xiao/command");
+        } else {
+          Serial.printf("Failed, rc=%d. Retrying in 5s...\n", client.state());
+          delay(5000);
+        }
+      }
+    }
+
+    void setup() {
+      Serial.begin(115200);
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+      }
+      Serial.println("\nWiFi connected. IP: " + WiFi.localIP().toString());
+
+      client.setServer(mqttServer, mqttPort);
+      client.setCallback(callback);
+    }
+
+    void loop() {
+      if (!client.connected()) { reconnect(); }
+      client.loop();
+
+      static unsigned long lastMsg = 0;
+      if (millis() - lastMsg > 5000) {
+        lastMsg = millis();
+        float temp = random(200, 350) / 10.0;
+        client.publish("xiao/temperature", String(temp).c_str());
+        Serial.printf("Published temperature: %.1f\n", temp);
+      }
+    }
+  requirements: [PubSubClient]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: mqtt-sensor-bridge-arduino
+  title: MQTT Sensor Bridge
+  description: Bridge sensor readings to an MQTT broker with JSON payloads
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [mqtt, sensor, bridge, json, iot, telemetry, publish]
+  code: |
+    // MQTT Sensor Bridge - XIAO ESP32 Series
+    // Publishes sensor data as JSON to MQTT
+    #include <WiFi.h>
+    #include <PubSubClient.h>
+    #include <DHT.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* mqttServer = "broker.emqx.io";
+    const int mqttPort = 1883;
+    const char* topic = "xiao/sensors";
+
+    #define DHTPIN 2
+    #define DHTTYPE DHT11
+
+    WiFiClient espClient;
+    PubSubClient client(espClient);
+    DHT dht(DHTPIN, DHTTYPE);
+
+    void connectWiFi() {
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("WiFi connected");
+    }
+
+    void connectMQTT() {
+      while (!client.connected()) {
+        String id = "XIAO-bridge-" + String(random(0xffff), HEX);
+        if (client.connect(id.c_str())) {
+          Serial.println("MQTT connected");
+        } else {
+          delay(5000);
+        }
+      }
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      connectWiFi();
+      client.setServer(mqttServer, mqttPort);
+      dht.begin();
+    }
+
+    void loop() {
+      if (WiFi.status() != WL_CONNECTED) connectWiFi();
+      if (!client.connected()) connectMQTT();
+      client.loop();
+
+      static unsigned long lastPublish = 0;
+      if (millis() - lastPublish > 10000) {
+        lastPublish = millis();
+
+        float temp = dht.readTemperature();
+        float hum = dht.readHumidity();
+
+        if (!isnan(temp) && !isnan(hum)) {
+          String json = "{\"temperature\":";
+          json += String(temp, 1);
+          json += ",\"humidity\":";
+          json += String(hum, 1);
+          json += ",\"device\":\"xiao-esp32c3\"}";
+
+          client.publish(topic, json.c_str());
+          Serial.println("Published: " + json);
+        }
+      }
+    }
+  requirements: [PubSubClient, DHT sensor library]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: mqtt-tls-arduino
+  title: MQTT with TLS
+  description: Connect to an MQTT broker over a secure TLS connection
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [mqtt, tls, ssl, secure, encryption, iot, authentication]
+  code: |
+    // MQTT over TLS - XIAO ESP32 Series
+    #include <WiFi.h>
+    #include <WiFiClientSecure.h>
+    #include <PubSubClient.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* mqttServer = "mqtt.example.com";
+    const int mqttPort = 8883;
+    const char* mqttUser = "your_user";
+    const char* mqttPass = "your_password";
+
+    // For self-signed certs, paste your CA cert here
+    // For public brokers, set to NULL to skip verification
+    const char* caCert = NULL;
+
+    WiFiClientSecure secureClient;
+    PubSubClient client(secureClient);
+
+    void callback(char* topic, byte* payload, unsigned int length) {
+      String msg;
+      for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
+      Serial.printf("[%s]: %s\n", topic, msg.c_str());
+    }
+
+    void reconnect() {
+      while (!client.connected()) {
+        String id = "XIAO-tls-" + String(random(0xffff), HEX);
+        if (client.connect(id.c_str(), mqttUser, mqttPass)) {
+          Serial.println("MQTT connected (TLS)");
+          client.subscribe("xiao/secure/command");
+        } else {
+          Serial.printf("MQTT failed, rc=%d\n", client.state());
+          delay(5000);
+        }
+      }
+    }
+
+    void setup() {
+      Serial.begin(115200);
+
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+
+      if (caCert) {
+        secureClient.setCACert(caCert);
+      } else {
+        secureClient.setInsecure(); // Skip cert verification (dev only)
+      }
+
+      client.setServer(mqttServer, mqttPort);
+      client.setCallback(callback);
+    }
+
+    void loop() {
+      if (!client.connected()) reconnect();
+      client.loop();
+
+      static unsigned long lastMsg = 0;
+      if (millis() - lastMsg > 10000) {
+        lastMsg = millis();
+        client.publish("xiao/secure/status", "alive");
+        Serial.println("Published secure heartbeat");
+      }
+    }
+  requirements: [PubSubClient]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
+
+- id: mqtt-homeassistant-arduino
+  title: MQTT Home Assistant Discovery
+  description: Auto-discover XIAO as a device in Home Assistant via MQTT
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: communication
+  tags: [mqtt, home assistant, discovery, smart home, hass, automation]
+  code: |
+    // MQTT Home Assistant Auto-Discovery - XIAO ESP32
+    #include <WiFi.h>
+    #include <PubSubClient.h>
+
+    const char* ssid = "YOUR_SSID";
+    const char* password = "YOUR_PASSWORD";
+    const char* mqttServer = "homeassistant.local";
+    const int mqttPort = 1883;
+    const char* mqttUser = "mqtt_user";
+    const char* mqttPass = "mqtt_pass";
+
+    const char* deviceId = "xiao-esp32c3";
+    const char* deviceName = "XIAO ESP32C3";
+
+    WiFiClient espClient;
+    PubSubClient client(espClient);
+
+    void publishDiscovery() {
+      // Temperature sensor discovery config
+      String configTopic = "homeassistant/sensor/xiao_temp/config";
+      String config = "{\"name\":\"Temperature\",";
+      config += "\"unique_id\":\"" + String(deviceId) + "_temp\",";
+      config += "\"state_topic\":\"homeassistant/sensor/" + String(deviceId) + "/state\",";
+      config += "\"value_template\":\"{{value_json.temperature}}\",";
+      config += "\"unit_of_measurement\":\"°C\",";
+      config += "\"device\":{\"identifiers\":[\"" + String(deviceId) + "\"],";
+      config += "\"name\":\"" + String(deviceName) + "\",";
+      config += "\"manufacturer\":\"Seeed Studio\"}}";
+
+      client.publish(configTopic.c_str(), config.c_str(), true);
+      Serial.println("Published HA discovery config");
+    }
+
+    void publishState() {
+      String topic = "homeassistant/sensor/" + String(deviceId) + "/state";
+      float temp = 22.0 + random(-50, 50) / 10.0;
+      String payload = "{\"temperature\":" + String(temp, 1) + "}";
+      client.publish(topic.c_str(), payload.c_str());
+      Serial.printf("Published state: %.1f °C\n", temp);
+    }
+
+    void reconnect() {
+      while (!client.connected()) {
+        String id = "XIAO-ha-" + String(random(0xffff), HEX);
+        if (client.connect(id.c_str(), mqttUser, mqttPass)) {
+          Serial.println("MQTT connected");
+          publishDiscovery();
+        } else {
+          delay(5000);
+        }
+      }
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      WiFi.begin(ssid, password);
+      while (WiFi.status() != WL_CONNECTED) { delay(500); }
+      Serial.println("\nWiFi connected");
+
+      client.setServer(mqttServer, mqttPort);
+    }
+
+    void loop() {
+      if (!client.connected()) reconnect();
+      client.loop();
+
+      static unsigned long lastMsg = 0;
+      if (millis() - lastMsg > 30000) {
+        lastMsg = millis();
+        publishState();
+      }
+    }
+  requirements: [PubSubClient]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

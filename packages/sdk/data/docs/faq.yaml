@@ -1,0 +1,40 @@
+- id: faq-general
+  title: "XIAO FAQ"
+  content: |
+    # XIAO Series Frequently Asked Questions
+
+    ## General
+
+    **Q: Which XIAO board should I choose?**
+    - Need WiFi? → ESP32C3 (budget), ESP32S3 (high performance), ESP32C6 (Matter/Thread)
+    - Need Bluetooth only? → nRF52840 or MG24
+    - Need low power? → MG24 (1.95μA), nRF52840 (5μA)
+    - Just getting started? → RP2040 or SAMD21 (simpler, no RF complexity)
+
+    **Q: What programming languages are supported?**
+    - Arduino (C/C++): All boards
+    - MicroPython: Most boards (ESP32, RP2040, nRF52840, SAMD21)
+    - CircuitPython: ESP32 series, RP2040, nRF52840, SAMD21
+    - PlatformIO: Most boards
+    - Zephyr RTOS: ESP32 series, nRF52840, nRF54L15
+
+    **Q: How do I enter boot mode?**
+    - Hold BOOT button → Connect USB → Release BOOT
+    - The board will appear as a mass storage device or enter download mode
+
+    **Q: Can I power XIAO with a battery?**
+    - Most XIAO boards support 3.7V LiPo battery via battery pads
+    - Boards with battery charging: ESP32 series, nRF52840, RP2350, RA4M1, MG24
+    - SAMD21 and RP2040 do NOT have onboard battery charging
+
+    **Q: What is the operating voltage?**
+    - All XIAO boards operate at 3.3V logic level
+    - USB-C provides 5V power
+    - Do NOT apply 5V to GPIO pins (use level shifters for 5V sensors)
+
+    **Q: How to use Grove sensors with XIAO?**
+    - Use a Grove Shield for XIAO (Seeed Studio accessory)
+    - Or connect Grove modules directly using jumper wires to the I2C/UART pins
+  category: faq
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_FAQ/

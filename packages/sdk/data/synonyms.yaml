@@ -1,0 +1,108 @@
+mqtt:
+  - pubsub
+  - publish
+  - subscribe
+  - broker
+  - mosquitto
+  - iot
+temperature:
+  - dht
+  - dht11
+  - dht22
+  - bme280
+  - aht20
+  - ntc
+  - thermistor
+  - temp
+  - heat
+humidity:
+  - dht
+  - dht11
+  - dht22
+  - bme280
+  - aht20
+  - hygrometer
+  - moisture
+bluetooth:
+  - ble
+  - "bluetooth le"
+  - btle
+  - nrf
+  - central
+  - peripheral
+wifi:
+  - wi-fi
+  - wireless
+  - wlan
+  - sta
+  - station
+  - "access point"
+  - ap
+display:
+  - oled
+  - ssd1306
+  - lcd
+  - tft
+  - st7789
+  - e-paper
+  - epaper
+  - screen
+sensor:
+  - accelerometer
+  - gyroscope
+  - imu
+  - magnetometer
+  - pressure
+  - barometer
+servo:
+  - motor
+  - actuator
+  - pwm
+camera:
+  - ov2640
+  - ov3660
+  - image
+  - video
+  - streaming
+  - vision
+sleep:
+  - "deep sleep"
+  - "light sleep"
+  - "low power"
+  - "power save"
+  - hibernate
+  - standby
+storage:
+  - spiffs
+  - littlefs
+  - eeprom
+  - preferences
+  - "sd card"
+  - flash
+  - nvs
+audio:
+  - microphone
+  - pdm
+  - i2s
+  - speaker
+  - buzzer
+  - tone
+  - sound
+usb:
+  - hid
+  - serial
+  - cdc
+  - dfu
+interrupt:
+  - gpio
+  - "falling edge"
+  - "rising edge"
+  - isr
+watchdog:
+  - wdt
+  - reset
+  - timeout
+stepper:
+  - motor
+  - step
+  - direction

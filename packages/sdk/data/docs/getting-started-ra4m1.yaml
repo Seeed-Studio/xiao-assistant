@@ -1,0 +1,28 @@
+- id: getting-started-ra4m1
+  title: "Getting Started with XIAO RA4M1"
+  content: |
+    # Getting Started with XIAO RA4M1
+
+    ## Prerequisites
+    - Arduino IDE 2.x
+    - USB-C cable
+
+    ## Setup Arduino IDE
+
+    1. **Install Renesas Board Package:**
+       - Go to File > Preferences
+       - Add to "Additional Board Manager URLs":
+         `https://github.com/renesas/arduino-package/releases/download/global/package_renesas_index.json`
+       - Boards Manager > search "renesas" > install
+
+    2. **Select board:**
+       - Tools > Board > Seeeduino XIAO RA4M1
+
+    ## Features
+    - ARM Cortex-M4 with FPU at 48MHz
+    - 256KB Flash, 32KB SRAM
+    - Arduino-only (no MicroPython support)
+    - Battery charging support
+  category: getting-started
+  boards: [ra4m1]
+  wikiUrl: https://wiki.seeedstudio.com/getting_started_xiao_ra4m1/

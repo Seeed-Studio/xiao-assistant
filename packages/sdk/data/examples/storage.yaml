@@ -1,0 +1,188 @@
+- id: littlefs-readwrite-arduino
+  title: LittleFS File Read/Write
+  description: Store and retrieve data from the onboard flash filesystem using LittleFS
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  category: storage
+  tags: [littlefs, filesystem, flash, storage, file, read, write, persistent]
+  code: |
+    // LittleFS File Read/Write - XIAO ESP32/RP2040
+    #include <LittleFS.h>
+
+    #define FILE_PATH "/counter.txt"
+
+    int readCounter() {
+      File file = LittleFS.open(FILE_PATH, "r");
+      if (!file) return 0;
+
+      String content = file.readString();
+      file.close();
+      return content.toInt();
+    }
+
+    void writeCounter(int value) {
+      File file = LittleFS.open(FILE_PATH, "w");
+      if (!file) {
+        Serial.println("Failed to open file for writing");
+        return;
+      }
+      file.println(value);
+      file.close();
+    }
+
+    void listFiles() {
+      Serial.println("Files on LittleFS:");
+      File root = LittleFS.open("/", "r");
+      File file = root.openNextFile();
+      while (file) {
+        Serial.printf("  %s (%d bytes)\n", file.name(), file.size());
+        file = root.openNextFile();
+      }
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      if (!LittleFS.begin(true)) {  // true = format on first use
+        Serial.println("LittleFS mount failed!");
+        while (1);
+      }
+      Serial.println("LittleFS mounted");
+
+      // Read persisted counter
+      int counter = readCounter();
+      Serial.printf("Counter was: %d\n", counter);
+
+      // Increment and save
+      counter++;
+      writeCounter(counter);
+      Serial.printf("Counter now: %d\n", counter);
+
+      listFiles();
+    }
+
+    void loop() {
+      delay(60000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: sd-card-spi-arduino
+  title: SD Card via SPI
+  description: Read and write files on a microSD card connected via SPI
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: storage
+  tags: [sd card, spi, storage, file, data logging, fat32]
+  code: |
+    // SD Card Read/Write via SPI - XIAO
+    #include <SPI.h>
+    #include <SD.h>
+
+    #define SD_CS_PIN 2  // Chip select pin for SD module
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      Serial.print("Initializing SD card...");
+      if (!SD.begin(SD_CS_PIN)) {
+        Serial.println("Failed! Check wiring and card format.");
+        while (1);
+      }
+      Serial.println("OK");
+
+      // List root directory
+      File root = SD.open("/");
+      Serial.println("Files on SD:");
+      while (File entry = root.openNextFile()) {
+        Serial.printf("  %s (%u bytes)\n", entry.name(), entry.size());
+        entry.close();
+      }
+      root.close();
+
+      // Write to a file
+      Serial.println("Writing to /datalog.txt...");
+      File dataFile = SD.open("/datalog.txt", FILE_WRITE);
+      if (dataFile) {
+        dataFile.printf("Log entry at millis=%lu\n", millis());
+        dataFile.close();
+        Serial.println("Write successful");
+      } else {
+        Serial.println("Failed to open file for writing");
+      }
+
+      // Read the file back
+      dataFile = SD.open("/datalog.txt");
+      if (dataFile) {
+        Serial.println("Contents of /datalog.txt:");
+        while (dataFile.available()) {
+          Serial.write(dataFile.read());
+        }
+        dataFile.close();
+      }
+    }
+
+    void loop() {
+      delay(10000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: preferences-nvs-arduino
+  title: Preferences NVS Storage
+  description: Store key-value pairs persistently using the ESP32 NVS Preferences library
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  category: storage
+  tags: [preferences, nvs, storage, key-value, persistent, settings, config]
+  code: |
+    // Preferences NVS Storage - XIAO ESP32 Series
+    #include <Preferences.h>
+
+    Preferences prefs;
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      // Open namespace in read/write mode
+      prefs.begin("my-app", false);
+
+      // Read stored boot count
+      int bootCount = prefs.getInt("bootCount", 0);
+      bootCount++;
+      prefs.putInt("bootCount", bootCount);
+
+      // Read/write string values
+      if (!prefs.isKey("deviceId")) {
+        prefs.putString("deviceId", "XIAO-" + String(random(10000), HEX));
+      }
+      String deviceId = prefs.getString("deviceId", "unknown");
+
+      // Read/write float values
+      float lastTemp = prefs.getFloat("lastTemp", 0.0);
+      prefs.putFloat("lastTemp", 22.5);
+
+      Serial.printf("Boot count: %d\n", bootCount);
+      Serial.printf("Device ID: %s\n", deviceId.c_str());
+      Serial.printf("Last temperature: %.1f C\n", lastTemp);
+
+      // List all keys
+      Serial.println("\nStored keys:");
+      prefs.end();
+
+      // Re-open in read-only to enumerate
+      prefs.begin("my-app", true);
+      Serial.printf("  bootCount = %d\n", prefs.getInt("bootCount", 0));
+      Serial.printf("  deviceId = %s\n", prefs.getString("deviceId", "").c_str());
+      Serial.printf("  lastTemp = %.1f\n", prefs.getFloat("lastTemp", 0.0));
+      prefs.end();
+    }
+
+    void loop() {
+      delay(60000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

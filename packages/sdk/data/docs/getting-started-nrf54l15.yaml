@@ -1,0 +1,22 @@
+- id: getting-started-nrf54l15
+  title: "Getting Started with XIAO nRF54L15"
+  content: |
+    # Getting Started with XIAO nRF54L15
+
+    ## Prerequisites
+    - PlatformIO or Zephyr RTOS
+    - USB-C cable
+
+    ## Setup with PlatformIO
+
+    1. Install PlatformIO extension in VS Code
+    2. Create new project, select Seeed XIAO nRF54L15 board
+    3. Build and upload
+
+    ## Key Features
+    - Nordic nRF54L15 (Dual-core: Arm Cortex-M33 + RISC-V)
+    - Bluetooth 6.0, Matter, Zigbee
+    - 1.5MB Flash, 256KB RAM
+  category: getting-started
+  boards: [nrf54l15, nrf54l15-sense]
+  wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_getting_started/

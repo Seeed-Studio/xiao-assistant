@@ -1,0 +1,220 @@
+- id: blink-arduino
+  title: LED Blink
+  description: Blink the onboard LED on any XIAO board using Arduino
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: basics
+  tags: [led, blink, gpio, output, hello world]
+  code: |
+    // LED Blink - XIAO Board
+    // The built-in LED pin varies by board:
+    //   SAMD21/RA4M1: LED_BUILTIN (usually pin 13 or user LED)
+    //   ESP32 series: LED_BUILTIN
+    //   RP2040/RP2350: LED_BUILTIN (pin 25)
+    //   nRF52840: LED_BUILTIN
+
+    void setup() {
+      pinMode(LED_BUILTIN, OUTPUT);
+    }
+
+    void loop() {
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(1000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: blink-micropython
+  title: LED Blink (MicroPython)
+  description: Blink the onboard LED on any XIAO board using MicroPython
+  language: micropython
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense]
+  category: basics
+  tags: [led, blink, gpio, output, hello world, micropython]
+  code: |
+    # LED Blink - MicroPython for XIAO
+    from machine import Pin
+    import time
+
+    # Onboard LED pin (varies by board)
+    # ESP32C3/S3: usually pin 21 or LED_BUILTIN
+    # RP2040: pin 25
+    # nRF52840: pin 26
+    led = Pin("LED_BUILTIN", Pin.OUT)  # or use specific pin number
+
+    while True:
+        led.on()
+        time.sleep(1)
+        led.off()
+        time.sleep(1)
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: blink-circuitpython
+  title: LED Blink (CircuitPython)
+  description: Blink the onboard LED on any XIAO board using CircuitPython
+  language: circuitpython
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21]
+  category: basics
+  tags: [led, blink, gpio, output, hello world, circuitpython]
+  code: |
+    # LED Blink - CircuitPython for XIAO
+    import board
+    import digitalio
+    import time
+
+    led = digitalio.DigitalInOut(board.LED)
+    led.direction = digitalio.Direction.OUTPUT
+
+    while True:
+        led.value = True
+        time.sleep(1)
+        led.value = False
+        time.sleep(1)
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: pwm-led-arduino
+  title: PWM LED Fade
+  description: Fade an LED in and out using PWM on any XIAO board
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: basics
+  tags: [led, pwm, fade, analogwrite, output]
+  code: |
+    // PWM LED Control - XIAO
+    // Fade an LED in and out using analogWrite (PWM)
+
+    #define LED_PIN LED_BUILTIN
+
+    void setup() {
+      pinMode(LED_PIN, OUTPUT);
+      Serial.begin(115200);
+    }
+
+    void loop() {
+      // Fade in
+      for (int brightness = 0; brightness <= 255; brightness++) {
+        analogWrite(LED_PIN, brightness);
+        delay(5);
+      }
+
+      // Fade out
+      for (int brightness = 255; brightness >= 0; brightness--) {
+        analogWrite(LED_PIN, brightness);
+        delay(5);
+      }
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: button-debounce-arduino
+  title: Button with Debounce
+  description: Read a push button with software debounce to avoid false triggers
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: basics
+  tags: [button, debounce, digital input, gpio, switch]
+  code: |
+    // Button Debounce - XIAO
+    // Reads a push button with software debounce
+
+    #define BUTTON_PIN 0     // Connect button between this pin and GND
+    #define DEBOUNCE_MS 50   // Debounce time in milliseconds
+
+    bool lastStableState = HIGH;
+    bool lastReading = HIGH;
+    unsigned long lastDebounceTime = 0;
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+      pinMode(BUTTON_PIN, INPUT_PULLUP);
+      Serial.println("Button debounce example ready");
+    }
+
+    void loop() {
+      bool reading = digitalRead(BUTTON_PIN);
+
+      if (reading != lastReading) {
+        lastDebounceTime = millis();
+      }
+
+      if ((millis() - lastDebounceTime) > DEBOUNCE_MS) {
+        if (reading != lastStableState) {
+          lastStableState = reading;
+          if (lastStableState == LOW) {
+            Serial.println("Button pressed!");
+          } else {
+            Serial.println("Button released!");
+          }
+        }
+      }
+
+      lastReading = reading;
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: analog-read-arduino
+  title: Analog Read
+  description: Read an analog voltage from a potentiometer or sensor
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: basics
+  tags: [analog, read, adc, potentiometer, voltage, input]
+  code: |
+    // Analog Read - XIAO
+    // Reads an analog input on pin A0 and prints the value
+
+    #define ANALOG_PIN A0
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+      Serial.println("Analog read example");
+      Serial.println("Connect a potentiometer wiper to A0");
+    }
+
+    void loop() {
+      int rawValue = analogRead(ANALOG_PIN);
+
+      // Convert to voltage (assuming 3.3V reference, 12-bit ADC on ESP32)
+      float voltage = rawValue * (3.3 / 4095.0);
+      // For boards with 10-bit ADC (SAMD21/RA4M1): use (3.3 / 1023.0)
+
+      Serial.printf("Raw: %d | Voltage: %.3f V\n", rawValue, voltage);
+      delay(500);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: serial-echo-arduino
+  title: Serial Echo
+  description: Echo back any data received over the serial port
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: basics
+  tags: [serial, echo, uart, communication, debug, usb]
+  code: |
+    // Serial Echo - XIAO
+    // Echoes back any data received on the serial port
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+      Serial.println("Serial echo example");
+      Serial.println("Type anything and it will be echoed back.");
+    }
+
+    void loop() {
+      if (Serial.available() > 0) {
+        char incoming = Serial.read();
+        Serial.print("Echo: ");
+        Serial.println(incoming);
+      }
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/

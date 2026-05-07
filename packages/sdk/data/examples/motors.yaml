@@ -1,0 +1,219 @@
+- id: servo-control-arduino
+  title: Servo Motor Control
+  description: Control a servo motor to sweep between 0 and 180 degrees
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: motors
+  tags: [servo, motor, pwm, angle, sweep, actuator]
+  code: |
+    // Servo Motor Control - XIAO
+    // Sweep a servo motor from 0 to 180 degrees and back
+    #include <Servo.h>
+
+    #define SERVO_PIN 3
+
+    Servo myServo;
+    int angle = 0;
+    int step = 1;
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      myServo.attach(SERVO_PIN);
+      myServo.write(0);
+      Serial.println("Servo sweep example");
+      Serial.println("Connect servo signal wire to pin 3");
+    }
+
+    void loop() {
+      myServo.write(angle);
+      Serial.printf("Angle: %d degrees\n", angle);
+
+      angle += step;
+      if (angle >= 180 || angle <= 0) {
+        step = -step;
+      }
+
+      delay(15);  // Allow servo to reach position
+    }
+  requirements: [Servo]
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: stepper-motor-arduino
+  title: Stepper Motor Control
+  description: Drive a 28BYJ-48 stepper motor with an ULN2003 driver board
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: motors
+  tags: [stepper, motor, 28byj, uln2003, rotation, position, actuator]
+  code: |
+    // Stepper Motor Control (28BYJ-48 + ULN2003) - XIAO
+    #include <Stepper.h>
+
+    // 28BYJ-48 has 2048 steps per revolution (with gear reduction)
+    #define STEPS_PER_REV 2048
+
+    // IN1-IN3-IN2-IN4 wiring order for ULN2003
+    Stepper myStepper(STEPS_PER_REV, 2, 4, 3, 5);
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      myStepper.setSpeed(10);  // 10 RPM
+      Serial.println("Stepper motor example");
+      Serial.println("Connect 28BYJ-48 via ULN2003 to pins 2,3,4,5");
+    }
+
+    void loop() {
+      // Rotate clockwise one full revolution
+      Serial.println("Clockwise 1 revolution...");
+      myStepper.step(STEPS_PER_REV);
+      delay(1000);
+
+      // Rotate counter-clockwise one full revolution
+      Serial.println("Counter-clockwise 1 revolution...");
+      myStepper.step(-STEPS_PER_REV);
+      delay(1000);
+
+      // Rotate 90 degrees clockwise
+      Serial.println("Clockwise 90 degrees...");
+      myStepper.step(STEPS_PER_REV / 4);
+      delay(1000);
+
+      // Rotate 90 degrees counter-clockwise
+      Serial.println("Counter-clockwise 90 degrees...");
+      myStepper.step(-STEPS_PER_REV / 4);
+      delay(1000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: dc-motor-hbridge-arduino
+  title: DC Motor with H-Bridge
+  description: Control a DC motor's speed and direction using an L298N H-Bridge driver
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: motors
+  tags: [dc motor, hbridge, l298n, pwm, speed, direction, motor driver]
+  code: |
+    // DC Motor with H-Bridge (L298N) - XIAO
+    #define IN1_PIN 2    // Motor direction pin 1
+    #define IN2_PIN 3    // Motor direction pin 2
+    #define ENA_PIN 4    // PWM speed control (enable)
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      pinMode(IN1_PIN, OUTPUT);
+      pinMode(IN2_PIN, OUTPUT);
+      pinMode(ENA_PIN, OUTPUT);
+
+      Serial.println("DC Motor H-Bridge example");
+      Serial.println("Forward -> Reverse -> Stop cycle");
+    }
+
+    void setMotor(int speed) {
+      // speed: -255 to 255 (negative = reverse)
+      if (speed > 0) {
+        digitalWrite(IN1_PIN, HIGH);
+        digitalWrite(IN2_PIN, LOW);
+      } else if (speed < 0) {
+        digitalWrite(IN1_PIN, LOW);
+        digitalWrite(IN2_PIN, HIGH);
+      } else {
+        digitalWrite(IN1_PIN, LOW);
+        digitalWrite(IN2_PIN, LOW);
+      }
+      analogWrite(ENA_PIN, abs(speed));
+    }
+
+    void loop() {
+      // Forward, increasing speed
+      Serial.println("Forward - ramping up");
+      for (int s = 0; s <= 255; s += 5) {
+        setMotor(s);
+        delay(50);
+      }
+      delay(1000);
+
+      // Reverse, decreasing speed
+      Serial.println("Reverse - ramping down");
+      for (int s = 255; s >= -255; s -= 5) {
+        setMotor(s);
+        delay(50);
+      }
+      delay(1000);
+
+      // Stop
+      Serial.println("Stop");
+      setMotor(0);
+      delay(2000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+
+- id: pwm-fan-arduino
+  title: PWM Fan Control
+  description: Control a 4-pin PWM fan speed based on temperature readings
+  language: arduino
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  category: motors
+  tags: [fan, pwm, cooling, temperature, speed control, thermal]
+  code: |
+    // PWM Fan Control - XIAO
+    // Adjusts fan speed based on simulated temperature
+    #define FAN_PWM_PIN 3    // 4-pin fan PWM control wire
+    #define FAN_TACH_PIN 2   // Tachometer input (optional)
+    #define TEMP_SENSOR A0   // Temperature sensor analog input
+
+    volatile unsigned long tachCount = 0;
+
+    void tachISR() {
+      tachCount++;
+    }
+
+    void setup() {
+      Serial.begin(115200);
+      while (!Serial) { delay(10); }
+
+      pinMode(FAN_PWM_PIN, OUTPUT);
+      pinMode(FAN_TACH_PIN, INPUT_PULLUP);
+      attachInterrupt(digitalPinToInterrupt(FAN_TACH_PIN), tachISR, FALLING);
+
+      Serial.println("PWM Fan Control Example");
+      Serial.println("Connect 4-pin fan PWM to pin 3");
+    }
+
+    int temperatureToFanSpeed(float tempC) {
+      // Map temperature to fan speed
+      // Below 25C: fan off
+      // 25-50C: linear ramp 0-255
+      if (tempC < 25.0) return 0;
+      if (tempC > 50.0) return 255;
+      return (int)((tempC - 25.0) / 25.0 * 255);
+    }
+
+    void loop() {
+      // Read temperature (replace with real sensor)
+      int raw = analogRead(TEMP_SENSOR);
+      // Simulated temperature for demonstration
+      float tempC = 20.0 + (raw / 4095.0) * 40.0;
+
+      int fanSpeed = temperatureToFanSpeed(tempC);
+      analogWrite(FAN_PWM_PIN, fanSpeed);
+
+      // Calculate RPM (tach pulses per revolution = 2 for most fans)
+      unsigned long count = tachCount;
+      tachCount = 0;
+      int rpm = (count / 2) * 60;  // Convert to RPM over 1 second
+
+      Serial.printf("Temp: %.1f C | Fan: %d/255 | RPM: %d\n",
+        tempC, fanSpeed, rpm);
+
+      delay(1000);
+    }
+  requirements: []
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/

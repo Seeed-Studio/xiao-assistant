@@ -1,20 +1,25 @@
-import type { XIAOBoard, XIAOExample, XIAODocument } from './types.js';
-import { allBoards } from './boards/index.js';
-import { allExamples } from './examples/index.js';
-import { allDocuments } from './docs/index.js';
+import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, WikiSearchResult } from './types.js';
+import { loadBoards, loadExamples, loadDocuments, loadTroubleshootEntries, loadSynonyms } from './data-loader.js';
+import { searchWiki } from './wiki-service.js';
 
 export class XIAOAssistant {
   private boards: Map<string, XIAOBoard> = new Map();
   private examples: XIAOExample[];
   private documents: XIAODocument[];
+  private troubleshootEntries: XIAOTroubleshootEntry[];
+  private synonyms: Record<string, string[]>;
 
   constructor() {
-    for (const board of allBoards) {
+    for (const board of loadBoards()) {
       this.boards.set(board.id, board);
     }
-    this.examples = allExamples;
-    this.documents = allDocuments;
+    this.examples = loadExamples();
+    this.documents = loadDocuments();
+    this.troubleshootEntries = loadTroubleshootEntries();
+    this.synonyms = loadSynonyms();
   }
+
+  // --- Board methods ---
 
   getBoard(boardName: string): XIAOBoard | undefined {
     const normalized = boardName.toLowerCase().replace(/[\s_-]/g, '');
@@ -65,8 +70,11 @@ export class XIAOAssistant {
     return results.sort((a, b) => b.score - a.score).map((r) => r.board);
   }
 
+  // --- Example methods ---
+
   searchExamples(query: string, options?: { language?: string; board?: string }): XIAOExample[] {
     const q = query.toLowerCase();
+    const expanded = this.expandQuery(q);
     const results: Array<{ example: XIAOExample; score: number }> = [];
 
     for (const example of this.examples) {
@@ -78,11 +86,29 @@ export class XIAOAssistant {
         example.title, example.description, example.category,
         ...example.boards, ...(example.requirements ?? []),
       ].map((f) => f.toLowerCase());
+      const tags = (example.tags ?? []).map((t) => t.toLowerCase());
 
+      // Exact query match in fields
       for (const field of fields) {
         if (field.includes(q)) score += 5;
       }
 
+      // Exact query match in tags
+      for (const tag of tags) {
+        if (tag === q || q.includes(tag)) score += 5;
+      }
+
+      // Expanded synonym match
+      for (const term of expanded) {
+        for (const field of fields) {
+          if (field.includes(term)) score += 3;
+        }
+        for (const tag of tags) {
+          if (tag === term || tag.includes(term)) score += 3;
+        }
+      }
+
+      // Word-level partial match
       for (const word of q.split(/\s+/)) {
         for (const field of fields) {
           if (field.includes(word)) score += 2;
@@ -103,10 +129,12 @@ export class XIAOAssistant {
     return this.examples;
   }
 
+  // --- Pinout ---
+
   getPinout(boardName: string): string {
     const board = this.getBoard(boardName);
     if (!board) {
-      throw new Error(`Board "${boardName}" not found. Available: ${this.boards.keys().toArray().join(', ')}`);
+      throw new Error(`Board "${boardName}" not found. Available: ${Array.from(this.boards.keys()).join(', ')}`);
     }
 
     const lines: string[] = [
@@ -153,6 +181,8 @@ export class XIAOAssistant {
     return lines.join('\n');
   }
 
+  // --- Document methods ---
+
   getDocuments(options?: { board?: string; category?: string }): XIAODocument[] {
     return this.documents.filter((doc) => {
       if (options?.category && doc.category !== options.category) return false;
@@ -163,6 +193,7 @@ export class XIAOAssistant {
 
   searchDocuments(query: string): XIAODocument[] {
     const q = query.toLowerCase();
+    const expanded = this.expandQuery(q);
     const results: Array<{ doc: XIAODocument; score: number }> = [];
 
     for (const doc of this.documents) {
@@ -170,6 +201,9 @@ export class XIAOAssistant {
       const text = `${doc.title} ${doc.content} ${doc.category}`.toLowerCase();
       for (const word of q.split(/\s+/)) {
         if (text.includes(word)) score += 3;
+      }
+      for (const term of expanded) {
+        if (text.includes(term)) score += 2;
       }
       if (score > 0) results.push({ doc, score });
     }
@@ -180,7 +214,93 @@ export class XIAOAssistant {
   getQuickstart(boardName: string): XIAODocument | undefined {
     return this.documents.find((d) => d.category === 'getting-started' && d.boards.includes(boardName));
   }
+
+  // --- Troubleshoot ---
+
+  troubleshoot(symptoms: string, board?: string): XIAOTroubleshootEntry[] {
+    const q = symptoms.toLowerCase();
+    const expanded = this.expandQuery(q);
+    const results: Array<{ entry: XIAOTroubleshootEntry; score: number }> = [];
+
+    for (const entry of this.troubleshootEntries) {
+      if (board && !entry.boards.includes(board)) continue;
+
+      let score = 0;
+      const symptomTexts = entry.symptoms.map((s) => s.toLowerCase());
+      const allText = [...symptomTexts, entry.category.toLowerCase(), entry.title.toLowerCase()];
+
+      // Direct match
+      for (const text of allText) {
+        if (q.includes(text) || text.includes(q)) score += 5;
+      }
+
+      // Word match
+      for (const word of q.split(/\s+/)) {
+        for (const text of allText) {
+          if (text.includes(word)) score += 2;
+        }
+        for (const symptom of symptomTexts) {
+          if (symptom.includes(word)) score += 3;
+        }
+      }
+
+      // Expanded match
+      for (const term of expanded) {
+        for (const text of allText) {
+          if (text.includes(term)) score += 2;
+        }
+      }
+
+      if (score > 0) results.push({ entry, score });
+    }
+
+    return results.sort((a, b) => b.score - a.score).map((r) => r.entry);
+  }
+
+  // --- Wiki search ---
+
+  async searchWikiOnline(query: string): Promise<WikiSearchResult[]> {
+    return searchWiki(query);
+  }
+
+  // --- Fallback methods ---
+
+  async searchExamplesWithFallback(
+    query: string,
+    options?: { language?: string; board?: string },
+  ): Promise<{ local: XIAOExample[]; wiki: WikiSearchResult[] }> {
+    const local = this.searchExamples(query, options);
+    if (local.length > 0) return { local, wiki: [] };
+
+    const wiki = await searchWiki(query);
+    return { local, wiki };
+  }
+
+  async searchDocumentsWithFallback(query: string): Promise<{ local: XIAODocument[]; wiki: WikiSearchResult[] }> {
+    const local = this.searchDocuments(query);
+    if (local.length > 0) return { local, wiki: [] };
+
+    const wiki = await searchWiki(query);
+    return { local, wiki };
+  }
+
+  // --- Private helpers ---
+
+  private expandQuery(query: string): string[] {
+    const terms: string[] = [];
+    const words = query.split(/\s+/);
+
+    for (const word of words) {
+      for (const [keyword, synonyms] of Object.entries(this.synonyms)) {
+        if (word === keyword || synonyms.includes(word)) {
+          terms.push(keyword, ...synonyms);
+        }
+      }
+    }
+
+    return [...new Set(terms)];
+  }
 }
 
-export { type XIAOBoard, type XIAOExample, type XIAODocument, type XIAOPinConfig } from './types.js';
+export { type XIAOBoard, type XIAOExample, type XIAODocument, type XIAOTroubleshootEntry, type WikiSearchResult } from './types.js';
 export default XIAOAssistant;

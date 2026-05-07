@@ -1,0 +1,52 @@
+- id: getting-started-esp32
+  title: "Getting Started with XIAO ESP32 Series (Arduino)"
+  content: |
+    # Getting Started with XIAO ESP32 Series
+
+    ## Prerequisites
+    - Arduino IDE 2.x (recommended)
+    - USB-C cable
+    - XIAO ESP32 board (ESP32C3, ESP32S3, or ESP32C6)
+
+    ## Setup Arduino IDE
+
+    1. **Install ESP32 Board Package:**
+       - Go to File > Preferences
+       - Add this URL to "Additional Board Manager URLs":
+         `https://espressif.github.io/arduino-esp32/package_esp32_index.json`
+       - Go to Tools > Board > Boards Manager
+       - Search for "esp32" and install "esp32 by Espressif Systems"
+
+    2. **Select your board:**
+       - Tools > Board > ESP32 Arduino > XIAO_ESP32C3 (or XIAO_ESP32S3, XIAO_ESP32C6)
+
+    3. **Select port:**
+       - Tools > Port > select the COM port (Windows) or /dev/ttyUSBx (Linux/Mac)
+
+    4. **Upload a sketch:**
+       - Open File > Examples > 01.Basics > Blink
+       - Click the Upload button (→)
+
+    ## Pin Assignment (XIAO ESP32C3)
+    All XIAO boards have 11 GPIO pins accessible through the header:
+    | Pin | Function | Notes |
+    |-----|----------|-------|
+    | D0  | GPIO0    | ADC, PWM |
+    | D1  | GPIO1    | ADC, PWM |
+    | D2  | GPIO2    | ADC, PWM |
+    | D3  | GPIO3    | SPI CS0, ADC, PWM |
+    | D4  | GPIO4    | ADC, PWM |
+    | D5  | GPIO5    | ADC, PWM |
+    | D6  | GPIO6    | I2C SDA, PWM |
+    | D7  | GPIO7    | I2C SCL, PWM |
+    | D8  | GPIO8    | SPI MISO, PWM |
+    | D9  | GPIO9    | SPI MOSI, PWM |
+    | D10 | GPIO10   | SPI SCK, PWM |
+
+    ## Common Issues
+    - **Upload fails:** Hold the BOOT button while uploading, release when "Connecting..." appears
+    - **Port not showing:** Install CP210x or CH340 USB driver
+    - **WiFi not connecting:** Check SSID/password, ensure 2.4GHz network (not 5GHz)
+  category: getting-started
+  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

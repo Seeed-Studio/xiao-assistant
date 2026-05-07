@@ -5,6 +5,7 @@ import { select, input } from '@inquirer/prompts';
 import ora from 'ora';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { XIAOAssistant } from '@seeedstudio/xiao-sdk';
 
 export function registerInitCommand(program: Command) {
   program
@@ -14,22 +15,15 @@ export function registerInitCommand(program: Command) {
       console.log(pc.cyan(figlet.textSync('XIAO', { font: 'Speed' })));
       console.log(pc.green('  XIAO Project Initializer\n'));
 
-      const board = await select({
+      const assistant = new XIAOAssistant();
+      const boards = assistant.getAllBoards();
+
+      const board: string = await select({
         message: 'Select your XIAO board:',
-        choices: [
-          { name: 'XIAO ESP32C3 (WiFi + BLE, budget)', value: 'esp32c3' },
-          { name: 'XIAO ESP32S3 (WiFi + BLE, high performance)', value: 'esp32s3' },
-          { name: 'XIAO ESP32S3 Sense (WiFi + BLE + Camera)', value: 'esp32s3-sense' },
-          { name: 'XIAO ESP32C6 (WiFi 6 + Zigbee + Thread)', value: 'esp32c6' },
-          { name: 'XIAO RP2040', value: 'rp2040' },
-          { name: 'XIAO RP2350', value: 'rp2350' },
-          { name: 'XIAO nRF52840 (BLE)', value: 'nrf52840' },
-          { name: 'XIAO nRF52840 Sense (BLE + IMU + Mic)', value: 'nrf52840-sense' },
-          { name: 'XIAO SAMD21 (basic)', value: 'samd21' },
-          { name: 'XIAO RA4M1', value: 'ra4m1' },
-          { name: 'XIAO MG24 (Matter + Zigbee)', value: 'mg24' },
-          { name: 'XIAO MG24 Sense (Matter + IMU + Mic)', value: 'mg24-sense' },
-        ],
+        choices: boards.map((b) => ({
+          name: `${b.fullName} (${b.connectivity.join(', ') || 'No RF'})`,
+          value: b.id,
+        })),
       });
 
       const language = await select({
