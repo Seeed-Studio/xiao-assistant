@@ -1,0 +1,31 @@
+import type { XIAOBoard } from '../types.js';
+
+export const ra4m1: XIAOBoard = {
+  id: 'ra4m1',
+  name: 'XIAO RA4M1',
+  fullName: 'Seeed Studio XIAO RA4M1',
+  microcontroller: 'Renesas RA4M1',
+  architecture: 'ARM Cortex-M4 (with FPU)',
+  clockSpeed: '48 MHz',
+  flashSize: '256KB',
+  ramSize: '32KB SRAM',
+  onboardFlash: 'N/A',
+  pins: {
+    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    i2c: [{ sda: 6, scl: 7 }],
+    spi: [{ mosi: 9, miso: 8, sck: 10, cs: 3 }],
+    uart: [{ tx: 0, rx: 1 }],
+  },
+  features: ['USB-C', 'Battery charging', 'Boot button', 'User LED'],
+  connectivity: [],
+  builtinSensors: [],
+  supportedLanguages: ['arduino'],
+  lowPowerMode: '45μA (software standby)',
+  hasResetButton: false,
+  hasBootButton: true,
+  hasBatteryCharging: true,
+  wikiUrl: 'https://wiki.seeedstudio.com/getting_started_xiao_ra4m1/',
+  sku: '102010551',
+};

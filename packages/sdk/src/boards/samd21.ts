@@ -1,0 +1,31 @@
+import type { XIAOBoard } from '../types.js';
+
+export const samd21: XIAOBoard = {
+  id: 'samd21',
+  name: 'XIAO SAMD21',
+  fullName: 'Seeed Studio XIAO SAMD21',
+  microcontroller: 'SAMD21G18A',
+  architecture: 'ARM Cortex-M0+',
+  clockSpeed: '48 MHz',
+  flashSize: '256KB',
+  ramSize: '32KB SRAM',
+  onboardFlash: 'N/A',
+  pins: {
+    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    i2c: [{ sda: 4, scl: 5 }],
+    spi: [{ mosi: 9, miso: 8, sck: 10, cs: 3 }],
+    uart: [{ tx: 6, rx: 7 }],
+  },
+  features: ['USB-C', 'User LED'],
+  connectivity: [],
+  builtinSensors: [],
+  supportedLanguages: ['arduino', 'micropython', 'circuitpython', 'platformio', 'zephyr'],
+  lowPowerMode: 'N/A',
+  hasResetButton: false,
+  hasBootButton: false,
+  hasBatteryCharging: false,
+  wikiUrl: 'https://wiki.seeedstudio.com/Seeeduino-XIAO/',
+  sku: '102010328',
+};
