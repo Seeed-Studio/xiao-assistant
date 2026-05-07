@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XIAO Knowledge Editor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+.header { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 20px; color: #38bdf8; }
+.header .stats { font-size: 13px; color: #94a3b8; }
+.container { display: flex; height: calc(100vh - 57px); }
+.list-panel { width: 340px; background: #1e293b; border-right: 1px solid #334155; overflow-y: auto; flex-shrink: 0; }
+.list-panel .list-header { padding: 16px; border-bottom: 1px solid #334155; font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
+.list-panel .list-header span { color: #38bdf8; font-weight: 600; }
+.list-item { padding: 12px 16px; border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.15s; }
+.list-item:hover { background: #334155; }
+.list-item.active { background: #334155; border-left: 3px solid #38bdf8; }
+.list-item .title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.list-item .meta { font-size: 12px; color: #94a3b8; display: flex; gap: 8px; }
+.severity { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.severity.easy { background: #064e3b; color: #6ee7b7; }
+.severity.medium { background: #78350f; color: #fbbf24; }
+.severity.hard { background: #7f1d1d; color: #fca5a5; }
+.form-panel { flex: 1; overflow-y: auto; padding: 24px 32px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 6px; }
+.form-group input[type="text"], .form-group textarea, .form-group select {
+  width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+  color: #e2e8f0; font-size: 14px; font-family: inherit; outline: none; transition: border 0.15s;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #38bdf8; }
+.form-group textarea { min-height: 100px; resize: vertical; }
+.form-group textarea.code { min-height: 120px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 13px; }
+.inline-group { display: flex; gap: 16px; }
+.inline-group .form-group { flex: 1; }
+.boards-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.boards-grid label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; transition: all 0.15s; }
+.boards-grid label:has(input:checked) { background: #0c4a6e; border-color: #38bdf8; color: #38bdf8; }
+.boards-grid input { display: none; }
+.actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #334155; }
+.btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.btn-primary { background: #0284c7; color: white; }
+.btn-primary:hover { background: #0369a1; }
+.btn-danger { background: #7f1d1d; color: #fca5a5; }
+.btn-danger:hover { background: #991b1b; }
+.btn-secondary { background: #334155; color: #e2e8f0; }
+.btn-secondary:hover { background: #475569; }
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; z-index: 100; }
+.toast.success { background: #064e3b; color: #6ee7b7; }
+.toast.error { background: #7f1d1d; color: #fca5a5; }
+.toast.show { opacity: 1; }
+.empty { text-align: center; padding: 60px 24px; color: #64748b; }
+.empty h2 { margin-bottom: 8px; color: #94a3b8; }
+.tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; min-height: 42px; align-items: center; }
+.tag-input .tag { background: #0c4a6e; color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.tag-input .tag button { background: none; border: none; color: #38bdf8; cursor: pointer; font-size: 14px; padding: 0; }
+.tag-input input { flex: 1; min-width: 100px; background: none; border: none; color: #e2e8f0; font-size: 14px; outline: none; padding: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>XIAO Knowledge Editor</h1>
+  <div class="stats" id="stats">Loading...</div>
+</div>
+
+<div class="container">
+  <div class="list-panel">
+    <div class="list-header">
+      <div>Entries: <span id="count">0</span></div>
+      <button class="btn btn-primary" style="padding:5px 12px;font-size:12px" onclick="newEntry()">+ New</button>
+    </div>
+    <div id="entryList"></div>
+  </div>
+
+  <div class="form-panel" id="formPanel">
+    <div class="empty" id="emptyState">
+      <h2>Select or create an entry</h2>
+      <p>Click an entry on the left to view/edit, or click "+ New" to add one.</p>
+    </div>
+    <div id="entryForm" style="display:none">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="f_title" placeholder="e.g. ESP32C3 deep sleep GPIO hold issue">
+      </div>
+
+      <div class="inline-group">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="f_category">
+            <option value="power">Power / Low Power</option>
+            <option value="wifi">WiFi</option>
+            <option value="ble">Bluetooth / BLE</option>
+            <option value="usb">USB / Serial</option>
+            <option value="memory">Memory / PSRAM</option>
+            <option value="hardware">Hardware / Voltage</option>
+            <option value="display">Display</option>
+            <option value="i2c">I2C</option>
+            <option value="spi">SPI</option>
+            <option value="camera">Camera</option>
+            <option value="storage">Storage</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Severity</label>
+          <select id="f_severity">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source</label>
+          <select id="f_source">
+            <option value="support-ticket">Support Ticket</option>
+            <option value="internal-test">Internal Test</option>
+            <option value="community">Community</option>
+            <option value="wiki">Wiki</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Boards</label>
+        <div class="boards-grid" id="boardsGrid"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Tags</label>
+        <div class="tag-input" id="tagInput">
+          <input type="text" id="f_tag_text" placeholder="Type and press Enter to add tags">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Summary *</label>
+        <textarea id="f_summary" placeholder="One-paragraph summary of the issue and fix"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Problem Description *</label>
+        <textarea id="f_problem" placeholder="What the customer reported or what went wrong"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Solution *</label>
+        <textarea id="f_solution" placeholder="How to fix it"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Code (optional)</label>
+        <textarea id="f_code" class="code" placeholder="// Working code example if applicable"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Workaround (optional)</label>
+        <textarea id="f_workaround" placeholder="Alternative approach if main solution doesn't apply"></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveEntry()">Save</button>
+        <button class="btn btn-secondary" onclick="clearForm()">Cancel</button>
+        <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteEntry()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let entries = [];
+let boards = [];
+let currentTags = [];
+let editingId = null;
+
+async function init() {
+  try {
+    const [kbRes, boardRes] = await Promise.all([fetch('/api/knowledge'), fetch('/api/boards')]);
+    entries = await kbRes.json();
+    boards = await boardRes.json();
+    renderList();
+    renderBoards();
+    updateStats();
+  } catch (e) {
+    showToast('Failed to load data: ' + e.message, 'error');
+  }
+}
+
+function updateStats() {
+  const hard = entries.filter(e => e.severity === 'hard').length;
+  const medium = entries.filter(e => e.severity === 'medium').length;
+  const easy = entries.filter(e => e.severity === 'easy').length;
+  document.getElementById('stats').textContent = `${entries.length} entries | Hard: ${hard}  Medium: ${medium}  Easy: ${easy}`;
+  document.getElementById('count').textContent = entries.length;
+}
+
+function renderList() {
+  const el = document.getElementById('entryList');
+  el.innerHTML = entries.map(e => `
+    <div class="list-item ${editingId === e.id ? 'active' : ''}" onclick="loadEntry('${e.id}')">
+      <div class="title">${esc(e.title)}</div>
+      <div class="meta">
+        <span class="severity ${e.severity}">${e.severity}</span>
+        <span>${e.category}</span>
+        <span>${e.source}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBoards() {
+  const el = document.getElementById('boardsGrid');
+  el.innerHTML = boards.map(b =>
+    `<label><input type="checkbox" value="${b}">${b}</label>`
+  ).join('');
+}
+
+function loadEntry(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('entryForm').style.display = 'block';
+  document.getElementById('deleteBtn').style.display = 'inline-block';
+
+  document.getElementById('f_title').value = e.title || '';
+  document.getElementById('f_category').value = e.category || 'general';
+  document.getElementById('f_severity').value = e.severity || 'medium';
+  document.getElementById('f_source').value = e.source || 'support-ticket';
+  document.getElementById('f_summary').value = e.summary || '';
+  document.getElementById('f_problem').value = e.problem || '';
+  document.getElementById('f_solution').value = e.solution || '';
+  document.getElementById('f_code').value = e.code || '';
+  document.getElementById('f_workaround').value = e.workaround || '';
+
+  // Boards
+  document.querySelectorAll('#boardsGrid input').forEach(cb => {
+    cb.checked = (e.boards || []).includes(cb.value);
+  });
+
+  // Tags
+  currentTags = [...(e.tags || [])];
+  renderTags();
+  renderList();
+}
+
+function newEntry() {
+  editingId = null;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('entryForm').style.display = 'block';
+  document.getElementById('deleteBtn').style.display = 'none';
+  clearFormFields();
+  renderList();
+}
+
+function clearForm() {
+  editingId = null;
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('entryForm').style.display = 'none';
+  renderList();
+}
+
+function clearFormFields() {
+  ['f_title','f_summary','f_problem','f_solution','f_code','f_workaround'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_category').value = 'general';
+  document.getElementById('f_severity').value = 'medium';
+  document.getElementById('f_source').value = 'support-ticket';
+  document.querySelectorAll('#boardsGrid input').forEach(cb => cb.checked = false);
+  currentTags = [];
+  renderTags();
+}
+
+function getSelectedBoards() {
+  return Array.from(document.querySelectorAll('#boardsGrid input:checked')).map(cb => cb.value);
+}
+
+// Tags
+function renderTags() {
+  const container = document.getElementById('tagInput');
+  const input = document.getElementById('f_tag_text');
+  container.querySelectorAll('.tag').forEach(t => t.remove());
+  currentTags.forEach(tag => {
+    const el = document.createElement('span');
+    el.className = 'tag';
+    el.innerHTML = `${esc(tag)} <button onclick="removeTag('${esc(tag)}')">&times;</button>`;
+    container.insertBefore(el, input);
+  });
+}
+
+function removeTag(tag) {
+  currentTags = currentTags.filter(t => t !== tag);
+  renderTags();
+}
+
+document.getElementById('f_tag_text').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) {
+    e.preventDefault();
+    const tag = this.value.trim().toLowerCase();
+    if (!currentTags.includes(tag)) {
+      currentTags.push(tag);
+      renderTags();
+    }
+    this.value = '';
+  }
+});
+
+async function saveEntry() {
+  const title = document.getElementById('f_title').value.trim();
+  const problem = document.getElementById('f_problem').value.trim();
+  const solution = document.getElementById('f_solution').value.trim();
+
+  if (!title || !problem || !solution) {
+    showToast('Title, Problem, and Solution are required', 'error');
+    return;
+  }
+
+  const entry = {
+    title,
+    category: document.getElementById('f_category').value,
+    severity: document.getElementById('f_severity').value,
+    source: document.getElementById('f_source').value,
+    boards: getSelectedBoards(),
+    tags: currentTags,
+    summary: document.getElementById('f_summary').value.trim(),
+    problem,
+    solution,
+  };
+
+  const code = document.getElementById('f_code').value.trim();
+  const workaround = document.getElementById('f_workaround').value.trim();
+  if (code) entry.code = code;
+  if (workaround) entry.workaround = workaround;
+
+  if (editingId) {
+    entry.id = editingId;
+    // Delete old, then create new (simple approach)
+    await fetch(`/api/knowledge/${editingId}`, { method: 'DELETE' });
+  }
+
+  try {
+    const res = await fetch('/api/knowledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || 'Save failed', 'error');
+      return;
+    }
+    showToast(`Saved to ${data.file} (id: ${data.id})`, 'success');
+    editingId = data.id;
+    // Reload
+    const kbRes = await fetch('/api/knowledge');
+    entries = await kbRes.json();
+    renderList();
+    updateStats();
+  } catch (e) {
+    showToast('Save failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteEntry() {
+  if (!editingId) return;
+  if (!confirm(`Delete "${editingId}"?`)) return;
+
+  try {
+    await fetch(`/api/knowledge/${editingId}`, { method: 'DELETE' });
+    showToast('Deleted', 'success');
+    clearForm();
+    const kbRes = await fetch('/api/knowledge');
+    entries = await kbRes.json();
+    renderList();
+    updateStats();
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+init();
+</script>
+</body>
+</html>
