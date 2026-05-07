@@ -26,7 +26,6 @@
   connectivity: []
   builtinSensors: []
   supportedLanguages: [arduino, micropython, circuitpython, platformio, zephyr]
-  lowPowerMode: "N/A"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: false
@@ -61,7 +60,6 @@
   connectivity: []
   builtinSensors: []
   supportedLanguages: [arduino, micropython, circuitpython, platformio]
-  lowPowerMode: "50μA (deep sleep)"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true

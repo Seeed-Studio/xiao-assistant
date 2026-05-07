@@ -26,7 +26,6 @@
   connectivity: []
   builtinSensors: []
   supportedLanguages: [arduino]
-  lowPowerMode: "45μA (software standby)"
   hasResetButton: false
   hasBootButton: true
   hasBatteryCharging: true

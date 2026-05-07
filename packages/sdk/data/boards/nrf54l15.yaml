@@ -26,7 +26,6 @@
   connectivity: ["Bluetooth 6.0", Matter, Zigbee]
   builtinSensors: []
   supportedLanguages: [platformio, zephyr]
-  lowPowerMode: "N/A"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
@@ -61,7 +60,6 @@
   connectivity: ["Bluetooth 6.0", Matter, Zigbee]
   builtinSensors: ["6-axis IMU", Microphone]
   supportedLanguages: [platformio, zephyr]
-  lowPowerMode: "N/A"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true

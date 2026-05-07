@@ -26,7 +26,6 @@
   connectivity: ["WiFi 6 (802.11 ax)", "Bluetooth 5 (LE)"]
   builtinSensors: []
   supportedLanguages: [arduino, micropython, platformio, zephyr]
-  lowPowerMode: "14μA (deep sleep)"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
@@ -61,7 +60,6 @@
   connectivity: ["WiFi 6 (802.11 ax)", "Bluetooth 5 (LE)"]
   builtinSensors: [OV2640/OV3660 camera, Microphone]
   supportedLanguages: [arduino, micropython, platformio, zephyr]
-  lowPowerMode: "26.5mA (with camera)"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true

@@ -26,7 +26,6 @@
   connectivity: [Matter, OpenThread, Zigbee, "Bluetooth 5.3 (LE)", Bluetooth Mesh, "Proprietary 2.4GHz"]
   builtinSensors: []
   supportedLanguages: [arduino]
-  lowPowerMode: "1.95μA (deep sleep)"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
@@ -61,7 +60,6 @@
   connectivity: [Matter, OpenThread, Zigbee, "Bluetooth 5.3 (LE)", Bluetooth Mesh, "Proprietary 2.4GHz"]
   builtinSensors: ["6-axis IMU", Microphone]
   supportedLanguages: [arduino]
-  lowPowerMode: "1.95μA (deep sleep)"
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true

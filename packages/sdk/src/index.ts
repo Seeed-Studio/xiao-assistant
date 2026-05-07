@@ -148,7 +148,6 @@ export class XIAOAssistant {
       `║  Flash: ${board.flashSize}`,
       `║  RAM:   ${board.ramSize}`,
       `║  Arch:  ${board.architecture}`,
-      `║  Power: ${board.lowPowerMode}`,
       `╠══════════════════════════════════════════════╣`,
       `║  PINS`,
       `║  Digital: ${board.pins.digital.join(', ')}`,

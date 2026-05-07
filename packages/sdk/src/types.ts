@@ -22,7 +22,6 @@ export interface XIAOBoard {
   connectivity: string[];
   builtinSensors: string[];
   supportedLanguages: string[];
-  lowPowerMode: string;
   hasResetButton: boolean;
   hasBootButton: boolean;
   hasBatteryCharging: boolean;

@@ -26,7 +26,6 @@
   connectivity: ["Bluetooth 5.0"]
   builtinSensors: []
   supportedLanguages: [arduino, micropython, circuitpython, platformio, zephyr]
-  lowPowerMode: "5μA (system off)"
   hasResetButton: true
   hasBootButton: false
   hasBatteryCharging: true
@@ -61,7 +60,6 @@
   connectivity: ["Bluetooth 5.0"]
   builtinSensors: ["6-axis IMU (LSM6DS3TR-C)", Microphone]
   supportedLanguages: [arduino, micropython, circuitpython, platformio, zephyr]
-  lowPowerMode: "5μA (system off)"
   hasResetButton: true
   hasBootButton: false
   hasBatteryCharging: true
