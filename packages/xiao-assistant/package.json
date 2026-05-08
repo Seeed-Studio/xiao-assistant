@@ -1,7 +1,7 @@
 {
-  "name": "@seeed-studio/xiao-cli",
+  "name": "@seeed-studio/xiao-assistant",
   "version": "0.0.1",
-  "description": "XIAO CLI - Command-line tools for XIAO development assistance",
+  "description": "XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series",
   "type": "module",
   "bin": {
     "xiao": "./dist/index.js"
@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && cp -r web dist/web",
+    "build": "tsup && cp -r data dist/data && cp -r web dist/web",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --fix",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.2.0",
-    "@seeed-studio/xiao-sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^0.5.0",
     "commander": "^13.1.0",
     "express": "^5.2.1",
     "figlet": "^1.9.4",
@@ -41,14 +41,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seeedstudio/xiao-assistant.git",
-    "directory": "packages/cli"
+    "url": "git+https://github.com/seeedstudio/xiao-assistant.git"
   },
   "keywords": [
     "xiao",
-    "cli",
     "seeed-studio",
     "iot",
+    "arduino",
+    "micropython",
+    "circuitpython",
+    "mcp",
     "development-tools"
   ],
   "author": "Seeed Studio",

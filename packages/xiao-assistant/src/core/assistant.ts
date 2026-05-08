@@ -90,17 +90,14 @@ export class XIAOAssistant {
       ].map((f) => f.toLowerCase());
       const tags = (example.tags ?? []).map((t) => t.toLowerCase());
 
-      // Exact query match in fields
       for (const field of fields) {
         if (field.includes(q)) score += 5;
       }
 
-      // Exact query match in tags
       for (const tag of tags) {
         if (tag === q || q.includes(tag)) score += 5;
       }
 
-      // Expanded synonym match
       for (const term of expanded) {
         for (const field of fields) {
           if (field.includes(term)) score += 3;
@@ -110,7 +107,6 @@ export class XIAOAssistant {
         }
       }
 
-      // Word-level partial match
       for (const word of q.split(/\s+/)) {
         for (const field of fields) {
           if (field.includes(word)) score += 2;
@@ -230,12 +226,10 @@ export class XIAOAssistant {
       const symptomTexts = entry.symptoms.map((s) => s.toLowerCase());
       const allText = [...symptomTexts, entry.category.toLowerCase(), entry.title.toLowerCase()];
 
-      // Direct match
       for (const text of allText) {
         if (q.includes(text) || text.includes(q)) score += 5;
       }
 
-      // Word match
       for (const word of q.split(/\s+/)) {
         for (const text of allText) {
           if (text.includes(word)) score += 2;
@@ -245,7 +239,6 @@ export class XIAOAssistant {
         }
       }
 
-      // Expanded match
       for (const term of expanded) {
         for (const text of allText) {
           if (text.includes(term)) score += 2;
@@ -279,7 +272,6 @@ export class XIAOAssistant {
       const tags = entry.tags.map((t) => t.toLowerCase());
       const fields = [entry.title, entry.summary, entry.problem, entry.solution, entry.category].map((f) => f.toLowerCase());
 
-      // Exact query match
       for (const field of fields) {
         if (field.includes(q)) score += 5;
       }
@@ -287,7 +279,6 @@ export class XIAOAssistant {
         if (tag === q || q.includes(tag)) score += 5;
       }
 
-      // Expanded synonym match
       for (const term of expanded) {
         for (const field of fields) {
           if (field.includes(term)) score += 3;
@@ -297,7 +288,6 @@ export class XIAOAssistant {
         }
       }
 
-      // Word-level match
       for (const word of q.split(/\s+/)) {
         for (const field of fields) {
           if (field.includes(word)) score += 2;

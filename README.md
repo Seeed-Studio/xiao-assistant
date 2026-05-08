@@ -1,23 +1,24 @@
 # XIAO Assistant
 
-[![NPM Version](https://img.shields.io/npm/v/%40seeedstudio%2Fxiao-cli?color=blue)](https://www.npmjs.com/package/@seeed-studio/xiao-cli) [![MIT licensed](https://img.shields.io/npm/l/%40seeedstudio%2Fxiao-cli)](./LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/%40seeed-studio%2Fxiao-assistant?color=blue)](https://www.npmjs.com/package/@seeed-studio/xiao-assistant) [![MIT licensed](https://img.shields.io/npm/l/%40seeed-studio%2Fxiao-assistant)](./LICENSE)
 
 XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series boards.
 
 ## Features
 
-- **📚 Up-to-date Documentation**: Latest XIAO development guides, pinouts, and specifications
-- **💻 Multi-language Support**: Arduino, MicroPython, CircuitPython
-- **🤖 AI Integration**: Native support for AI coding assistants (Cursor, Claude Code, etc.)
-- **🛠️ Developer Tools**: CLI tools, SDK, and MCP server
-- **📖 Code Examples**: Practical examples for common XIAO applications
+- **14 XIAO Boards**: Full pinouts, specs, and quickstart guides
+- **61 Code Examples**: WiFi, BLE, MQTT, sensors, displays, motors, and more
+- **CLI Tools**: Initialize projects, search examples, view pinouts
+- **MCP Server**: Native integration with Claude, Cursor, and other AI tools
+- **Knowledge Base**: Internal troubleshooting experience from customer support
+- **Wiki Fallback**: Auto-search wiki.seeedstudio.com when local data isn't enough
 
 ## Installation
 
 ```bash
-npm install -g @seeed-studio/xiao-cli
+npm install -g @seeed-studio/xiao-assistant
 # or
-pnpm add -g @seeed-studio/xiao-cli
+pnpm add -g @seeed-studio/xiao-assistant
 ```
 
 ## Quick Start
@@ -33,73 +34,66 @@ xiao pinout esp32c3
 xiao search sensor
 
 # Get coding examples
-xiao example blink
+xiao example blink-arduino
+
+# List all boards
+xiao boards
+
+# Launch knowledge editor
+xiao knowledge
 ```
 
 ## AI Assistant Integration
 
 ### MCP Server
-Register the XIAO Assistant MCP server in your AI coding tool:
+
+Start the MCP server:
+```bash
+xiao mcp
+```
+
+Register in your AI coding tool (Claude, Cursor, etc.):
 
 ```json
 {
   "mcpServers": {
     "xiao-assistant": {
       "command": "npx",
-      "args": ["@seeed-studio/xiao-mcp"]
+      "args": ["-y", "@seeed-studio/xiao-assistant", "mcp"]
     }
   }
 }
 ```
 
-### Usage in Prompts
-```
-Show me how to connect a DHT11 sensor to XIAO ESP32C3. use xiao
-```
+### 9 MCP Tools
+
+- `resolve-board` - Find the right XIAO board
+- `get_board_info` - Get full board specs
+- `get_pinout` - Get pinout diagram
+- `search_examples` - Search code examples
+- `list_boards` - List all boards
+- `get_quickstart` - Get getting-started guide
+- `troubleshoot` - Diagnose common issues
+- `search_wiki` - Search wiki.seeedstudio.com
+- `search_knowledge` - Search internal knowledge base
 
 ## Supported Boards
 
-- XIAO ESP32C3
-- XIAO ESP32S3
-- XIAO RP2040
-- XIAO nRF52840
-- XIAO SAMD21
-- And more...
+- XIAO ESP32C3, ESP32S3, ESP32S3 Sense, ESP32C6
+- XIAO RP2040, RP2350
+- XIAO nRF52840, nRF52840 Sense
+- XIAO SAMD21, RA4M1
+- XIAO MG24, MG24 Sense
+- XIAO nRF54L15, nRF54L15 Sense
 
 ## Development
 
-This is a monorepo managed with pnpm workspaces.
-
 ```bash
-# Install dependencies
 pnpm install
-
-# Build all packages
 pnpm build
-
-# Run tests
 pnpm test
-
-# Type checking
-pnpm typecheck
 ```
-
-## Packages
-
-- **[@seeed-studio/xiao-cli](./packages/cli)** - Command-line interface
-- **[@seeed-studio/xiao-mcp](./packages/mcp)** - MCP server for AI assistants
-- **[@seeed-studio/xiao-sdk](./packages/sdk)** - JavaScript/TypeScript SDK
-
-## Contributing
-
-Contributions are welcome! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
 ## License
 
 MIT © [Seeed Studio](https://www.seeedstudio.com)
-
-## Related Links
-
-- [Seeed Studio XIAO Series](https://www.seeedstudio.com/xiao-series-c-1339.html)
-- [XIAO Wiki](https://wiki.seeedstudio.com/XIAO_WiFi/)
-- [Arduino Core for XIAO](https://github.com/Seeed-Studio/ArduinoCore-XIAO-mbed)

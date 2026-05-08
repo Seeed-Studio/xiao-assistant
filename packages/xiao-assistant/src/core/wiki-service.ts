@@ -1,7 +1,7 @@
 import type { WikiSearchResult } from './types.js';
 
 const WIKI_API = 'https://wiki.seeedstudio.com/api.php';
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 3000;
 
 const cache = new Map<string, { results: WikiSearchResult[]; timestamp: number }>();
@@ -48,7 +48,6 @@ export async function searchWiki(query: string): Promise<WikiSearchResult[]> {
     cache.set(query, { results, timestamp: Date.now() });
     return results;
   } catch {
-    // Network errors, timeouts, etc. — return empty silently
     return [];
   }
 }

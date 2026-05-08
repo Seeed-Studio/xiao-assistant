@@ -12,9 +12,9 @@ const _dirname = typeof __dirname !== 'undefined'
   : dirname(fileURLToPath(import.meta.url));
 
 function getDataDir(): string {
-  const distData = resolve(_dirname, '..', '..', 'sdk', 'data');
+  const distData = resolve(_dirname, '..', 'data');
   if (existsSync(distData)) return distData;
-  const srcData = resolve(_dirname, '..', '..', '..', 'sdk', 'data');
+  const srcData = resolve(_dirname, '..', '..', 'data');
   if (existsSync(srcData)) return srcData;
   throw new Error('Cannot find data directory');
 }
@@ -45,18 +45,15 @@ export function registerKnowledgeCommand(program: Command) {
 
       app.use(express.json());
 
-      // Serve the editor HTML
       const htmlPath = join(_dirname, '..', 'web', 'knowledge-editor.html');
       app.get('/', (_req, res) => {
         res.sendFile(htmlPath);
       });
 
-      // API: list all knowledge entries
       app.get('/api/knowledge', (_req, res) => {
         res.json(loadAllKnowledge());
       });
 
-      // API: get all board IDs
       app.get('/api/boards', (_req, res) => {
         const boardsDir = join(getDataDir(), 'boards');
         const boards: string[] = [];
@@ -69,7 +66,6 @@ export function registerKnowledgeCommand(program: Command) {
         res.json(boards);
       });
 
-      // API: save a new knowledge entry
       app.post('/api/knowledge', (req, res) => {
         try {
           const entry = req.body;
@@ -78,7 +74,6 @@ export function registerKnowledgeCommand(program: Command) {
             return;
           }
 
-          // Generate ID from title
           if (!entry.id) {
             entry.id = entry.title
               .toLowerCase()
@@ -89,7 +84,6 @@ export function registerKnowledgeCommand(program: Command) {
           const dir = getKnowledgeDir();
           if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
-          // Determine file by category
           const fileName = (entry.category || 'general').replace(/\s+/g, '-').toLowerCase() + '.yaml';
           const filePath = join(dir, fileName);
 
@@ -98,7 +92,6 @@ export function registerKnowledgeCommand(program: Command) {
             existing = parse(readFileSync(filePath, 'utf-8')) || [];
           }
 
-          // Check for duplicate ID
           if (existing.some((e: any) => e.id === entry.id)) {
             res.status(409).json({ error: `Entry with id "${entry.id}" already exists in ${fileName}` });
             return;
@@ -113,7 +106,6 @@ export function registerKnowledgeCommand(program: Command) {
         }
       });
 
-      // API: delete a knowledge entry by ID
       app.delete('/api/knowledge/:id', (req, res) => {
         try {
           const id = req.params.id;

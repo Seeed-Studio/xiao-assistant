@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { XIAOAssistant } from '@seeed-studio/xiao-sdk';
+import { XIAOAssistant } from '../core/assistant.js';
 
 export function registerBoardsCommand(program: Command) {
   program

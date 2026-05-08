@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, XIAOKnowledge } from './types.js';
 
-// Works for both ESM and CJS
 const _dirname = typeof __dirname !== 'undefined'
   ? __dirname
   : dirname(fileURLToPath(import.meta.url));
@@ -14,14 +13,12 @@ let dataDir: string | null = null;
 function getDataDir(): string {
   if (dataDir) return dataDir;
 
-  // Resolve relative to the compiled output (dist/data/)
   const distData = resolve(_dirname, '..', 'data');
   if (existsSync(distData)) {
     dataDir = distData;
     return dataDir;
   }
 
-  // Fallback: relative to source (for development / tsx)
   const srcData = resolve(_dirname, '..', '..', 'data');
   if (existsSync(srcData)) {
     dataDir = srcData;
@@ -42,7 +39,6 @@ function readYamlDir<T>(dirPath: string): T[] {
 
   for (const entry of readdirSync(dirPath, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      // Recurse into subdirectories (e.g., communication/)
       const subDir = join(dirPath, entry.name);
       for (const subEntry of readdirSync(subDir, { withFileTypes: true })) {
         if (subEntry.isFile() && subEntry.name.endsWith('.yaml')) {
@@ -73,7 +69,6 @@ export function loadDocuments(): XIAODocument[] {
 
   for (const entry of readdirSync(docsDir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith('.yaml')) continue;
-    // Skip troubleshooting.yaml — it has a different schema
     if (entry.name === 'troubleshooting.yaml') continue;
     const items = readYamlFile<XIAODocument[]>(join(docsDir, entry.name));
     results.push(...items);

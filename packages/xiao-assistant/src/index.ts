@@ -7,13 +7,14 @@ import { registerSearchCommand } from './commands/search.js';
 import { registerExampleCommand } from './commands/example.js';
 import { registerBoardsCommand } from './commands/boards.js';
 import { registerKnowledgeCommand } from './commands/knowledge.js';
+import { startMcpServer } from './mcp/index.js';
 
 const program = new Command();
 
 program
   .name('xiao')
   .description('XIAO Assistant - Development tools for Seeed Studio XIAO series')
-  .version('0.1.0');
+  .version('0.0.1');
 
 program
   .command('help')
@@ -28,6 +29,7 @@ program
     console.log(`    ${pc.cyan('xiao search <query>')} - Search examples and docs`);
     console.log(`    ${pc.cyan('xiao example <name>')} - Show a code example`);
     console.log(`    ${pc.cyan('xiao knowledge')}     - Launch knowledge editor web UI`);
+    console.log(`    ${pc.cyan('xiao mcp')}           - Start MCP server for AI assistants`);
     console.log(`\n  Example: ${pc.yellow('xiao pinout esp32c3')}`);
     console.log(`  Example: ${pc.yellow('xiao search wifi --lang arduino')}`);
     console.log(`  Example: ${pc.yellow('xiao example blink-arduino')}\n`);
@@ -39,5 +41,12 @@ registerBoardsCommand(program);
 registerSearchCommand(program);
 registerExampleCommand(program);
 registerKnowledgeCommand(program);
+
+program
+  .command('mcp')
+  .description('Start MCP server for AI assistants (Claude, Cursor, etc.)')
+  .action(() => {
+    startMcpServer().catch(console.error);
+  });
 
 program.parse();
