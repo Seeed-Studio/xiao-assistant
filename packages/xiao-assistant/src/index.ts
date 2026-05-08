@@ -1,6 +1,9 @@
 import { Command } from 'commander';
 import figlet from 'figlet';
 import pc from 'picocolors';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { registerInitCommand } from './commands/init.js';
 import { registerPinoutCommand } from './commands/pinout.js';
 import { registerSearchCommand } from './commands/search.js';
@@ -9,12 +12,15 @@ import { registerBoardsCommand } from './commands/boards.js';
 import { registerKnowledgeCommand } from './commands/knowledge.js';
 import { startMcpServer } from './mcp/index.js';
 
+const _dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(_dirname, '..', 'package.json'), 'utf-8'));
+
 const program = new Command();
 
 program
   .name('xiao')
   .description('XIAO Assistant - Development tools for Seeed Studio XIAO series')
-  .version('0.0.1');
+  .version(pkg.version);
 
 program
   .command('help')
