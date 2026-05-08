@@ -1,6 +1,6 @@
 {
   "name": "@seeed-studio/xiao-assistant",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series",
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && rm -rf dist/data dist/web && cp -r data dist/data && cp -r web dist/web",
+    "build": "tsup && rm -rf dist/data dist/web && cp -r data dist/data && cp -r web dist/web && cp ../../README.md dist/README.md",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --fix",

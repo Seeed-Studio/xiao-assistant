@@ -7,9 +7,7 @@ import { parse, stringify } from 'yaml';
 import pc from 'picocolors';
 import open from 'open';
 
-const _dirname = typeof __dirname !== 'undefined'
-  ? __dirname
-  : dirname(fileURLToPath(import.meta.url));
+const _dirname = dirname(fileURLToPath(import.meta.url));
 
 function getDataDir(): string {
   // tsup bundles into dist/index.js, data is at dist/data/

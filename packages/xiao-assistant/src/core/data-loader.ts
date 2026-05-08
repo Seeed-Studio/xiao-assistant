@@ -4,9 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, XIAOKnowledge } from './types.js';
 
-const _dirname = typeof __dirname !== 'undefined'
-  ? __dirname
-  : dirname(fileURLToPath(import.meta.url));
+const _dirname = dirname(fileURLToPath(import.meta.url));
 
 let dataDir: string | null = null;
 
