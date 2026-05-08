@@ -1,6 +1,6 @@
 {
   "name": "@seeedstudio/xiao-mcp",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "mcpName": "io.seeedstudio.xiao-assistant",
   "description": "MCP server for XIAO Assistant - AI-powered XIAO development tools",
   "scripts": {

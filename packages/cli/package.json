@@ -1,6 +1,6 @@
 {
   "name": "@seeedstudio/xiao-cli",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "XIAO CLI - Command-line tools for XIAO development assistance",
   "type": "module",
   "bin": {
