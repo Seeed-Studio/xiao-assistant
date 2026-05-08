@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from '@seeedstudio/xiao-sdk';
+import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from '@seeed-studio/xiao-sdk';
 
 const assistant = new XIAOAssistant();
 

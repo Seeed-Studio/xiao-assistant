@@ -1,6 +1,6 @@
 # XIAO Assistant
 
-[![NPM Version](https://img.shields.io/npm/v/%40seeedstudio%2Fxiao-cli?color=blue)](https://www.npmjs.com/package/@seeedstudio/xiao-cli) [![MIT licensed](https://img.shields.io/npm/l/%40seeedstudio%2Fxiao-cli)](./LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/%40seeedstudio%2Fxiao-cli?color=blue)](https://www.npmjs.com/package/@seeed-studio/xiao-cli) [![MIT licensed](https://img.shields.io/npm/l/%40seeedstudio%2Fxiao-cli)](./LICENSE)
 
 XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series boards.
 
@@ -15,9 +15,9 @@ XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series board
 ## Installation
 
 ```bash
-npm install -g @seeedstudio/xiao-cli
+npm install -g @seeed-studio/xiao-cli
 # or
-pnpm add -g @seeedstudio/xiao-cli
+pnpm add -g @seeed-studio/xiao-cli
 ```
 
 ## Quick Start
@@ -46,7 +46,7 @@ Register the XIAO Assistant MCP server in your AI coding tool:
   "mcpServers": {
     "xiao-assistant": {
       "command": "npx",
-      "args": ["@seeedstudio/xiao-mcp"]
+      "args": ["@seeed-studio/xiao-mcp"]
     }
   }
 }
@@ -86,9 +86,9 @@ pnpm typecheck
 
 ## Packages
 
-- **[@seeedstudio/xiao-cli](./packages/cli)** - Command-line interface
-- **[@seeedstudio/xiao-mcp](./packages/mcp)** - MCP server for AI assistants
-- **[@seeedstudio/xiao-sdk](./packages/sdk)** - JavaScript/TypeScript SDK
+- **[@seeed-studio/xiao-cli](./packages/cli)** - Command-line interface
+- **[@seeed-studio/xiao-mcp](./packages/mcp)** - MCP server for AI assistants
+- **[@seeed-studio/xiao-sdk](./packages/sdk)** - JavaScript/TypeScript SDK
 
 ## Contributing
 

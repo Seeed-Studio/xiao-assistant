@@ -1,5 +1,5 @@
 {
-  "name": "@seeedstudio/xiao-cli",
+  "name": "@seeed-studio/xiao-cli",
   "version": "0.0.1",
   "description": "XIAO CLI - Command-line tools for XIAO development assistance",
   "type": "module",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.2.0",
-    "@seeedstudio/xiao-sdk": "workspace:*",
+    "@seeed-studio/xiao-sdk": "workspace:*",
     "commander": "^13.1.0",
     "express": "^5.2.1",
     "figlet": "^1.9.4",

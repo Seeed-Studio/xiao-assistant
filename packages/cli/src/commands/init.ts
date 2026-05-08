@@ -5,7 +5,7 @@ import { select, input } from '@inquirer/prompts';
 import ora from 'ora';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { XIAOAssistant } from '@seeedstudio/xiao-sdk';
+import { XIAOAssistant } from '@seeed-studio/xiao-sdk';
 
 export function registerInitCommand(program: Command) {
   program

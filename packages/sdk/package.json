@@ -1,5 +1,5 @@
 {
-  "name": "@seeedstudio/xiao-sdk",
+  "name": "@seeed-studio/xiao-sdk",
   "version": "0.0.1",
   "description": "JavaScript/TypeScript SDK for XIAO Assistant",
   "scripts": {

@@ -11,5 +11,5 @@ export default defineConfig({
   banner: {
     js: '#!/usr/bin/env node',
   },
-  external: ['@seeedstudio/xiao-sdk'],
+  external: ['@seeed-studio/xiao-sdk'],
 });

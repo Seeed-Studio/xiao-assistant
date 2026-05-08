@@ -41,7 +41,7 @@ importers:
       '@inquirer/prompts':
         specifier: ^8.2.0
         version: 8.4.2(@types/node@25.6.0)
-      '@seeedstudio/xiao-sdk':
+      '@seeed-studio/xiao-sdk':
         specifier: workspace:*
         version: link:../sdk
       commander:
@@ -87,7 +87,7 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^0.5.0
         version: 0.5.0
-      '@seeedstudio/xiao-sdk':
+      '@seeed-studio/xiao-sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
