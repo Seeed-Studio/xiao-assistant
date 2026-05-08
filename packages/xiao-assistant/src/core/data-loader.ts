@@ -13,13 +13,15 @@ let dataDir: string | null = null;
 function getDataDir(): string {
   if (dataDir) return dataDir;
 
-  const distData = resolve(_dirname, '..', 'data');
+  // tsup bundles into dist/index.js, data is at dist/data/
+  const distData = resolve(_dirname, 'data');
   if (existsSync(distData)) {
     dataDir = distData;
     return dataDir;
   }
 
-  const srcData = resolve(_dirname, '..', '..', 'data');
+  // Fallback: monorepo source structure (packages/xiao-assistant/src/core/ -> data/)
+  const srcData = resolve(_dirname, '..', 'data');
   if (existsSync(srcData)) {
     dataDir = srcData;
     return dataDir;

@@ -12,9 +12,11 @@ const _dirname = typeof __dirname !== 'undefined'
   : dirname(fileURLToPath(import.meta.url));
 
 function getDataDir(): string {
-  const distData = resolve(_dirname, '..', 'data');
+  // tsup bundles into dist/index.js, data is at dist/data/
+  const distData = resolve(_dirname, 'data');
   if (existsSync(distData)) return distData;
-  const srcData = resolve(_dirname, '..', '..', 'data');
+  // Fallback: monorepo source structure
+  const srcData = resolve(_dirname, '..', 'data');
   if (existsSync(srcData)) return srcData;
   throw new Error('Cannot find data directory');
 }
@@ -45,7 +47,7 @@ export function registerKnowledgeCommand(program: Command) {
 
       app.use(express.json());
 
-      const htmlPath = join(_dirname, '..', 'web', 'knowledge-editor.html');
+      const htmlPath = join(_dirname, 'web', 'knowledge-editor.html');
       app.get('/', (_req, res) => {
         res.sendFile(htmlPath);
       });
