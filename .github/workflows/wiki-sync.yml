@@ -1,0 +1,57 @@
+name: Wiki board sync check
+
+on:
+  schedule:
+    # Weekly, Thursday 03:17 UTC (off the :00 mark).
+    - cron: '17 3 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check wiki for unmapped XIAO boards
+        id: sync
+        run: |
+          set +e
+          output=$(cd packages/xiao-assistant && pnpm sync:wiki 2>&1)
+          code=$?
+          echo "$output"
+          {
+            echo 'report<<EOF'
+            echo "$output"
+            echo 'EOF'
+            echo "exitcode=$code"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open issue when new boards appear
+        if: steps.sync.outputs.exitcode == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = `${{ steps.sync.outputs.report }}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'wiki-sync: new XIAO board series not in data/boards',
+              body: 'The weekly wiki sitemap check found XIAO wiki pages that do not map to any local board entry:\n\n```\n' + report + '```\n\nAdd `data/boards/<id>.yaml` entries from the linked wiki pages, then re-run `pnpm sync:wiki`.',
+              labels: ['data', 'wiki-sync'],
+            });
