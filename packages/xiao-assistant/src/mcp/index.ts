@@ -6,7 +6,27 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { XIAOAssistant, type XIAOBoard, type XIAOExample, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from '../core/assistant.js';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  XIAOAssistant,
+  type XIAOBoard,
+  type XIAOExample,
+  type XIAOTroubleshootEntry,
+  type WikiSearchResult,
+  type XIAOKnowledge,
+} from '../core/assistant.js';
+
+const _dirname = dirname(fileURLToPath(import.meta.url));
+// bundled: dist/index.js -> <pkg>/package.json; src run: src/mcp/ -> <pkg>/package.json
+const pkgCandidates = [
+  join(_dirname, '..', 'package.json'),
+  join(_dirname, '..', '..', '..', 'package.json'),
+];
+const pkgPath = pkgCandidates.find((p) => existsSync(p));
+if (!pkgPath) throw new Error(`package.json not found. Looked in: ${pkgCandidates.join(', ')}`);
+const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
 
 export async function startMcpServer() {
   const assistant = new XIAOAssistant();
@@ -14,19 +34,19 @@ export async function startMcpServer() {
   const server = new Server(
     {
       name: 'xiao-assistant',
-      version: '0.2.0',
+      version: pkg.version,
     },
     {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
       {
-        name: 'resolve-board',
+        name: 'resolve_board',
         title: 'Resolve XIAO Board',
         description: `Resolves a user query to a specific XIAO board. Call this FIRST when the user mentions a XIAO board to get the exact board ID for use with other tools.
 
@@ -42,7 +62,8 @@ IMPORTANT: Always call this before get_board_info unless the user provides an ex
           properties: {
             query: {
               type: 'string',
-              description: 'Description of the board the user is looking for (e.g. "xiao esp32c3", "xiao with camera", "bluetooth xiao")',
+              description:
+                'Description of the board the user is looking for (e.g. "xiao esp32c3", "xiao with camera", "bluetooth xiao")',
             },
           },
           required: ['query'],
@@ -65,7 +86,8 @@ IMPORTANT: Always call this before get_board_info unless the user provides an ex
           properties: {
             board: {
               type: 'string',
-              description: 'Board ID (e.g. esp32c3, esp32s3, rp2040, nrf52840, samd21). Use resolve-board first if unsure.',
+              description:
+                'Board ID (e.g. esp32c3, esp32s3, rp2040, nrf52840, samd21). Use resolve_board first if unsure.',
             },
           },
           required: ['board'],
@@ -101,11 +123,12 @@ Each result includes the complete source code ready to use.`,
           properties: {
             query: {
               type: 'string',
-              description: 'Search query (e.g. "wifi", "bluetooth", "temperature sensor", "oled display", "mqtt")',
+              description:
+                'Search query (e.g. "wifi", "bluetooth", "temperature sensor", "oled display", "mqtt")',
             },
             language: {
               type: 'string',
-              enum: ['arduino', 'micropython', 'circuitpython'],
+              enum: ['arduino', 'micropython', 'circuitpython', 'zephyr'],
               description: 'Filter by programming language',
             },
             board: {
@@ -114,6 +137,23 @@ Each result includes the complete source code ready to use.`,
             },
           },
           required: ['query'],
+        },
+        annotations: { readOnlyHint: true },
+      },
+      {
+        name: 'get_example',
+        title: 'Get Code Example by ID',
+        description: `Fetch a single code example with its complete source code by example ID. Use this after search_examples listed a match in its "More matches" section without full code.`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description:
+                'Example ID (e.g. blink-arduino, wifi-connect-arduino, i2c-scan-arduino-nrf54l15)',
+            },
+          },
+          required: ['id'],
         },
         annotations: { readOnlyHint: true },
       },
@@ -156,7 +196,8 @@ Returns diagnosis steps and solutions.`,
           properties: {
             symptoms: {
               type: 'string',
-              description: 'Description of the problem (e.g. "upload fails", "no serial port", "WiFi not connecting", "board not detected")',
+              description:
+                'Description of the problem (e.g. "upload fails", "no serial port", "WiFi not connecting", "board not detected")',
             },
             board: {
               type: 'string',
@@ -199,7 +240,8 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           properties: {
             query: {
               type: 'string',
-              description: 'Search query (e.g. "deep sleep gpio", "battery voltage", "psram", "ble mac address")',
+              description:
+                'Search query (e.g. "deep sleep gpio", "battery voltage", "psram", "ble mac address")',
             },
             board: {
               type: 'string',
@@ -215,42 +257,71 @@ Returns detailed problem descriptions, solutions, and often working code.`,
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
+    // Zero-arg tools (list_boards) may legally omit "arguments" entirely.
+    const a: Record<string, unknown> = args ?? {};
 
-    if (!args) {
-      throw new McpError(ErrorCode.InvalidParams, 'Arguments are required');
-    }
+    // Typed accessor: malformed arguments are the caller's fault (InvalidParams),
+    // not an internal error.
+    const str = (key: string, required = true): string | undefined => {
+      const v = a[key];
+      if (v === undefined || v === null) {
+        if (required)
+          throw new McpError(ErrorCode.InvalidParams, `Missing required argument: ${key}`);
+        return undefined;
+      }
+      if (typeof v !== 'string')
+        throw new McpError(ErrorCode.InvalidParams, `Argument "${key}" must be a string`);
+      return v;
+    };
 
     try {
       switch (name) {
-        case 'resolve-board': {
-          const query = args.query as string;
-          const boards = assistant.resolveBoard(query);
+        case 'resolve_board': {
+          const query = str('query') as string;
+          // Queries containing "xiao" hit every fullName; cap the response so the
+          // caller gets the best matches, not the whole catalog.
+          const boards = assistant.resolveBoard(query).slice(0, 5);
           if (boards.length === 0) {
             return {
-              content: [{ type: 'text', text: `No XIAO boards found matching "${query}". Use list_boards to see all available boards.` }],
+              content: [
+                {
+                  type: 'text',
+                  text: `No XIAO boards found matching "${query}". Use list_boards to see all available boards.`,
+                },
+              ],
             };
           }
           return {
-            content: [{
-              type: 'text',
-              text: boards.map((b: XIAOBoard) =>
-                `## ${b.fullName}\n` +
-                `- **Board ID**: ${b.id}\n` +
-                `- **MCU**: ${b.microcontroller} (${b.architecture}) @ ${b.clockSpeed}\n` +
-                `- **Flash/RAM**: ${b.flashSize} / ${b.ramSize}\n` +
-                `- **Connectivity**: ${b.connectivity.join(', ') || 'None'}\n` +
-                `- **Sensors**: ${b.builtinSensors.join(', ') || 'None'}\n` +
-                `- **Languages**: ${b.supportedLanguages.join(', ')}\n` +
-                `- **Wiki**: ${b.wikiUrl}`
-              ).join('\n\n---\n\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text:
+                  `Best match${boards.length > 1 ? 'es' : ''} for "${query}" (top ${boards.length}, best first):\n\n` +
+                  boards
+                    .map(
+                      (b: XIAOBoard, i: number) =>
+                        `${i === 0 ? '**⭐ BEST MATCH** — ' : ''}## ${b.fullName}\n` +
+                        `- **Board ID**: ${b.id}\n` +
+                        `- **MCU**: ${b.microcontroller} (${b.architecture}) @ ${b.clockSpeed}\n` +
+                        `- **Flash/RAM**: ${b.flashSize} / ${b.ramSize}\n` +
+                        `- **Connectivity**: ${b.connectivity.join(', ') || 'None'}\n` +
+                        `- **Sensors**: ${b.builtinSensors.join(', ') || 'None'}\n` +
+                        `- **Languages**: ${b.supportedLanguages.join(', ')}\n` +
+                        `- **Wiki**: ${b.wikiUrl}`
+                    )
+                    .join('\n\n---\n\n'),
+              },
+            ],
           };
         }
 
         case 'get_board_info': {
-          const board = assistant.getBoard(args.board as string);
+          const board = assistant.getBoard(str('board') as string);
           if (!board) {
-            throw new McpError(ErrorCode.InvalidParams, `Board "${args.board}" not found. Use resolve-board or list_boards first.`);
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Board "${a.board}" not found. Use resolve_board or list_boards first.`
+            );
           }
           return {
             content: [{ type: 'text', text: JSON.stringify(board, null, 2) }],
@@ -258,60 +329,121 @@ Returns detailed problem descriptions, solutions, and often working code.`,
         }
 
         case 'get_pinout': {
-          const pinout = assistant.getPinout(args.board as string);
+          const boardName = str('board') as string;
+          const board = assistant.getBoard(boardName);
+          if (!board) {
+            // Unknown board is a caller error, not an internal one.
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Board "${a.board}" not found. Use resolve_board or list_boards first.`
+            );
+          }
           return {
-            content: [{ type: 'text', text: pinout }],
+            content: [{ type: 'text', text: assistant.getPinout(boardName) }],
           };
         }
 
         case 'search_examples': {
           const opts: { language?: string; board?: string } = {};
-          if (args.language) opts.language = args.language as string;
-          if (args.board) opts.board = args.board as string;
-          const examples = assistant.searchExamples(args.query as string, opts);
+          const language = str('language', false);
+          if (language) opts.language = language;
+          const boardFilter = str('board', false);
+          if (boardFilter) opts.board = boardFilter;
+          const examples = assistant.searchExamples(str('query') as string, opts);
           if (examples.length === 0) {
             return {
-              content: [{ type: 'text', text: `No examples found for "${args.query}". Try broader terms like "wifi", "sensor", "blink", or "bluetooth".` }],
+              content: [
+                {
+                  type: 'text',
+                  text: `No examples found for "${a.query}". Try broader terms like "wifi", "sensor", "blink", or "bluetooth".`,
+                },
+              ],
             };
           }
+          // Full code for the top hits only; the rest are one-liners so a broad
+          // query can't flood the model's context with dozens of full sources.
+          const FULL_CODE_LIMIT = 3;
+          const top = examples.slice(0, FULL_CODE_LIMIT);
+          const rest = examples.slice(FULL_CODE_LIMIT);
+          const text =
+            top
+              .map(
+                (ex: XIAOExample) =>
+                  `## ${ex.title}\n` +
+                  `${ex.description}\n\n` +
+                  `**Language**: ${ex.language} | **Category**: ${ex.category} | **Boards**: ${ex.boards.join(', ')}\n` +
+                  (ex.requirements?.length
+                    ? `**Requirements**: ${ex.requirements.join(', ')}\n`
+                    : '') +
+                  `\n\`\`\`${ex.language === 'arduino' || ex.language === 'zephyr' ? 'cpp' : 'python'}\n${ex.code}\n\`\`\``
+              )
+              .join('\n\n---\n\n') +
+            (rest.length > 0
+              ? `\n\n---\n\n**More matches** (use get_example with the id to fetch full code):\n` +
+                rest
+                  .map((ex: XIAOExample) => `- ${ex.title} (\`${ex.id}\`) — ${ex.description}`)
+                  .join('\n')
+              : '');
           return {
-            content: [{
-              type: 'text',
-              text: examples.map((ex: XIAOExample) =>
-                `## ${ex.title}\n` +
-                `${ex.description}\n\n` +
-                `**Language**: ${ex.language} | **Category**: ${ex.category} | **Boards**: ${ex.boards.join(', ')}\n` +
-                (ex.requirements?.length ? `**Requirements**: ${ex.requirements.join(', ')}\n` : '') +
-                `\n\`\`\`${ex.language === 'arduino' ? 'cpp' : 'python'}\n${ex.code}\n\`\`\``
-              ).join('\n\n---\n\n'),
-            }],
+            content: [{ type: 'text', text }],
+          };
+        }
+
+        case 'get_example': {
+          const example = assistant.getExampleById(str('id') as string);
+          if (!example) {
+            throw new McpError(ErrorCode.InvalidParams, `Example "${a.id}" not found.`);
+          }
+          return {
+            content: [
+              {
+                type: 'text',
+                text:
+                  `## ${example.title}\n` +
+                  `${example.description}\n\n` +
+                  `**Language**: ${example.language} | **Category**: ${example.category} | **Boards**: ${example.boards.join(', ')}\n` +
+                  (example.requirements?.length
+                    ? `**Requirements**: ${example.requirements.join(', ')}\n`
+                    : '') +
+                  (example.wikiUrl ? `**Wiki**: ${example.wikiUrl}\n` : '') +
+                  `\n\`\`\`${example.language === 'arduino' || example.language === 'zephyr' ? 'cpp' : 'python'}\n${example.code}\n\`\`\``,
+              },
+            ],
           };
         }
 
         case 'list_boards': {
           const boards = assistant.getAllBoards();
           return {
-            content: [{
-              type: 'text',
-              text: `# Supported XIAO Boards (${boards.length})\n\n` +
-                boards.map((b: XIAOBoard) =>
-                  `- **${b.fullName}** (\`${b.id}\`): ${b.microcontroller} @ ${b.clockSpeed}, ${b.connectivity.join(', ') || 'No RF'}`
-                ).join('\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text:
+                  `# Supported XIAO Boards (${boards.length})\n\n` +
+                  boards
+                    .map(
+                      (b: XIAOBoard) =>
+                        `- **${b.fullName}** (\`${b.id}\`): ${b.microcontroller} @ ${b.clockSpeed}, ${b.connectivity.join(', ') || 'No RF'}`
+                    )
+                    .join('\n'),
+              },
+            ],
           };
         }
 
         case 'get_quickstart': {
-          const doc = assistant.getQuickstart(args.board as string);
+          const doc = assistant.getQuickstart(str('board') as string);
           if (!doc) {
-            const board = assistant.getBoard(args.board as string);
+            const board = assistant.getBoard(str('board') as string);
             return {
-              content: [{
-                type: 'text',
-                text: board
-                  ? `No quickstart guide available for ${board.fullName}. Visit the wiki: ${board.wikiUrl}`
-                  : `Board "${args.board}" not found. Use resolve-board first.`,
-              }],
+              content: [
+                {
+                  type: 'text',
+                  text: board
+                    ? `No quickstart guide available for ${board.fullName}. Visit the wiki: ${board.wikiUrl}`
+                    : `Board "${a.board}" not found. Use resolve_board first.`,
+                },
+              ],
             };
           }
           return {
@@ -320,45 +452,58 @@ Returns detailed problem descriptions, solutions, and often working code.`,
         }
 
         case 'troubleshoot': {
-          const symptoms = args.symptoms as string;
-          const board = args.board as string | undefined;
+          const symptoms = str('symptoms') as string;
+          const board = str('board', false);
           const entries = assistant.troubleshoot(symptoms, board);
 
           if (entries.length === 0) {
             const wikiResults = await assistant.searchWikiOnline(symptoms);
             if (wikiResults.length > 0) {
               return {
-                content: [{
-                  type: 'text',
-                  text: `No local troubleshooting entries found for "${symptoms}". Here are relevant wiki results:\n\n` +
-                    wikiResults.map((r: WikiSearchResult) =>
-                      `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`
-                    ).join('\n\n'),
-                }],
+                content: [
+                  {
+                    type: 'text',
+                    text:
+                      `No local troubleshooting entries found for "${symptoms}". Here are relevant wiki results:\n\n` +
+                      wikiResults
+                        .map((r: WikiSearchResult) => `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`)
+                        .join('\n\n'),
+                  },
+                ],
               };
             }
             return {
-              content: [{ type: 'text', text: `No troubleshooting entries found for "${symptoms}". Try describing the issue differently, or search the wiki with search_wiki.` }],
+              content: [
+                {
+                  type: 'text',
+                  text: `No troubleshooting entries found for "${symptoms}". Try describing the issue differently, or search the wiki with search_wiki.`,
+                },
+              ],
             };
           }
 
           return {
-            content: [{
-              type: 'text',
-              text: entries.map((e: XIAOTroubleshootEntry) =>
-                `## ${e.title}\n\n` +
-                `**Category**: ${e.category}\n` +
-                `**Applies to**: ${e.boards.join(', ')}\n\n` +
-                `### Diagnosis\n${e.diagnosis.map((d: string) => `- ${d}`).join('\n')}\n\n` +
-                `### Solutions\n${e.solutions.map((s: string) => `- ${s}`).join('\n')}` +
-                (e.wikiUrl ? `\n\n📖 [More info](${e.wikiUrl})` : '')
-              ).join('\n\n---\n\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: entries
+                  .map(
+                    (e: XIAOTroubleshootEntry) =>
+                      `## ${e.title}\n\n` +
+                      `**Category**: ${e.category}\n` +
+                      `**Applies to**: ${e.boards.join(', ')}\n\n` +
+                      `### Diagnosis\n${e.diagnosis.map((d: string) => `- ${d}`).join('\n')}\n\n` +
+                      `### Solutions\n${e.solutions.map((s: string) => `- ${s}`).join('\n')}` +
+                      (e.wikiUrl ? `\n\n📖 [More info](${e.wikiUrl})` : '')
+                  )
+                  .join('\n\n---\n\n'),
+              },
+            ],
           };
         }
 
         case 'search_wiki': {
-          const query = args.query as string;
+          const query = str('query') as string;
           const results = await assistant.searchWikiOnline(query);
 
           if (results.length === 0) {
@@ -368,41 +513,54 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           }
 
           return {
-            content: [{
-              type: 'text',
-              text: `# Wiki Results for "${query}"\n\n` +
-                results.map((r: WikiSearchResult) =>
-                  `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`
-                ).join('\n\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text:
+                  `# Wiki Results for "${query}"\n\n` +
+                  results
+                    .map((r: WikiSearchResult) => `### ${r.title}\n${r.snippet}\n🔗 ${r.url}`)
+                    .join('\n\n'),
+              },
+            ],
           };
         }
 
         case 'search_knowledge': {
-          const query = args.query as string;
-          const board = args.board as string | undefined;
+          const query = str('query') as string;
+          const board = str('board', false);
           const entries = assistant.searchKnowledge(query, board ? { board } : undefined);
 
           if (entries.length === 0) {
             return {
-              content: [{ type: 'text', text: `No internal knowledge found for "${query}". Try related terms, or use search_wiki for public documentation.` }],
+              content: [
+                {
+                  type: 'text',
+                  text: `No internal knowledge found for "${query}". Try related terms, or use search_wiki for public documentation.`,
+                },
+              ],
             };
           }
 
           return {
-            content: [{
-              type: 'text',
-              text: entries.map((e: XIAOKnowledge) =>
-                `## ${e.title}\n\n` +
-                `**Severity**: ${e.severity} | **Category**: ${e.category} | **Source**: ${e.source}\n` +
-                `**Applies to**: ${e.boards.join(', ')}\n\n` +
-                `${e.summary}\n\n` +
-                `### Problem\n${e.problem}\n\n` +
-                `### Solution\n${e.solution}` +
-                (e.code ? `\n\n\`\`\`cpp\n${e.code}\n\`\`\`` : '') +
-                (e.workaround ? `\n\n### Workaround\n${e.workaround}` : '')
-              ).join('\n\n---\n\n'),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: entries
+                  .map(
+                    (e: XIAOKnowledge) =>
+                      `## ${e.title}\n\n` +
+                      `**Severity**: ${e.severity} | **Category**: ${e.category} | **Source**: ${e.source}\n` +
+                      `**Applies to**: ${e.boards.join(', ')}\n\n` +
+                      `${e.summary}\n\n` +
+                      `### Problem\n${e.problem}\n\n` +
+                      `### Solution\n${e.solution}` +
+                      (e.code ? `\n\n\`\`\`cpp\n${e.code}\n\`\`\`` : '') +
+                      (e.workaround ? `\n\n### Workaround\n${e.workaround}` : '')
+                  )
+                  .join('\n\n---\n\n'),
+              },
+            ],
           };
         }
 

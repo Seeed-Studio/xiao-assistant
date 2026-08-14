@@ -3,14 +3,32 @@
   "version": "0.0.3",
   "description": "XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series",
   "type": "module",
+  "main": "./dist/sdk.js",
+  "types": "./dist/sdk.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/sdk.d.ts",
+      "import": "./dist/sdk.js"
+    },
+    "./cli": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "xiao": "./dist/index.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsup && rm -rf dist/data dist/web && cp -r data dist/data && cp -r web dist/web && cp ../../README.md dist/README.md",
+    "build": "tsup && rm -rf dist/data dist/web && cp -r data dist/data && cp -r web dist/web",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --fix",

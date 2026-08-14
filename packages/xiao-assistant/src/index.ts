@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import figlet from 'figlet';
 import pc from 'picocolors';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, realpathSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { registerInitCommand } from './commands/init.js';
 import { registerPinoutCommand } from './commands/pinout.js';
 import { registerSearchCommand } from './commands/search.js';
@@ -13,7 +13,14 @@ import { registerKnowledgeCommand } from './commands/knowledge.js';
 import { startMcpServer } from './mcp/index.js';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(readFileSync(join(_dirname, '..', 'package.json'), 'utf-8'));
+// bundled: dist/index.js -> <pkg>/package.json; src run: src/ -> <pkg>/package.json
+const pkgCandidates = [
+  join(_dirname, '..', 'package.json'),
+  join(_dirname, '..', '..', 'package.json'),
+];
+const pkgPath = pkgCandidates.find((p) => existsSync(p));
+if (!pkgPath) throw new Error(`package.json not found. Looked in: ${pkgCandidates.join(', ')}`);
+const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string };
 
 const program = new Command();
 
@@ -27,7 +34,9 @@ program
   .description('Show detailed help information')
   .action(() => {
     console.log(pc.cyan(figlet.textSync('XIAO', { font: 'Speed' })));
-    console.log(pc.green('\n  XIAO Assistant - AI-powered development tools for Seeed Studio XIAO\n'));
+    console.log(
+      pc.green('\n  XIAO Assistant - AI-powered development tools for Seeed Studio XIAO\n')
+    );
     console.log('  Commands:');
     console.log(`    ${pc.cyan('xiao init')}          - Initialize a new XIAO project`);
     console.log(`    ${pc.cyan('xiao pinout <board>')} - Show pinout diagram for a board`);
@@ -55,4 +64,24 @@ program
     startMcpServer().catch(console.error);
   });
 
-program.parse();
+// Only parse argv when executed as the CLI binary (node dist/index.js / xiao).
+// Bundlers and SDK consumers import this module without running it.
+// Compare against BOTH argv[1] and its realpath: npm bin entries are symlinks,
+// and the ESM loader resolves the module to its real path while argv[1] keeps
+// the symlink path — a plain string compare makes `npm i -g xiao` a silent no-op.
+const isMainModule = (): boolean => {
+  const argv1 = process.argv[1];
+  if (!argv1) return false;
+  const self = import.meta.url;
+  if (self === pathToFileURL(argv1).href) return true;
+  try {
+    return self === pathToFileURL(realpathSync(argv1)).href;
+  } catch {
+    return false;
+  }
+};
+if (isMainModule()) {
+  program.parse();
+}
+
+export { program };
