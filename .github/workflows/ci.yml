@@ -1,8 +1,13 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -25,4 +30,11 @@ jobs:
 
       - run: pnpm typecheck
 
+      - run: pnpm lint:check
+
       - run: pnpm test
+
+      # Fail early if the published tarball would be broken (missing entry
+      # files, stray exports, etc.)
+      - name: Verify npm package contents
+        run: cd packages/xiao-assistant && pnpm pack --dry-run

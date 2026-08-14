@@ -12,6 +12,21 @@ export default [
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: "module"
+      },
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        fetch: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        AbortController: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly"
       }
     },
     plugins: {
@@ -20,6 +35,8 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      // no-undef doesn't understand TS types/ambient declarations; tsc covers it.
+      "no-undef": "off",
       "prettier/prettier": "error",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/explicit-function-return-type": "off",
