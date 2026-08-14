@@ -256,20 +256,25 @@ function updateStats() {
 function renderList() {
   const el = document.getElementById('entryList');
   el.innerHTML = entries.map(e => `
-    <div class="list-item ${editingId === e.id ? 'active' : ''}" onclick="loadEntry('${e.id}')">
+    <div class="list-item ${editingId === e.id ? 'active' : ''}" data-id="${esc(e.id)}">
       <div class="title">${esc(e.title)}</div>
       <div class="meta">
-        <span class="severity ${e.severity}">${e.severity}</span>
-        <span class="cat">${e.category}</span>
+        <span class="severity ${esc(e.severity)}">${esc(e.severity)}</span>
+        <span class="cat">${esc(e.category)}</span>
       </div>
     </div>
   `).join('');
 }
 
+document.getElementById('entryList').addEventListener('click', e => {
+  const item = e.target.closest('.list-item');
+  if (item) loadEntry(item.dataset.id);
+});
+
 function renderBoards() {
   const el = document.getElementById('boardsGrid');
   el.innerHTML = boards.map(b =>
-    `<div class="board-chip" data-board="${b}" onclick="toggleBoard(this)">${b}</div>`
+    `<div class="board-chip" data-board="${esc(b)}" onclick="toggleBoard(this)">${esc(b)}</div>`
   ).join('');
 }
 
@@ -347,7 +352,8 @@ function renderTags() {
   currentTags.forEach(tag => {
     const el = document.createElement('span');
     el.className = 'tag';
-    el.innerHTML = `${esc(tag)} <button onclick="removeTag('${esc(tag)}')">&times;</button>`;
+    el.innerHTML = `${esc(tag)} <button data-tag="${esc(tag)}">&times;</button>`;
+    el.querySelector('button').addEventListener('click', () => removeTag(tag));
     container.insertBefore(el, input);
   });
 }
@@ -443,9 +449,12 @@ function showToast(msg, type) {
 }
 
 function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 init();
