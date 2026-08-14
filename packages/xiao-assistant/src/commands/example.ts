@@ -34,8 +34,14 @@ export function registerExampleCommand(program: Command) {
       console.log(pc.dim('  ─────────────────────────────────────────'));
       console.log('');
       const lines = example.code.split('\n');
+      // '#' is a comment in Python dialects only; in Arduino/C it is a preprocessor
+      // directive and must not be colored like a comment.
+      const isComment =
+        example.language === 'arduino' || example.language === 'zephyr'
+          ? (line: string) => line.startsWith('//')
+          : (line: string) => line.startsWith('//') || line.startsWith('#');
       for (const line of lines) {
-        if (line.startsWith('//') || line.startsWith('#')) {
+        if (isComment(line)) {
           console.log(pc.green(`  ${line}`));
         } else {
           console.log(`  ${line}`);

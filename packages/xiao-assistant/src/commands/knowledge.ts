@@ -113,7 +113,12 @@ export function registerKnowledgeCommand(program: Command) {
     .description('Launch the knowledge editor web UI')
     .option('-p, --port <port>', 'Port number', '3456')
     .action(async (options: { port: string }) => {
-      const port = parseInt(options.port, 10);
+      const port = Number.parseInt(options.port, 10);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        console.error(pc.red(`Invalid port "${options.port}" (expected 1-65535).`));
+        process.exitCode = 1;
+        return;
+      }
       const app = express();
 
       app.disable('x-powered-by');
