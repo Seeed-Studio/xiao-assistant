@@ -223,15 +223,37 @@ export function registerKnowledgeCommand(program: Command) {
           for (const f of readdirSync(dir).filter((n: string) => n.endsWith('.yaml'))) {
             const filePath = join(dir, f);
             const items = parse(readFileSync(filePath, 'utf-8')) || [];
-            const filtered = items.filter((e: any) => e.id !== id);
-            if (filtered.length < items.length) {
-              writeFileSync(filePath, stringify(filtered, { lineWidth: 0 }) + '\n', 'utf-8');
+            const removed = items.filter((e: any) => e.id === id);
+            if (removed.length > 0) {
+              // Recycle instead of hard delete: the knowledge base is hand-curated
+              // support experience; an accidental DELETE must be recoverable.
+              const trashDir = join(dir, '.trash');
+              if (!existsSync(trashDir)) mkdirSync(trashDir, { recursive: true });
+              const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const trashPath = join(trashDir, `${stamp}__${f}`);
+              const existingTrash = existsSync(trashPath)
+                ? (parse(readFileSync(trashPath, 'utf-8')) as any[]) || []
+                : [];
+              writeFileSync(
+                trashPath,
+                stringify([...existingTrash, ...removed], { lineWidth: 0 }) + '\n',
+                'utf-8'
+              );
+
+              writeFileSync(
+                filePath,
+                stringify(
+                  items.filter((e: any) => e.id !== id),
+                  { lineWidth: 0 }
+                ) + '\n',
+                'utf-8'
+              );
               found = true;
               break;
             }
           }
 
-          res.json({ ok: found });
+          res.json({ ok: found, note: 'entries moved to data/knowledge/.trash/' });
         } catch (err: any) {
           res.status(500).json({ error: err.message });
         }
