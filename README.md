@@ -6,7 +6,7 @@ XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series board
 
 ## Features
 
-- **14 XIAO Boards**: Full pinouts, specs, and quickstart guides
+- **17 XIAO Boards**: Full pinouts, specs, and quickstart guides (incl. new ESP32-C5 and nRF54LM20A)
 - **61 Code Examples**: WiFi, BLE, MQTT, sensors, displays, motors, and more
 - **CLI Tools**: Initialize projects, search examples, view pinouts
 - **MCP Server**: Native integration with Claude, Cursor, and other AI tools
@@ -65,12 +65,13 @@ Register in your AI coding tool (Claude, Cursor, etc.):
 }
 ```
 
-### 9 MCP Tools
+### 10 MCP Tools
 
-- `resolve-board` - Find the right XIAO board
+- `resolve_board` - Find the right XIAO board
 - `get_board_info` - Get full board specs
 - `get_pinout` - Get pinout diagram
 - `search_examples` - Search code examples
+- `get_example` - Get full code of one example by ID
 - `list_boards` - List all boards
 - `get_quickstart` - Get getting-started guide
 - `troubleshoot` - Diagnose common issues
@@ -79,12 +80,13 @@ Register in your AI coding tool (Claude, Cursor, etc.):
 
 ## Supported Boards
 
-- XIAO ESP32C3, ESP32S3, ESP32S3 Sense, ESP32C6
+- XIAO ESP32C3, ESP32S3, ESP32S3 Sense, ESP32C6, ESP32C5 (Wi-Fi 6 dual-band)
 - XIAO RP2040, RP2350
 - XIAO nRF52840, nRF52840 Sense
 - XIAO SAMD21, RA4M1
 - XIAO MG24, MG24 Sense
 - XIAO nRF54L15, nRF54L15 Sense
+- XIAO nRF54LM20A, nRF54LM20A Sense
 
 ## Development
 

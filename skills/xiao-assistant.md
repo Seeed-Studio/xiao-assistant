@@ -17,7 +17,7 @@ Use XIAO Assistant tools when the user asks about:
 
 ## How to Use
 
-1. If the user mentions a specific board or requirements, call `resolve-board` first to get the exact board ID
+1. If the user mentions a specific board or requirements, call `resolve_board` first to get the exact board ID
 2. Use `get_board_info` for detailed specifications
 3. Use `get_pinout` for pin mapping diagrams
 4. Use `search_examples` to find relevant code examples (always include the full code in your response)
