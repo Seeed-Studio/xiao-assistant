@@ -4,11 +4,12 @@
     \ **Install ESP32 Board Package:**\n   - Go to File > Preferences\n   - Add this URL to \"Additional Board Manager URLs\":\n     `https://espressif.github.io/arduino-esp32/package_esp32_index.json`\n\
     \   - Go to Tools > Board > Boards Manager\n   - Search for \"esp32\" and install \"esp32 by Espressif Systems\"\n\n2. **Select your board:**\n   - Tools > Board > ESP32 Arduino > XIAO_ESP32C3 (or XIAO_ESP32S3,\
     \ XIAO_ESP32C6)\n\n3. **Select port:**\n   - Tools > Port > select the COM port (Windows) or /dev/ttyUSBx (Linux/Mac)\n\n4. **Upload a sketch:**\n   - Open File > Examples > 01.Basics > Blink\n   -\
-    \ Click the Upload button (→)\n\n## Pin Assignment (XIAO ESP32C3)\nAll XIAO boards have 11 GPIO pins accessible through the header:\n| Pin | Function | Notes |\n|-----|----------|-------|\n| D0  | GPIO0\
-    \    | ADC, PWM |\n| D1  | GPIO1    | ADC, PWM |\n| D2  | GPIO2    | ADC, PWM |\n| D3  | GPIO3    | SPI CS0, ADC, PWM |\n| D4  | GPIO4    | ADC, PWM |\n| D5  | GPIO5    | ADC, PWM |\n| D6  | GPIO6 \
-    \   | I2C SDA, PWM |\n| D7  | GPIO7    | I2C SCL, PWM |\n| D8  | GPIO8    | SPI MISO, PWM |\n| D9  | GPIO9    | SPI MOSI, PWM |\n| D10 | GPIO10   | SPI SCK, PWM |\n\n## Common Issues\n- **Upload fails:**\
-    \ Hold the BOOT button while uploading, release when \"Connecting...\" appears\n- **Port not showing:** Install native USB (CDC) or native USB (CDC) USB driver\n- **WiFi not connecting:** Check SSID/password,\
-    \ ensure 2.4GHz network (not 5GHz)\n"
+    \ Click the Upload button (→)\n\n## Pin Assignment (XIAO ESP32C3)\nPer the official pin map (D-numbers map to these GPIOs):\n| Pin | GPIO | Function |\n|-----|------|----------|\n| D0  | GPIO2  | ADC,\
+    \ PWM |\n| D1  | GPIO3  | ADC, PWM |\n| D2  | GPIO4  | ADC, PWM |\n| D3  | GPIO5  | ADC, PWM |\n| D4  | GPIO6  | I2C SDA |\n| D5  | GPIO7  | I2C SCL |\n| D6  | GPIO21 | UART TX |\n| D7  | GPIO20 | UART\
+    \ RX |\n| D8  | GPIO8  | SPI SCK |\n| D9  | GPIO9  | SPI MISO |\n| D10 | GPIO10 | SPI MOSI |\n\nNOTE: XIAO ESP32C3 has NO onboard user LED (no LED_BUILTIN). Wire an external\nLED to D10 through a 150-ohm\
+    \ resistor to blink.\n\nPin maps differ per model (S3/C6/C5 use different GPIO mappings) — run\n`xiao pinout <board-id>` for the authoritative table of your board.\n\n## Common Issues\n- **Upload fails:**\
+    \ Hold the BOOT button while uploading, release when \"Connecting...\" appears\n- **Port not showing:** XIAO ESP32 boards use native USB (CDC) - no external driver needed; check the cable supports data\n\
+    - **WiFi not connecting:** Check SSID/password, ensure 2.4GHz network (not 5GHz)\n"
   category: getting-started
   boards:
   - esp32c3
