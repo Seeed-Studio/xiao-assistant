@@ -18,6 +18,7 @@ export function registerPinoutCommand(program: Command) {
         for (const b of boards) {
           console.log(`  - ${pc.cyan(b.id)} (${b.name})`);
         }
+        process.exitCode = 1;
       }
     });
 }

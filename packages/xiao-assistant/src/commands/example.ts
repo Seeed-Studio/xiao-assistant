@@ -17,12 +17,15 @@ export function registerExampleCommand(program: Command) {
         for (const ex of all) {
           console.log(`  - ${pc.cyan(ex.id)}: ${ex.title}`);
         }
+        process.exitCode = 1;
         return;
       }
 
       console.log(pc.cyan(`\n  ${example.title}\n`));
       console.log(`  ${example.description}`);
-      console.log(`  Language: ${pc.green(example.language)} | Category: ${pc.magenta(example.category)}`);
+      console.log(
+        `  Language: ${pc.green(example.language)} | Category: ${pc.magenta(example.category)}`
+      );
       console.log(`  Compatible boards: ${example.boards.join(', ')}`);
       if (example.requirements?.length) {
         console.log(`  Requirements: ${pc.yellow(example.requirements.join(', '))}`);

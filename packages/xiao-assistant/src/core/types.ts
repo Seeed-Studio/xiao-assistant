@@ -33,7 +33,7 @@ export interface XIAOExample {
   id: string;
   title: string;
   description: string;
-  language: 'arduino' | 'micropython' | 'circuitpython';
+  language: 'arduino' | 'micropython' | 'circuitpython' | 'zephyr';
   boards: string[];
   category: string;
   tags?: string[];

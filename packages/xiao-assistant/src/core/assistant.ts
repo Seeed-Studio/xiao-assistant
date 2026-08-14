@@ -1,5 +1,19 @@
-import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, WikiSearchResult, XIAOKnowledge } from './types.js';
-import { loadBoards, loadExamples, loadDocuments, loadTroubleshootEntries, loadSynonyms, loadKnowledge } from './data-loader.js';
+import type {
+  XIAOBoard,
+  XIAOExample,
+  XIAODocument,
+  XIAOTroubleshootEntry,
+  WikiSearchResult,
+  XIAOKnowledge,
+} from './types.js';
+import {
+  loadBoards,
+  loadExamples,
+  loadDocuments,
+  loadTroubleshootEntries,
+  loadSynonyms,
+  loadKnowledge,
+} from './data-loader.js';
 import { searchWiki } from './wiki-service.js';
 
 export class XIAOAssistant {
@@ -10,9 +24,15 @@ export class XIAOAssistant {
   private knowledge: XIAOKnowledge[];
   private synonyms: Record<string, string[]>;
 
+  /** Map keys must go through the same normalization as lookups, or ids like
+   *  "esp32s3-sense" (normalized "esp32s3sense") would never be found. */
+  private static normalizeId(id: string): string {
+    return id.toLowerCase().replace(/[\s_-]/g, '');
+  }
+
   constructor() {
     for (const board of loadBoards()) {
-      this.boards.set(board.id, board);
+      this.boards.set(XIAOAssistant.normalizeId(board.id), board);
     }
     this.examples = loadExamples();
     this.documents = loadDocuments();
@@ -21,13 +41,20 @@ export class XIAOAssistant {
     this.synonyms = loadSynonyms();
   }
 
+  /** Blank queries match everything via includes(''); treat them as no-match. */
+  private static normalizeQuery(query: string): string | null {
+    const q = query.trim().toLowerCase();
+    return q.length > 0 ? q : null;
+  }
+
   // --- Board methods ---
 
   getBoard(boardName: string): XIAOBoard | undefined {
-    const normalized = boardName.toLowerCase().replace(/[\s_-]/g, '');
+    const normalized = XIAOAssistant.normalizeId(boardName);
+    if (!normalized) return undefined; // '' is contained by every field — would match the first board
     if (this.boards.has(normalized)) return this.boards.get(normalized);
 
-    for (const [id, board] of this.boards) {
+    for (const board of this.boards.values()) {
       if (
         board.name.toLowerCase().includes(normalized) ||
         board.fullName.toLowerCase().includes(normalized) ||
@@ -44,14 +71,20 @@ export class XIAOAssistant {
   }
 
   resolveBoard(query: string): XIAOBoard[] {
-    const q = query.toLowerCase();
+    const q = XIAOAssistant.normalizeQuery(query);
+    if (!q) return [];
     const results: Array<{ board: XIAOBoard; score: number }> = [];
 
     for (const board of this.boards.values()) {
       let score = 0;
       const fields = [
-        board.id, board.name, board.fullName, board.microcontroller,
-        board.architecture, ...board.features, ...board.connectivity,
+        board.id,
+        board.name,
+        board.fullName,
+        board.microcontroller,
+        board.architecture,
+        ...board.features,
+        ...board.connectivity,
         ...board.builtinSensors,
       ].map((f) => f.toLowerCase());
 
@@ -75,7 +108,8 @@ export class XIAOAssistant {
   // --- Example methods ---
 
   searchExamples(query: string, options?: { language?: string; board?: string }): XIAOExample[] {
-    const q = query.toLowerCase();
+    const q = XIAOAssistant.normalizeQuery(query);
+    if (!q) return [];
     const expanded = this.expandQuery(q);
     const results: Array<{ example: XIAOExample; score: number }> = [];
 
@@ -85,8 +119,11 @@ export class XIAOAssistant {
 
       let score = 0;
       const fields = [
-        example.title, example.description, example.category,
-        ...example.boards, ...(example.requirements ?? []),
+        example.title,
+        example.description,
+        example.category,
+        ...example.boards,
+        ...(example.requirements ?? []),
       ].map((f) => f.toLowerCase());
       const tags = (example.tags ?? []).map((t) => t.toLowerCase());
 
@@ -132,7 +169,8 @@ export class XIAOAssistant {
   getPinout(boardName: string): string {
     const board = this.getBoard(boardName);
     if (!board) {
-      throw new Error(`Board "${boardName}" not found. Available: ${Array.from(this.boards.keys()).join(', ')}`);
+      const ids = Array.from(this.boards.values(), (b) => b.id).join(', ');
+      throw new Error(`Board "${boardName}" not found. Available: ${ids}`);
     }
 
     const lines: string[] = [
@@ -172,7 +210,7 @@ export class XIAOAssistant {
       `║  LANGUAGES:    ${board.supportedLanguages.join(', ')}`,
       `╠══════════════════════════════════════════════╣`,
       `║  Wiki: ${board.wikiUrl}`,
-      `╚══════════════════════════════════════════════╝`,
+      `╚══════════════════════════════════════════════╝`
     );
 
     return lines.join('\n');
@@ -189,7 +227,8 @@ export class XIAOAssistant {
   }
 
   searchDocuments(query: string): XIAODocument[] {
-    const q = query.toLowerCase();
+    const q = XIAOAssistant.normalizeQuery(query);
+    if (!q) return [];
     const expanded = this.expandQuery(q);
     const results: Array<{ doc: XIAODocument; score: number }> = [];
 
@@ -209,13 +248,16 @@ export class XIAOAssistant {
   }
 
   getQuickstart(boardName: string): XIAODocument | undefined {
-    return this.documents.find((d) => d.category === 'getting-started' && d.boards.includes(boardName));
+    return this.documents.find(
+      (d) => d.category === 'getting-started' && d.boards.includes(boardName)
+    );
   }
 
   // --- Troubleshoot ---
 
   troubleshoot(symptoms: string, board?: string): XIAOTroubleshootEntry[] {
-    const q = symptoms.toLowerCase();
+    const q = XIAOAssistant.normalizeQuery(symptoms);
+    if (!q) return [];
     const expanded = this.expandQuery(q);
     const results: Array<{ entry: XIAOTroubleshootEntry; score: number }> = [];
 
@@ -260,7 +302,8 @@ export class XIAOAssistant {
   // --- Knowledge search ---
 
   searchKnowledge(query: string, options?: { board?: string; severity?: string }): XIAOKnowledge[] {
-    const q = query.toLowerCase();
+    const q = XIAOAssistant.normalizeQuery(query);
+    if (!q) return [];
     const expanded = this.expandQuery(q);
     const results: Array<{ entry: XIAOKnowledge; score: number }> = [];
 
@@ -270,7 +313,13 @@ export class XIAOAssistant {
 
       let score = 0;
       const tags = entry.tags.map((t) => t.toLowerCase());
-      const fields = [entry.title, entry.summary, entry.problem, entry.solution, entry.category].map((f) => f.toLowerCase());
+      const fields = [
+        entry.title,
+        entry.summary,
+        entry.problem,
+        entry.solution,
+        entry.category,
+      ].map((f) => f.toLowerCase());
 
       for (const field of fields) {
         if (field.includes(q)) score += 5;
@@ -304,7 +353,7 @@ export class XIAOAssistant {
 
   async searchExamplesWithFallback(
     query: string,
-    options?: { language?: string; board?: string },
+    options?: { language?: string; board?: string }
   ): Promise<{ local: XIAOExample[]; wiki: WikiSearchResult[] }> {
     const local = this.searchExamples(query, options);
     if (local.length > 0) return { local, wiki: [] };
@@ -313,7 +362,9 @@ export class XIAOAssistant {
     return { local, wiki };
   }
 
-  async searchDocumentsWithFallback(query: string): Promise<{ local: XIAODocument[]; wiki: WikiSearchResult[] }> {
+  async searchDocumentsWithFallback(
+    query: string
+  ): Promise<{ local: XIAODocument[]; wiki: WikiSearchResult[] }> {
     const local = this.searchDocuments(query);
     if (local.length > 0) return { local, wiki: [] };
 
@@ -339,5 +390,12 @@ export class XIAOAssistant {
   }
 }
 
-export { type XIAOBoard, type XIAOExample, type XIAODocument, type XIAOTroubleshootEntry, type WikiSearchResult, type XIAOKnowledge } from './types.js';
+export {
+  type XIAOBoard,
+  type XIAOExample,
+  type XIAODocument,
+  type XIAOTroubleshootEntry,
+  type WikiSearchResult,
+  type XIAOKnowledge,
+} from './types.js';
 export default XIAOAssistant;

@@ -45,12 +45,20 @@ export function registerInitCommand(program: Command) {
       try {
         mkdirSync(projectName, { recursive: true });
 
-        const mainFile = language === 'arduino' ? `${projectName}.ino` : language === 'micropython' ? 'main.py' : 'code.py';
+        const mainFile =
+          language === 'arduino'
+            ? `${projectName}.ino`
+            : language === 'micropython'
+              ? 'main.py'
+              : 'code.py';
         const code = generateTemplate(board, language, projectName);
 
         writeFileSync(join(projectName, mainFile), code);
 
-        writeFileSync(join(projectName, 'README.md'), `# ${projectName}\n\nXIAO ${board.toUpperCase()} project using ${language}.\n\n## Setup\n\nSee [XIAO Wiki](https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/) for getting started.\n`);
+        writeFileSync(
+          join(projectName, 'README.md'),
+          `# ${projectName}\n\nXIAO ${board.toUpperCase()} project using ${language}.\n\n## Setup\n\nSee [XIAO Wiki](https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/) for getting started.\n`
+        );
 
         spinner.succeed(pc.green(`Project "${projectName}" created!`));
         console.log(`\n  ${pc.cyan('Files created:')}`);

@@ -11,19 +11,33 @@ export function registerBoardsCommand(program: Command) {
       const boards = assistant.getAllBoards();
 
       console.log(pc.cyan('\n  Supported XIAO Boards\n'));
-      console.log('  ┌─────────────────────┬──────────────────┬───────────────┬─────────────────────────────────┐');
-      console.log('  │ Board                │ MCU              │ Connectivity  │ Key Features                    │');
-      console.log('  ├─────────────────────┼──────────────────┼───────────────┼─────────────────────────────────┤');
+      // Column widths include the trailing space each cell renders with.
+      const W = { name: 21, mcu: 18, conn: 15, feat: 33 };
+      console.log(
+        `  ┌${'─'.repeat(W.name)}┬${'─'.repeat(W.mcu)}┬${'─'.repeat(W.conn)}┬${'─'.repeat(W.feat)}┐`
+      );
+      console.log(
+        `  │ ${'Board'.padEnd(W.name - 1)}│ ${'MCU'.padEnd(W.mcu - 1)}│ ${'Connectivity'.padEnd(W.conn - 1)}│ ${'Key Features'.padEnd(W.feat - 1)}│`
+      );
+      console.log(
+        `  ├${'─'.repeat(W.name)}┼${'─'.repeat(W.mcu)}┼${'─'.repeat(W.conn)}┼${'─'.repeat(W.feat)}┤`
+      );
 
       for (const board of boards) {
-        const name = board.name.padEnd(20).slice(0, 20);
-        const mcu = board.microcontroller.padEnd(17).slice(0, 17);
-        const conn = (board.connectivity.length > 0 ? board.connectivity[0].split(' ')[0] : 'N/A').padEnd(14).slice(0, 14);
-        const feat = (board.builtinSensors.length > 0 ? board.builtinSensors[0] : board.features[0] || 'Basic').padEnd(32).slice(0, 32);
-        console.log(`  │ ${pc.cyan(name)} │ ${mcu} │ ${conn} │ ${feat} │`);
+        const name = board.name.padEnd(W.name - 1).slice(0, W.name - 1);
+        const mcu = board.microcontroller.padEnd(W.mcu - 1).slice(0, W.mcu - 1);
+        const conn = ((board.connectivity[0] ?? 'N/A').split(' ')[0] ?? 'N/A')
+          .padEnd(W.conn - 1)
+          .slice(0, W.conn - 1);
+        const feat = (board.builtinSensors[0] ?? board.features[0] ?? 'Basic')
+          .padEnd(W.feat - 1)
+          .slice(0, W.feat - 1);
+        console.log(`  │ ${pc.cyan(name)}│ ${mcu}│ ${conn}│ ${feat}│`);
       }
 
-      console.log('  └─────────────────────┴──────────────────┴───────────────┴─────────────────────────────────┘');
+      console.log(
+        `  └${'─'.repeat(W.name)}┴${'─'.repeat(W.mcu)}┴${'─'.repeat(W.conn)}┴${'─'.repeat(W.feat)}┘`
+      );
       console.log(pc.yellow(`\n  Total: ${boards.length} boards\n`));
       console.log(pc.dim('  Use "xiao pinout <board-id>" for detailed pinout information'));
     });

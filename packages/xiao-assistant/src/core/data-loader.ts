@@ -2,7 +2,13 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import type { XIAOBoard, XIAOExample, XIAODocument, XIAOTroubleshootEntry, XIAOKnowledge } from './types.js';
+import type {
+  XIAOBoard,
+  XIAOExample,
+  XIAODocument,
+  XIAOTroubleshootEntry,
+  XIAOKnowledge,
+} from './types.js';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,20 +18,16 @@ function getDataDir(): string {
   if (dataDir) return dataDir;
 
   // tsup bundles into dist/index.js, data is at dist/data/
-  const distData = resolve(_dirname, 'data');
-  if (existsSync(distData)) {
-    dataDir = distData;
-    return dataDir;
+  // src runs (vitest/tsx) execute here as src/core/, data is at ../../data
+  const candidates = [resolve(_dirname, 'data'), resolve(_dirname, '..', '..', 'data')];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      dataDir = candidate;
+      return dataDir;
+    }
   }
 
-  // Fallback: monorepo source structure (packages/xiao-assistant/src/core/ -> data/)
-  const srcData = resolve(_dirname, '..', 'data');
-  if (existsSync(srcData)) {
-    dataDir = srcData;
-    return dataDir;
-  }
-
-  throw new Error(`Cannot find data directory. Looked in: ${distData}, ${srcData}`);
+  throw new Error(`Cannot find data directory. Looked in: ${candidates.join(', ')}`);
 }
 
 function readYamlFile<T>(filePath: string): T {

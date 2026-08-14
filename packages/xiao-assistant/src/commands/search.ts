@@ -6,14 +6,34 @@ export function registerSearchCommand(program: Command) {
   program
     .command('search <query>')
     .description('Search for XIAO code examples and documentation')
-    .option('-l, --lang <language>', 'Filter by language (arduino, micropython, circuitpython)')
+    .option(
+      '-l, --lang <language>',
+      'Filter by language (arduino, micropython, circuitpython, zephyr)'
+    )
     .option('-b, --board <board>', 'Filter by board ID')
     .option('-d, --docs', 'Search documentation only')
     .action(async (query: string, options: { lang?: string; board?: string; docs?: boolean }) => {
       const assistant = new XIAOAssistant();
 
+      const LANGS = ['arduino', 'micropython', 'circuitpython', 'zephyr'];
+      if (options.lang && !LANGS.includes(options.lang)) {
+        console.error(pc.red(`Invalid --lang "${options.lang}". Valid: ${LANGS.join(', ')}`));
+        process.exitCode = 1;
+        return;
+      }
+      if (options.board && !assistant.getBoard(options.board)) {
+        console.error(
+          pc.red(`Unknown board "${options.board}". Run "xiao boards" to list valid board IDs.`)
+        );
+        process.exitCode = 1;
+        return;
+      }
+
       if (!options.docs) {
-        const { local: examples, wiki } = await assistant.searchExamplesWithFallback(query, { language: options.lang, board: options.board });
+        const { local: examples, wiki } = await assistant.searchExamplesWithFallback(query, {
+          language: options.lang,
+          board: options.board,
+        });
         console.log(pc.cyan(`\n  Code Examples for "${query}"\n`));
         if (examples.length === 0) {
           console.log(pc.yellow('  No local examples found.'));
@@ -30,7 +50,9 @@ export function registerSearchCommand(program: Command) {
           for (const ex of examples) {
             console.log(`  ${pc.green('●')} ${pc.bold(ex.title)}`);
             console.log(`    ${pc.dim(ex.description)}`);
-            console.log(`    Language: ${pc.cyan(ex.language)} | Category: ${pc.magenta(ex.category)} | ID: ${pc.yellow(ex.id)}`);
+            console.log(
+              `    Language: ${pc.cyan(ex.language)} | Category: ${pc.magenta(ex.category)} | ID: ${pc.yellow(ex.id)}`
+            );
             console.log(`    Boards: ${ex.boards.join(', ')}`);
             if (ex.requirements?.length) {
               console.log(`    Requires: ${ex.requirements.join(', ')}`);
@@ -45,7 +67,9 @@ export function registerSearchCommand(program: Command) {
         console.log(pc.cyan(`  Documentation\n`));
         for (const doc of docs) {
           console.log(`  ${pc.green('●')} ${pc.bold(doc.title)}`);
-          console.log(`    ${pc.dim(`Category: ${doc.category} | Boards: ${doc.boards.join(', ')}`)}`);
+          console.log(
+            `    ${pc.dim(`Category: ${doc.category} | Boards: ${doc.boards.join(', ')}`)}`
+          );
           console.log('');
         }
       } else if (wiki.length > 0 && options.docs) {
