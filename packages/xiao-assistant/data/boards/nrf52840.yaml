@@ -66,6 +66,7 @@
   hasResetButton: true
   hasBootButton: false
   hasBatteryCharging: true
+  lowPowerMode: 5µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/XIAO_BLE/
   sku: '102010448'
 - id: nrf52840-sense
@@ -139,5 +140,6 @@
   hasResetButton: true
   hasBootButton: false
   hasBatteryCharging: true
+  lowPowerMode: 5µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/XIAO_BLE/
   sku: '102010469'

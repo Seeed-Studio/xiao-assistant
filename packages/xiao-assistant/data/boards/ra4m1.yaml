@@ -86,5 +86,6 @@
   hasResetButton: false
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 45µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/getting_started_xiao_ra4m1/
   sku: '102010551'

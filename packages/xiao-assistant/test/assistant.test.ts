@@ -128,6 +128,47 @@ describe('example board compatibility (regression: esp32c3 has NO onboard user L
   });
 });
 
+describe('Chinese queries and synonym expansion (P1)', () => {
+  it('Chinese queries hit English content via synonym expansion', () => {
+    const cases: Array<[string, number]> = [
+      ['蓝牙', 5],
+      ['低功耗', 1],
+      ['温度传感器', 1],
+      ['屏幕', 1],
+      ['舵机', 1],
+      ['摄像头', 1],
+    ];
+    for (const [q, min] of cases) {
+      expect(assistant.searchExamples(q).length, q).toBeGreaterThanOrEqual(min);
+    }
+  });
+
+  it('multi-word synonyms match whole phrases', () => {
+    expect(assistant.searchExamples('deep sleep').map((e) => e.id)).toContain(
+      'deep-sleep-esp32-arduino'
+    );
+    expect(assistant.searchExamples('sd card').length).toBeGreaterThan(0);
+  });
+});
+
+describe('low power data (P1)', () => {
+  it('boards carry lowPowerMode from the official comparison table', () => {
+    const cases: Record<string, string> = {
+      nrf52840: '5µA',
+      mg24: '1.95µA',
+      esp32c3: '44µA',
+      'nrf54lm20a': '4.76µA',
+    };
+    for (const [id, fragment] of Object.entries(cases)) {
+      expect(assistant.getBoard(id)?.lowPowerMode, id).toContain(fragment);
+    }
+  });
+
+  it('pinout renders the low power line', () => {
+    expect(assistant.getPinout('nrf54lm20a')).toMatch(/LOW POWER:.*4\.76µA/);
+  });
+});
+
 describe('troubleshoot + knowledge + quickstart', () => {
   it('troubleshoot matches upload-failure symptoms', () => {
     const entries = assistant.troubleshoot('upload fails');

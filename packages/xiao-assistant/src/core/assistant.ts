@@ -208,6 +208,7 @@ export class XIAOAssistant {
       `║  SENSORS:      ${board.builtinSensors.join(', ') || 'None'}`,
       `║  FEATURES:     ${board.features.join(', ')}`,
       `║  LANGUAGES:    ${board.supportedLanguages.join(', ')}`,
+      ...(board.lowPowerMode ? [`║  LOW POWER:   ${board.lowPowerMode}`] : []),
       `╠══════════════════════════════════════════════╣`,
       `║  Wiki: ${board.wikiUrl}`,
       `╚══════════════════════════════════════════════╝`
@@ -376,14 +377,17 @@ export class XIAOAssistant {
 
   private expandQuery(query: string): string[] {
     const terms: string[] = [];
-    const words = query.split(/\s+/);
+    const q = query.toLowerCase();
+    const words = q.split(/\s+/);
 
-    for (const word of words) {
-      for (const [keyword, synonyms] of Object.entries(this.synonyms)) {
-        if (word === keyword || synonyms.includes(word)) {
-          terms.push(keyword, ...synonyms);
-        }
-      }
+    for (const [keyword, synonyms] of Object.entries(this.synonyms)) {
+      const candidates = [keyword, ...synonyms];
+      // Word-level hit (single-word synonyms) OR whole-phrase hit (multi-word
+      // synonyms like "deep sleep" never match after whitespace splitting).
+      const hit =
+        words.some((w) => candidates.includes(w)) ||
+        candidates.some((c) => c.includes(' ') && q.includes(c));
+      if (hit) terms.push(...candidates);
     }
 
     return [...new Set(terms)];

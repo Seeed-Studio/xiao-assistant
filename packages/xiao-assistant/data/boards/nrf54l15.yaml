@@ -6,34 +6,80 @@
   clockSpeed: 128 MHz
   flashSize: 1.5MB
   ramSize: 256KB
-  onboardFlash: "N/A"
+  onboardFlash: N/A
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    analog: [0, 1, 2, 3]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
     i2c:
-      - sda: 4
-        scl: 5
-      - sda: 12
-        scl: 11
+    - sda: 4
+      scl: 5
+    - sda: 12
+      scl: 11
     spi:
-      - mosi: 10
-        miso: 9
-        sck: 8
-        cs: 3
+    - mosi: 10
+      miso: 9
+      sck: 8
+      cs: 3
     uart:
-      - tx: 6
-        rx: 7
-  features: [USB-C, Battery charging, User LED]
-  connectivity: ["Bluetooth 6.0", Matter, Zigbee]
+    - tx: 6
+      rx: 7
+  features:
+  - USB-C
+  - Battery charging
+  - User LED
+  connectivity:
+  - Bluetooth 6.0
+  - Matter
+  - Zigbee
   builtinSensors: []
-  supportedLanguages: [platformio, zephyr, arduino, micropython]
+  supportedLanguages:
+  - platformio
+  - zephyr
+  - arduino
+  - micropython
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: light sleep ~9.96µA (see power consumption wiki page)
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_getting_started/
-  sku: "101991421"
-
+  sku: '101991421'
 - id: nrf54l15-sense
   name: XIAO nRF54L15 Sense
   fullName: Seeed Studio XIAO nRF54L15 Sense
@@ -42,30 +88,75 @@
   clockSpeed: 128 MHz
   flashSize: 1.5MB
   ramSize: 256KB
-  onboardFlash: "N/A"
+  onboardFlash: N/A
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-    analog: [0, 1, 2, 3]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
     i2c:
-      - sda: 4
-        scl: 5
-      - sda: 12
-        scl: 11
+    - sda: 4
+      scl: 5
+    - sda: 12
+      scl: 11
     spi:
-      - mosi: 10
-        miso: 9
-        sck: 8
-        cs: 3
+    - mosi: 10
+      miso: 9
+      sck: 8
+      cs: 3
     uart:
-      - tx: 6
-        rx: 7
-  features: [USB-C, Battery charging, User LED]
-  connectivity: ["Bluetooth 6.0", Matter, Zigbee]
-  builtinSensors: ["6-axis IMU", Microphone]
-  supportedLanguages: [platformio, zephyr, arduino, micropython]
+    - tx: 6
+      rx: 7
+  features:
+  - USB-C
+  - Battery charging
+  - User LED
+  connectivity:
+  - Bluetooth 6.0
+  - Matter
+  - Zigbee
+  builtinSensors:
+  - 6-axis IMU
+  - Microphone
+  supportedLanguages:
+  - platformio
+  - zephyr
+  - arduino
+  - micropython
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: light sleep ~9.96µA (see power consumption wiki page)
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_getting_started/
-  sku: "101991422"
+  sku: '101991422'

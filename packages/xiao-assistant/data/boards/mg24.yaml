@@ -101,6 +101,7 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 1.95µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/xiao_mg24_getting_started/
   sku: '102010590'
 - id: mg24-sense
@@ -208,5 +209,6 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 1.95µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/xiao_mg24_getting_started/
   sku: '102010610'

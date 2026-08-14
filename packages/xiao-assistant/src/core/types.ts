@@ -25,6 +25,8 @@ export interface XIAOBoard {
   hasResetButton: boolean;
   hasBootButton: boolean;
   hasBatteryCharging: boolean;
+  /** Standby/deep-sleep current from the official comparison table (verbatim). */
+  lowPowerMode?: string;
   wikiUrl: string;
   sku: string;
 }

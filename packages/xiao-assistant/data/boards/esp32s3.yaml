@@ -8,30 +8,72 @@
   ramSize: 512KB SRAM + 8MB PSRAM
   onboardFlash: 8MB
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
     i2c:
-      - sda: 5
-        scl: 6
+    - sda: 5
+      scl: 6
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 7
-        cs: 4
+    - mosi: 9
+      miso: 8
+      sck: 7
+      cs: 4
     uart:
-      - tx: 43
-        rx: 44
-  features: [USB-C, Battery charging, Boot button, Reset button, User LED]
-  connectivity: ["WiFi 6 (802.11 ax)", "Bluetooth 5 (LE)"]
+    - tx: 43
+      rx: 44
+  features:
+  - USB-C
+  - Battery charging
+  - Boot button
+  - Reset button
+  - User LED
+  connectivity:
+  - WiFi 6 (802.11 ax)
+  - Bluetooth 5 (LE)
   builtinSensors: []
-  supportedLanguages: [arduino, micropython, platformio, zephyr]
+  supportedLanguages:
+  - arduino
+  - micropython
+  - platformio
+  - zephyr
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 14µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
-  sku: "113991114"
-
+  sku: '113991114'
 - id: esp32s3-sense
   name: XIAO ESP32S3 Sense
   fullName: Seeed Studio XIAO ESP32S3 Sense
@@ -42,26 +84,77 @@
   ramSize: 512KB SRAM + 8MB PSRAM
   onboardFlash: 8MB
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
     i2c:
-      - sda: 5
-        scl: 6
+    - sda: 5
+      scl: 6
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 7
-        cs: 4
+    - mosi: 9
+      miso: 8
+      sck: 7
+      cs: 4
     uart:
-      - tx: 43
-        rx: 44
-  features: [USB-C, Battery charging, Boot button, Reset button, User LED]
-  connectivity: ["WiFi 6 (802.11 ax)", "Bluetooth 5 (LE)"]
-  builtinSensors: [OV2640/OV3660 camera, Microphone]
-  supportedLanguages: [arduino, micropython, platformio, zephyr]
+    - tx: 43
+      rx: 44
+  features:
+  - USB-C
+  - Battery charging
+  - Boot button
+  - Reset button
+  - User LED
+  connectivity:
+  - WiFi 6 (802.11 ax)
+  - Bluetooth 5 (LE)
+  builtinSensors:
+  - OV2640/OV3660 camera
+  - Microphone
+  supportedLanguages:
+  - arduino
+  - micropython
+  - platformio
+  - zephyr
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 26.5mA deep sleep (camera/SD rail stays powered unless cut)
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
-  sku: "113991115"
+  sku: '113991115'

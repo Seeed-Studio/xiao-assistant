@@ -1,7 +1,3 @@
-# XIAO nRF54LM20A / Sense — Nordic nRF54LM20A, multiprotocol 2.4GHz with Channel Sounding.
-# NOTE: this board uses A-pin naming (A0/A1/A2/A3/A7) instead of the classic D0-D10
-# silkscreen; A pins are ADC/GPIO dual-use. See pin table on the wiki page.
-# Verified against https://wiki.seeedstudio.com/xiao_nrf54lm20a_getting_started/
 - id: nrf54lm20a
   name: XIAO nRF54LM20A
   fullName: Seeed Studio XIAO nRF54LM20A
@@ -10,24 +6,54 @@
   clockSpeed: 128 MHz
   flashSize: 2MB NVM + 8MB external
   ramSize: 512KB
-  onboardFlash: "2MB NVM + 8MB onboard external flash"
+  onboardFlash: 2MB NVM + 8MB onboard external flash
   pins:
-    digital: [0, 1, 2, 3, 7]
-    analog: [0, 1, 2, 3, 7]
-    pwm: [0, 1, 2, 3, 7]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
     i2c: []
     spi: []
     uart: []
-  features: [USB-C, nPM1300 PMIC, Battery charging, RGB LED, User button, NFC antenna pins]
-  connectivity: ["Bluetooth 6.0 (Channel Sounding)", "Bluetooth Mesh", "Thread", "Zigbee", "Matter", "NFC"]
+  features:
+  - USB-C
+  - nPM1300 PMIC
+  - Battery charging
+  - RGB LED
+  - User button
+  - NFC antenna pins
+  connectivity:
+  - Bluetooth 6.0 (Channel Sounding)
+  - Bluetooth Mesh
+  - Thread
+  - Zigbee
+  - Matter
+  - NFC
   builtinSensors: []
-  supportedLanguages: [platformio, zephyr, arduino]
+  supportedLanguages:
+  - platformio
+  - zephyr
+  - arduino
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: deep sleep 4.76µA (System OFF), ship mode 0.33µA
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54lm20a_getting_started/
-  sku: "100023651"
-
+  sku: '100023651'
 - id: nrf54lm20a-sense
   name: XIAO nRF54LM20A Sense
   fullName: Seeed Studio XIAO nRF54LM20A Sense
@@ -36,20 +62,53 @@
   clockSpeed: 128 MHz
   flashSize: 2MB NVM + 8MB external
   ramSize: 512KB
-  onboardFlash: "2MB NVM + 8MB onboard external flash"
+  onboardFlash: 2MB NVM + 8MB onboard external flash
   pins:
-    digital: [0, 1, 2, 3, 7]
-    analog: [0, 1, 2, 3, 7]
-    pwm: [0, 1, 2, 3, 7]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 7
     i2c: []
     spi: []
     uart: []
-  features: [USB-C, nPM1300 PMIC, Battery charging, RGB LED, User button, NFC antenna pins]
-  connectivity: ["Bluetooth 6.0 (Channel Sounding)", "Bluetooth Mesh", "Thread", "Zigbee", "Matter", "NFC"]
-  builtinSensors: ["6-axis IMU", "PDM Microphone"]
-  supportedLanguages: [platformio, zephyr, arduino]
+  features:
+  - USB-C
+  - nPM1300 PMIC
+  - Battery charging
+  - RGB LED
+  - User button
+  - NFC antenna pins
+  connectivity:
+  - Bluetooth 6.0 (Channel Sounding)
+  - Bluetooth Mesh
+  - Thread
+  - Zigbee
+  - Matter
+  - NFC
+  builtinSensors:
+  - 6-axis IMU
+  - PDM Microphone
+  supportedLanguages:
+  - platformio
+  - zephyr
+  - arduino
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: deep sleep 4.76µA (System OFF), ship mode 0.33µA
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54lm20a_getting_started/
-  sku: "100018440"
+  sku: '100018440'

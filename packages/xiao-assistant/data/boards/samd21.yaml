@@ -69,5 +69,6 @@
   hasResetButton: false
   hasBootButton: false
   hasBatteryCharging: false
+  lowPowerMode: no low power mode documented
   wikiUrl: https://wiki.seeedstudio.com/Seeeduino-XIAO/
   sku: '102010328'

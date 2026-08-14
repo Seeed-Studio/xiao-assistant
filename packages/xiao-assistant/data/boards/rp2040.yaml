@@ -65,6 +65,7 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: false
+  lowPowerMode: no low power mode documented
   wikiUrl: https://wiki.seeedstudio.com/XIAO-RP2040/
   sku: '102010428'
 - id: rp2350
@@ -147,5 +148,6 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 50µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/xiao_rp2350_arduino/
   sku: '102010550'

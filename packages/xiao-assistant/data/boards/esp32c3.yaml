@@ -66,5 +66,6 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
+  lowPowerMode: 44µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
   sku: '113991054'
