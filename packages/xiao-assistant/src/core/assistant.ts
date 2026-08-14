@@ -15,6 +15,9 @@ import {
   loadKnowledge,
 } from './data-loader.js';
 import { searchWiki } from './wiki-service.js';
+import MiniSearch from 'minisearch';
+
+type IdDoc = { id: string };
 
 export class XIAOAssistant {
   private boards: Map<string, XIAOBoard> = new Map();
@@ -23,6 +26,13 @@ export class XIAOAssistant {
   private troubleshootEntries: XIAOTroubleshootEntry[];
   private knowledge: XIAOKnowledge[];
   private synonyms: Record<string, string[]>;
+
+  // MiniSearch indexes: fuzzy/prefix matching beats the old substring scoring
+  // (misspellings like "temprature" used to return nothing).
+  private exampleIndex: MiniSearch<IdDoc>;
+  private docIndex: MiniSearch<IdDoc>;
+  private troubleshootIndex: MiniSearch<IdDoc>;
+  private knowledgeIndex: MiniSearch<IdDoc>;
 
   /** Map keys must go through the same normalization as lookups, or ids like
    *  "esp32s3-sense" (normalized "esp32s3sense") would never be found. */
@@ -39,12 +49,82 @@ export class XIAOAssistant {
     this.troubleshootEntries = loadTroubleshootEntries();
     this.knowledge = loadKnowledge();
     this.synonyms = loadSynonyms();
+
+    this.exampleIndex = new MiniSearch({
+      fields: ['title', 'description', 'category', 'tags', 'boards'],
+      storeFields: [],
+      searchOptions: { boost: { title: 3, tags: 2 }, prefix: true, fuzzy: 0.2 },
+    });
+    this.exampleIndex.addAll(
+      this.examples.map((e) => ({
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        category: e.category,
+        tags: (e.tags ?? []).join(' '),
+        boards: e.boards.join(' '),
+      }))
+    );
+
+    this.docIndex = new MiniSearch({
+      fields: ['title', 'content', 'category', 'boards'],
+      storeFields: [],
+      searchOptions: { boost: { title: 3 }, prefix: true, fuzzy: 0.2 },
+    });
+    this.docIndex.addAll(
+      this.documents.map((d) => ({
+        id: d.id,
+        title: d.title,
+        content: d.content,
+        category: d.category,
+        boards: d.boards.join(' '),
+      }))
+    );
+
+    this.troubleshootIndex = new MiniSearch({
+      fields: ['title', 'symptoms', 'category', 'boards'],
+      storeFields: [],
+      searchOptions: { boost: { symptoms: 3, title: 2 }, prefix: true, fuzzy: 0.2 },
+    });
+    this.troubleshootIndex.addAll(
+      this.troubleshootEntries.map((t) => ({
+        id: t.id,
+        title: t.title,
+        symptoms: t.symptoms.join(' '),
+        category: t.category,
+        boards: t.boards.join(' '),
+      }))
+    );
+
+    this.knowledgeIndex = new MiniSearch({
+      fields: ['title', 'summary', 'problem', 'solution', 'tags', 'category', 'boards'],
+      storeFields: [],
+      searchOptions: { boost: { title: 3, tags: 2 }, prefix: true, fuzzy: 0.2 },
+    });
+    this.knowledgeIndex.addAll(
+      this.knowledge.map((k) => ({
+        id: k.id,
+        title: k.title,
+        summary: k.summary,
+        problem: k.problem,
+        solution: k.solution,
+        tags: k.tags.join(' '),
+        category: k.category,
+        boards: k.boards.join(' '),
+      }))
+    );
   }
 
-  /** Blank queries match everything via includes(''); treat them as no-match. */
+  /** Blank queries match everything; treat them as no-match. */
   private static normalizeQuery(query: string): string | null {
     const q = query.trim().toLowerCase();
     return q.length > 0 ? q : null;
+  }
+
+  /** Original query + synonym expansion as a multi-query (MiniSearch merges scores). */
+  private searchIndex(index: MiniSearch<IdDoc>, q: string): string[] {
+    const expanded = this.expandQuery(q);
+    return index.search({ queries: [q, ...expanded] }).map((r) => r.id);
   }
 
   // --- Board methods ---
@@ -110,50 +190,16 @@ export class XIAOAssistant {
   searchExamples(query: string, options?: { language?: string; board?: string }): XIAOExample[] {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
-    const expanded = this.expandQuery(q);
-    const results: Array<{ example: XIAOExample; score: number }> = [];
-
-    for (const example of this.examples) {
-      if (options?.language && example.language !== options.language) continue;
-      if (options?.board && !example.boards.includes(options.board)) continue;
-
-      let score = 0;
-      const fields = [
-        example.title,
-        example.description,
-        example.category,
-        ...example.boards,
-        ...(example.requirements ?? []),
-      ].map((f) => f.toLowerCase());
-      const tags = (example.tags ?? []).map((t) => t.toLowerCase());
-
-      for (const field of fields) {
-        if (field.includes(q)) score += 5;
-      }
-
-      for (const tag of tags) {
-        if (tag === q || q.includes(tag)) score += 5;
-      }
-
-      for (const term of expanded) {
-        for (const field of fields) {
-          if (field.includes(term)) score += 3;
-        }
-        for (const tag of tags) {
-          if (tag === term || tag.includes(term)) score += 3;
-        }
-      }
-
-      for (const word of q.split(/\s+/)) {
-        for (const field of fields) {
-          if (field.includes(word)) score += 2;
-        }
-      }
-
-      if (score > 0) results.push({ example, score });
-    }
-
-    return results.sort((a, b) => b.score - a.score).map((r) => r.example);
+    const ids = this.searchIndex(this.exampleIndex, q);
+    const byId = new Map(this.examples.map((e) => [e.id, e]));
+    return ids
+      .map((id) => byId.get(id))
+      .filter((e): e is XIAOExample => {
+        if (!e) return false;
+        if (options?.language && e.language !== options.language) return false;
+        if (options?.board && !e.boards.includes(options.board)) return false;
+        return true;
+      });
   }
 
   getExampleById(id: string): XIAOExample | undefined {
@@ -230,22 +276,9 @@ export class XIAOAssistant {
   searchDocuments(query: string): XIAODocument[] {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
-    const expanded = this.expandQuery(q);
-    const results: Array<{ doc: XIAODocument; score: number }> = [];
-
-    for (const doc of this.documents) {
-      let score = 0;
-      const text = `${doc.title} ${doc.content} ${doc.category}`.toLowerCase();
-      for (const word of q.split(/\s+/)) {
-        if (text.includes(word)) score += 3;
-      }
-      for (const term of expanded) {
-        if (text.includes(term)) score += 2;
-      }
-      if (score > 0) results.push({ doc, score });
-    }
-
-    return results.sort((a, b) => b.score - a.score).map((r) => r.doc);
+    const ids = this.searchIndex(this.docIndex, q);
+    const byId = new Map(this.documents.map((d) => [d.id, d]));
+    return ids.map((id) => byId.get(id)).filter((d): d is XIAODocument => d !== undefined);
   }
 
   getQuickstart(boardName: string): XIAODocument | undefined {
@@ -259,39 +292,14 @@ export class XIAOAssistant {
   troubleshoot(symptoms: string, board?: string): XIAOTroubleshootEntry[] {
     const q = XIAOAssistant.normalizeQuery(symptoms);
     if (!q) return [];
-    const expanded = this.expandQuery(q);
-    const results: Array<{ entry: XIAOTroubleshootEntry; score: number }> = [];
-
-    for (const entry of this.troubleshootEntries) {
-      if (board && !entry.boards.includes(board)) continue;
-
-      let score = 0;
-      const symptomTexts = entry.symptoms.map((s) => s.toLowerCase());
-      const allText = [...symptomTexts, entry.category.toLowerCase(), entry.title.toLowerCase()];
-
-      for (const text of allText) {
-        if (q.includes(text) || text.includes(q)) score += 5;
-      }
-
-      for (const word of q.split(/\s+/)) {
-        for (const text of allText) {
-          if (text.includes(word)) score += 2;
-        }
-        for (const symptom of symptomTexts) {
-          if (symptom.includes(word)) score += 3;
-        }
-      }
-
-      for (const term of expanded) {
-        for (const text of allText) {
-          if (text.includes(term)) score += 2;
-        }
-      }
-
-      if (score > 0) results.push({ entry, score });
-    }
-
-    return results.sort((a, b) => b.score - a.score).map((r) => r.entry);
+    const ids = this.searchIndex(this.troubleshootIndex, q);
+    const byId = new Map(this.troubleshootEntries.map((t) => [t.id, t]));
+    return ids
+      .map((id) => byId.get(id))
+      .filter((e): e is XIAOTroubleshootEntry => {
+        if (!e) return false;
+        return !board || e.boards.includes(board);
+      });
   }
 
   // --- Wiki search ---
@@ -305,49 +313,16 @@ export class XIAOAssistant {
   searchKnowledge(query: string, options?: { board?: string; severity?: string }): XIAOKnowledge[] {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
-    const expanded = this.expandQuery(q);
-    const results: Array<{ entry: XIAOKnowledge; score: number }> = [];
-
-    for (const entry of this.knowledge) {
-      if (options?.board && !entry.boards.includes(options.board)) continue;
-      if (options?.severity && entry.severity !== options.severity) continue;
-
-      let score = 0;
-      const tags = entry.tags.map((t) => t.toLowerCase());
-      const fields = [
-        entry.title,
-        entry.summary,
-        entry.problem,
-        entry.solution,
-        entry.category,
-      ].map((f) => f.toLowerCase());
-
-      for (const field of fields) {
-        if (field.includes(q)) score += 5;
-      }
-      for (const tag of tags) {
-        if (tag === q || q.includes(tag)) score += 5;
-      }
-
-      for (const term of expanded) {
-        for (const field of fields) {
-          if (field.includes(term)) score += 3;
-        }
-        for (const tag of tags) {
-          if (tag === term || tag.includes(term)) score += 3;
-        }
-      }
-
-      for (const word of q.split(/\s+/)) {
-        for (const field of fields) {
-          if (field.includes(word)) score += 2;
-        }
-      }
-
-      if (score > 0) results.push({ entry, score });
-    }
-
-    return results.sort((a, b) => b.score - a.score).map((r) => r.entry);
+    const ids = this.searchIndex(this.knowledgeIndex, q);
+    const byId = new Map(this.knowledge.map((k) => [k.id, k]));
+    return ids
+      .map((id) => byId.get(id))
+      .filter((e): e is XIAOKnowledge => {
+        if (!e) return false;
+        if (options?.board && !e.boards.includes(options.board)) return false;
+        if (options?.severity && e.severity !== options.severity) return false;
+        return true;
+      });
   }
 
   // --- Fallback methods ---

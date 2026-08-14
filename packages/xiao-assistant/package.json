@@ -37,7 +37,8 @@
     "format:check": "prettier --check src",
     "clean": "rm -rf dist node_modules",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync:wiki": "node scripts/sync-wiki.mjs"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.5.2",
@@ -45,6 +46,7 @@
     "commander": "^13.1.0",
     "express": "^5.2.1",
     "figlet": "^1.11.4",
+    "minisearch": "^7.2.0",
     "open": "^10.2.0",
     "ora": "^9.4.1",
     "picocolors": "^1.1.1",
