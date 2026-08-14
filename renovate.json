@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 4am on Monday"],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "typescript-eslint peer-locks TypeScript below 6",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "^5.9"
+    },
+    {
+      "description": "CI runs Node 20; keep @types/node aligned",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "^20"
+    }
+  ]
+}
