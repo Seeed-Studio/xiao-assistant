@@ -1,72 +1,104 @@
 - id: esp32c3-usb-cdc-reset
-  title: "ESP32C3 Serial Port Disappears After Upload (USB CDC Mode)"
-  tags: [usb, serial, cdc, upload, esp32c3, reset, disappear]
-  boards: [esp32c3]
+  title: ESP32C3 Serial Port Disappears After Upload (USB CDC Mode)
+  tags:
+  - usb
+  - serial
+  - cdc
+  - upload
+  - esp32c3
+  - reset
+  - disappear
+  boards:
+  - esp32c3
   category: usb
   severity: medium
   source: support-ticket
-  summary: |
-    ESP32C3 uses USB CDC for serial communication (not traditional UART). After
+  summary: 'ESP32C3 uses USB CDC for serial communication (not traditional UART). After
+
     uploading new firmware, the COM port sometimes disappears from Device Manager,
+
     requiring a manual reset or USB replug. This happens because the USB peripheral
+
     does not properly re-enumerate after firmware upload.
-  problem: |
-    Customer uploaded code to XIAO ESP32C3 via Arduino IDE and the Serial Monitor
+
+    '
+  problem: 'Customer uploaded code to XIAO ESP32C3 via Arduino IDE and the Serial Monitor
+
     could not open. COM port disappeared from Device Manager. Unplugging and
+
     replugging USB fixed it, but the issue recurred on every upload.
-  solution: |
-    Option 1: In Arduino IDE, set "USB CDC On Boot" to "Enabled" so firmware
+
+    '
+  solution: 'Option 1: In Arduino IDE, set "USB CDC On Boot" to "Enabled" so firmware
+
     automatically initializes USB CDC on startup.
+
     Option 2: Explicitly initialize USB CDC in code with a timeout.
-  code: |
-    // Option 1: Arduino IDE setting
-    // Tools > USB CDC On Boot > Enabled
 
-    // Option 2: Explicit USB initialization with timeout
-    void setup() {
-      Serial.begin(115200);
-      // For USB CDC mode, wait for USB connection with timeout
-      while (!Serial) {
-        delay(10);
-        static unsigned long start = millis();
-        if (millis() - start > 3000) break;
-      }
-      Serial.println("USB CDC Ready");
-    }
-
+    '
+  code: "// Option 1: Arduino IDE setting\n// Tools > USB CDC On Boot > Enabled\n\n// Option 2: Explicit USB initialization with timeout\nvoid setup() {\n  Serial.begin(115200);\n  // For USB CDC mode,\
+    \ wait for USB connection with timeout\n  while (!Serial) {\n    delay(10);\n    static unsigned long start = millis();\n    if (millis() - start > 3000) break;\n  }\n  Serial.println(\"USB CDC Ready\"\
+    );\n}\n"
 - id: esp32s3-psram-usage
-  title: "ESP32S3 PSRAM Configuration and Usage Notes"
-  tags: [psram, memory, esp32s3, allocation, camera, buffer]
-  boards: [esp32s3, esp32s3-sense]
+  title: ESP32S3 PSRAM Configuration and Usage Notes
+  tags:
+  - psram
+  - memory
+  - esp32s3
+  - allocation
+  - camera
+  - buffer
+  boards:
+  - esp32s3
+  - esp32s3-sense
   category: memory
   severity: medium
   source: internal-test
-  summary: |
-    XIAO ESP32S3 has 8MB PSRAM, but Arduino IDE does not enable it by default.
+  summary: 'XIAO ESP32S3 has 8MB PSRAM, but Arduino IDE does not enable it by default.
+
     PSRAM must be manually enabled in the menu for large buffers (e.g. camera frame
+
     buffers) to avoid OOM. Additionally, PSRAM cannot be used for DMA buffers and
+
     has ~5x slower access than SRAM.
-  problem: |
-    Customer used XIAO ESP32S3 Sense for camera capture. After taking several photos,
-    the board reset with "Guru Meditation Error: Core 0 panic'ed (LoadStoreError)"
+
+    '
+  problem: 'Customer used XIAO ESP32S3 Sense for camera capture. After taking several photos,
+
+    the board reset with "Guru Meditation Error: Core 0 panic''ed (LoadStoreError)"
+
     or "out of memory" in serial output.
-  solution: |
-    1. Arduino IDE > Tools > PSRAM > Enabled
+
+    '
+  solution: '1. Arduino IDE > Tools > PSRAM > Enabled
+
     2. Use ps_malloc() or heap_caps_malloc() for large arrays to allocate in PSRAM
+
     3. Camera frame buffer already uses PSRAM internally in esp_camera library
+
     4. Do not use PSRAM addresses for DMA (SPI/I2S DMA requires internal SRAM)
-  code: |
-    // After enabling PSRAM, large arrays are automatically allocated in PSRAM
-    // Arduino IDE: Tools > PSRAM > OPI PSRAM > Enabled
 
-    // Manual PSRAM allocation
-    uint8_t* bigBuffer = (uint8_t*) ps_malloc(1024 * 1024);  // 1MB
-    if (bigBuffer == NULL) {
-      Serial.println("PSRAM allocation failed!");
-    }
-
-    // Or use heap_caps_malloc to specify PSRAM
-    uint8_t* imgBuffer = (uint8_t*) heap_caps_malloc(300000, MALLOC_CAP_SPIRAM);
-
-    // Note: DMA buffers must use internal SRAM
-    uint8_t* dmaBuffer = (uint8_t*) heap_caps_malloc(4096, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
+    '
+  code: "// After enabling PSRAM, large arrays are automatically allocated in PSRAM\n// Arduino IDE: Tools > PSRAM > OPI PSRAM > Enabled\n\n// Manual PSRAM allocation\nuint8_t* bigBuffer = (uint8_t*) ps_malloc(1024\
+    \ * 1024);  // 1MB\nif (bigBuffer == NULL) {\n  Serial.println(\"PSRAM allocation failed!\");\n}\n\n// Or use heap_caps_malloc to specify PSRAM\nuint8_t* imgBuffer = (uint8_t*) heap_caps_malloc(300000,\
+    \ MALLOC_CAP_SPIRAM);\n\n// Note: DMA buffers must use internal SRAM\nuint8_t* dmaBuffer = (uint8_t*) heap_caps_malloc(4096, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);\n"
+- id: esp32c3-no-onboard-led
+  title: XIAO ESP32C3 has no onboard user LED - LED_BUILTIN does not compile
+  tags:
+  - led
+  - blink
+  - led_builtin
+  - esp32c3
+  - compile-error
+  boards:
+  - esp32c3
+  category: hardware
+  severity: easy
+  source: wiki
+  summary: The XIAO ESP32C3 has no onboard user LED; LED_BUILTIN is not defined in its Arduino core, so blink sketches fail to compile.
+  problem: Blink examples fail on XIAO ESP32C3 with 'LED_BUILTIN was not declared in this scope'. The board has no user-controllable onboard LED (only power/TX/RX indicators), unlike every other XIAO.
+  solution: 'Wire an external LED: anode (long leg) to D10 (GPIO10) through a 150-ohm resistor, cathode to GND, then blink pin 10. Alternative: use the Serial port as feedback (Serial.println) or blink
+    an external NeoPixel.'
+  code: "const int LED = 10; // external LED via 150ohm on D10\n\nvoid setup() {\n  pinMode(LED, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED, HIGH);\n  delay(500);\n  digitalWrite(LED, LOW);\n  delay(500);\n\
+    }"
+  workaround: 'On the wiki: "there is no LED_BUILTIN available for the XIAO ESP32C3, you can use an external LED instead."'

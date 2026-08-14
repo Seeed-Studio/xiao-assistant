@@ -1,0 +1,61 @@
+- id: blink-arduino-nrf54l15
+  title: LED Blink (nRF54L15)
+  description: Blink the onboard user LED on XIAO nRF54L15 (Sense) using the community Arduino core
+  language: arduino
+  boards:
+  - nrf54l15
+  - nrf54l15-sense
+  category: basics
+  tags:
+  - led
+  - blink
+  - gpio
+  - nrf54l15
+  code: "// Board: XIAO nRF54L15 / Sense (lolren Arduino core)\n// Boards Manager URL:\n// https://raw.githubusercontent.com/lolren/nrf54-arduino-core/main/package_nrf54l15clean_index.json\n// Select board\
+    \ \"XIAO nRF54L15 / Sense\", then upload.\n\nvoid setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  // On this core the user LED is active-low (LOW = on).\n  digitalWrite(LED_BUILTIN,\
+    \ LOW);\n  delay(500);\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n}\n"
+  requirements:
+  - Arduino core for nRF54L15 (lolren) via Boards Manager URL
+  wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_arduino/
+- id: i2c-scan-arduino-nrf54l15
+  title: I2C Bus Scan (nRF54L15)
+  description: Scan I2C-0 bus (D4=SDA, D5=SCL) and print addresses of connected devices
+  language: arduino
+  boards:
+  - nrf54l15
+  - nrf54l15-sense
+  category: communication
+  tags:
+  - i2c
+  - scan
+  - wire
+  - nrf54l15
+  code: "// I2C-0 on XIAO nRF54L15: D5 = SDA, D4 = SCL\n// (in the lolren core: D5 -> PIN_WIRE_SDA, D4 -> PIN_WIRE_SCL)\n#include <Wire.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) {}\n\
+    \  Wire.begin();\n}\n\nvoid loop() {\n  Serial.println(\"Scanning I2C bus...\");\n  int found = 0;\n  for (uint8_t addr = 1; addr < 127; addr++) {\n    Wire.beginTransmission(addr);\n    if (Wire.endTransmission()\
+    \ == 0) {\n      Serial.printf(\"  device at 0x%02X\\n\", addr);\n      found++;\n    }\n  }\n  if (found == 0) Serial.println(\"  no devices found\");\n  delay(5000);\n}\n"
+  requirements:
+  - Arduino core for nRF54L15 (lolren) via Boards Manager URL
+  wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_arduino/
+- id: ble-scan-zephyr-nrf54l15
+  title: BLE Scan (Zephyr, nRF54L15)
+  description: Scan for BLE advertisers with Zephyr Bluetooth LE APIs on XIAO nRF54L15
+  language: zephyr
+  boards:
+  - nrf54l15
+  - nrf54l15-sense
+  category: communication
+  tags:
+  - bluetooth
+  - ble
+  - scan
+  - zephyr
+  - nrf54l15
+  code: "// Zephyr-based build (nRF Connect SDK or PlatformIO + zephyr platform).\n// Enables scanning and prints advertiser addresses + RSSI to the log.\n\n#include <zephyr/kernel.h>\n#include <zephyr/bluetooth/bluetooth.h>\n\
+    #include <zephyr/bluetooth/scan.h>\n#include <zephyr/logging/log.h>\n\nLOG_MODULE_REGISTER(main_app, CONFIG_LOG_DEFAULT_LEVEL);\n\nstatic void scan_cb(const bt_addr_le_t *addr, int8_t rssi, uint8_t\
+    \ type,\n                    struct net_buf_simple *ad) {\n  char addr_str[BT_ADDR_LE_STR_LEN];\n  bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));\n  LOG_INF(\"device %s, RSSI %d\", addr_str, rssi);\n\
+    }\n\nint main(void) {\n  int err = bt_enable(NULL);\n  if (err) {\n    LOG_ERR(\"bt_enable failed (%d)\", err);\n    return 0;\n  }\n\n  static struct bt_le_scan_param scan_param = {\n    .type = BT_HCI_LE_SCAN_PASSIVE,\n\
+    \    .options = BT_LE_SCAN_OPT_NONE,\n    .interval = 0x0060,\n    .window = 0x0030,\n  };\n  bt_le_scan_cb_register(&(struct bt_le_scan_cb){ .recv = scan_cb });\n\n  err = bt_le_scan_start(&scan_param,\
+    \ NULL);\n  if (err) {\n    LOG_ERR(\"scan start failed (%d)\", err);\n  } else {\n    LOG_INF(\"BLE scanning started\");\n  }\n  return 0;\n}\n"
+  requirements:
+  - nRF Connect SDK (Zephyr) toolchain, or PlatformIO with zephyr platform
+  wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_bluetooth_usage/

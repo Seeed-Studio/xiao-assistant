@@ -106,3 +106,18 @@ stepper:
   - motor
   - step
   - direction
+wifi6:
+  - "wifi 6"
+  - "wi-fi 6"
+  - "dual band"
+  - esp32c5
+matter:
+  - thread
+  - zigbee
+  - "802.15.4"
+  - nrf54lm20a
+led:
+  - blink
+  - neon
+  - "user led"
+  - rgb

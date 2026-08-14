@@ -6,32 +6,103 @@
   clockSpeed: 78 MHz
   flashSize: 1536KB + 4MB (external)
   ramSize: 256KB
-  onboardFlash: "N/A"
+  onboardFlash: N/A
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
     i2c:
-      - sda: 6
-        scl: 7
+    - sda: 4
+      scl: 5
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 10
-        cs: 3
+    - mosi: 10
+      miso: 9
+      sck: 8
+      cs: 3
     uart:
-      - tx: 0
-        rx: 1
-  features: [USB-C, Battery charging, User LED]
-  connectivity: [Matter, OpenThread, Zigbee, "Bluetooth 5.3 (LE)", Bluetooth Mesh, "Proprietary 2.4GHz"]
+    - tx: 6
+      rx: 7
+  features:
+  - USB-C
+  - Battery charging
+  - User LED
+  connectivity:
+  - Matter
+  - OpenThread
+  - Zigbee
+  - Bluetooth 5.3 (LE)
+  - Bluetooth Mesh
+  - Proprietary 2.4GHz
   builtinSensors: []
-  supportedLanguages: [arduino]
+  supportedLanguages:
+  - arduino
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
   wikiUrl: https://wiki.seeedstudio.com/xiao_mg24_getting_started/
-  sku: "102010590"
-
+  sku: '102010590'
 - id: mg24-sense
   name: XIAO MG24 Sense
   fullName: Seeed Studio XIAO MG24 Sense
@@ -40,28 +111,102 @@
   clockSpeed: 78 MHz
   flashSize: 1536KB + 4MB (external)
   ramSize: 256KB
-  onboardFlash: "N/A"
+  onboardFlash: N/A
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-    analog: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    analog:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
     i2c:
-      - sda: 6
-        scl: 7
+    - sda: 4
+      scl: 5
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 10
-        cs: 3
+    - mosi: 10
+      miso: 9
+      sck: 8
+      cs: 3
     uart:
-      - tx: 0
-        rx: 1
-  features: [USB-C, Battery charging, User LED]
-  connectivity: [Matter, OpenThread, Zigbee, "Bluetooth 5.3 (LE)", Bluetooth Mesh, "Proprietary 2.4GHz"]
-  builtinSensors: ["6-axis IMU", Microphone]
-  supportedLanguages: [arduino]
+    - tx: 6
+      rx: 7
+  features:
+  - USB-C
+  - Battery charging
+  - User LED
+  connectivity:
+  - Matter
+  - OpenThread
+  - Zigbee
+  - Bluetooth 5.3 (LE)
+  - Bluetooth Mesh
+  - Proprietary 2.4GHz
+  builtinSensors:
+  - 6-axis IMU
+  - Microphone
+  supportedLanguages:
+  - arduino
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
   wikiUrl: https://wiki.seeedstudio.com/xiao_mg24_getting_started/
-  sku: "102010610"
+  sku: '102010610'

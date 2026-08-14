@@ -12,20 +12,22 @@
     analog: [0, 1, 2, 3]
     pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     i2c:
-      - sda: 6
-        scl: 7
+      - sda: 4
+        scl: 5
+      - sda: 12
+        scl: 11
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 10
+      - mosi: 10
+        miso: 9
+        sck: 8
         cs: 3
     uart:
-      - tx: 0
-        rx: 1
+      - tx: 6
+        rx: 7
   features: [USB-C, Battery charging, User LED]
   connectivity: ["Bluetooth 6.0", Matter, Zigbee]
   builtinSensors: []
-  supportedLanguages: [platformio, zephyr]
+  supportedLanguages: [platformio, zephyr, arduino, micropython]
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
@@ -46,20 +48,22 @@
     analog: [0, 1, 2, 3]
     pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     i2c:
-      - sda: 6
-        scl: 7
+      - sda: 4
+        scl: 5
+      - sda: 12
+        scl: 11
     spi:
-      - mosi: 9
-        miso: 8
-        sck: 10
+      - mosi: 10
+        miso: 9
+        sck: 8
         cs: 3
     uart:
-      - tx: 0
-        rx: 1
+      - tx: 6
+        rx: 7
   features: [USB-C, Battery charging, User LED]
   connectivity: ["Bluetooth 6.0", Matter, Zigbee]
   builtinSensors: ["6-axis IMU", Microphone]
-  supportedLanguages: [platformio, zephyr]
+  supportedLanguages: [platformio, zephyr, arduino, micropython]
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
