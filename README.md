@@ -2,100 +2,72 @@
 
 [![NPM Version](https://img.shields.io/npm/v/%40seeed-studio%2Fxiao-assistant?color=blue)](https://www.npmjs.com/package/@seeed-studio/xiao-assistant) [![MIT licensed](https://img.shields.io/npm/l/%40seeed-studio%2Fxiao-assistant)](./LICENSE)
 
-XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series boards.
+AI-powered development tools for Seeed Studio XIAO boards — a CLI (`xiao`), an MCP server for AI coding tools, and an importable SDK, all serving one verified knowledge core.
 
-## Features
+- **17 XIAO Boards** — official comparison table fully covered (incl. ESP32-C5 and nRF54LM20A), pin maps verified field-by-field against the wiki, deep-sleep power data included
+- **64 Code Examples** — Arduino / MicroPython / CircuitPython / Zephyr, statically gated so every sketch compiles clean (portable across cores)
+- **Search that behaves like a user** — fuzzy (`temprature` works), Chinese (蓝牙 / 低功耗 / 上传失败), synonym-expanded
+- **Troubleshooting** — real symptom vocabulary ("Connecting...", "no serial port", 中文症状), board-accurate advice (native USB needs no CP210x)
+- **Knowledge Base** — field-tested fixes from customer support, editable in a local-first web UI with soft delete
+- **Wiki Fallback** — live wiki.seeedstudio.com search when local data runs out
 
-- **17 XIAO Boards**: Full pinouts, specs, power data, and quickstart guides (incl. ESP32-C5 and nRF54LM20A)
-- **64 Code Examples**: WiFi, BLE, MQTT, sensors, displays, motors, and more
-- **CLI Tools**: Initialize projects, search examples, view pinouts
-- **MCP Server**: Native integration with Claude, Cursor, and other AI tools
-- **Knowledge Base**: Internal troubleshooting experience from customer support
-- **Wiki Fallback**: Auto-search wiki.seeedstudio.com when local data isn't enough
-
-## Installation
+## Quick start
 
 ```bash
-npm install -g @seeed-studio/xiao-assistant
-# or
-pnpm add -g @seeed-studio/xiao-assistant
+npm i -g @seeed-studio/xiao-assistant
+
+xiao init -b esp32c3 -l arduino -y    # scaffold a project (knows esp32c3 has no onboard LED)
+xiao pinout esp32c5                    # pins, specs, deep-sleep current
+xiao search "deep sleep" --board esp32s3
+xiao troubleshoot "upload fails Connecting..."
+xiao search 蓝牙                        # Chinese works
 ```
 
-## Quick Start
+## Use it from your AI tool
 
 ```bash
-# Initialize XIAO project
-xiao init
-
-# Get XIAO ESP32C3 pinout
-xiao pinout esp32c3
-
-# Search for sensor libraries
-xiao search sensor
-
-# Get coding examples
-xiao example blink-arduino
-
-# List all boards
-xiao boards
-
-# Launch knowledge editor
-xiao knowledge
+claude mcp add xiao-assistant -- npx -y @seeed-studio/xiao-assistant mcp
 ```
 
-## AI Assistant Integration
+10 read-only tools: `resolve_board` (natural-language + Chinese + typo
+tolerant, power-aware), `get_board_info`, `get_pinout`, `search_examples`,
+`get_example`, `list_boards`, `get_quickstart`, `troubleshoot`,
+`search_knowledge`, `search_wiki`. See **[docs/MCP.md](./docs/MCP.md)** for
+every tool, config snippets for Claude Code / Claude Desktop / Cursor, and a
+sample session.
 
-### MCP Server
+## Use it as a library
 
-Start the MCP server:
-```bash
-xiao mcp
+```js
+import { XIAOAssistant } from '@seeed-studio/xiao-assistant';
+
+const xiao = new XIAOAssistant();          // loads + indexes everything, no side effects
+xiao.getPinout('esp32s3-sense');
+xiao.searchExamples('温度传感器');
+await xiao.searchWikiOnline('xiao esp32c5');
 ```
 
-Register in your AI coding tool (Claude, Cursor, etc.):
+## Supported boards
 
-```json
-{
-  "mcpServers": {
-    "xiao-assistant": {
-      "command": "npx",
-      "args": ["-y", "@seeed-studio/xiao-assistant", "mcp"]
-    }
-  }
-}
-```
+ESP32C3 · ESP32C5 (Wi-Fi 6 dual-band) · ESP32C6 · ESP32S3 / S3 Sense · RP2040 ·
+RP2350 · nRF52840 / Sense · SAMD21 · RA4M1 · MG24 / Sense · nRF54L15 / Sense ·
+nRF54LM20A / Sense — the official comparison table in full, SKUs cross-checked.
 
-### 10 MCP Tools
+## Documentation
 
-- `resolve_board` - Find the right XIAO board
-- `get_board_info` - Get full board specs
-- `get_pinout` - Get pinout diagram
-- `search_examples` - Search code examples
-- `get_example` - Get full code of one example by ID
-- `list_boards` - List all boards
-- `get_quickstart` - Get getting-started guide
-- `troubleshoot` - Diagnose common issues
-- `search_wiki` - Search wiki.seeedstudio.com
-- `search_knowledge` - Search internal knowledge base
-
-## Supported Boards
-
-- XIAO ESP32C3, ESP32S3, ESP32S3 Sense, ESP32C6, ESP32C5 (Wi-Fi 6 dual-band)
-- XIAO RP2040, RP2350
-- XIAO nRF52840, nRF52840 Sense
-- XIAO SAMD21, RA4M1
-- XIAO MG24, MG24 Sense
-- XIAO nRF54L15, nRF54L15 Sense
-- XIAO nRF54LM20A, nRF54LM20A Sense
+| Doc | For |
+|---|---|
+| [docs/CLI.md](./docs/CLI.md) | every command, flag, exit code |
+| [docs/MCP.md](./docs/MCP.md) | tool reference + AI-tool configuration |
+| [docs/DATA.md](./docs/DATA.md) | adding boards / examples / knowledge (schemas, wiki-verification bar) |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | how the layers fit, invariants, verification posture |
+| [skills/xiao-assistant.md](./skills/xiao-assistant.md) | usage rules your AI assistant should follow |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | dev setup, PR bar, release flow |
 
 ## Development
 
 ```bash
-pnpm install
-pnpm build
-pnpm test
+pnpm install && pnpm build && pnpm test
 ```
-
-## License
 
 MIT © [Seeed Studio](https://www.seeedstudio.com)
