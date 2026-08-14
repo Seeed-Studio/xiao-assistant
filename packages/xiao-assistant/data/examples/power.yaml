@@ -2,226 +2,122 @@
   title: Deep Sleep with Timer Wake
   description: Enter deep sleep and wake up after a timer interval to save power
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: power
-  tags: [deep sleep, low power, timer, wake, esp32, battery, energy saving]
-  code: |
-    // Deep Sleep - XIAO ESP32 Series
-    // Wake up after 10 seconds via timer
-
-    #define uS_TO_S_FACTOR 1000000ULL
-    #define TIME_TO_SLEEP  10  // Sleep time in seconds
-
-    void setup() {
-      Serial.begin(115200);
-      delay(1000);
-
-      Serial.println("XIAO ESP32 Deep Sleep Example");
-      Serial.printf("Going to sleep for %d seconds...\n", TIME_TO_SLEEP);
-
-      esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-      esp_deep_sleep_start();
-    }
-
-    void loop() {
-      // Never reached - deep sleep resets the board on wake
-    }
+  tags:
+  - deep sleep
+  - low power
+  - timer
+  - wake
+  - esp32
+  - battery
+  - energy saving
+  code: "// Deep Sleep - XIAO ESP32 Series\n// Wake up after 10 seconds via timer\n\n#define uS_TO_S_FACTOR 1000000ULL\n#define TIME_TO_SLEEP  10  // Sleep time in seconds\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  delay(1000);\n\n  Serial.println(\"XIAO ESP32 Deep Sleep Example\");\n  Serial.print(\"Going to sleep for \"); Serial.print(TIME_TO_SLEEP); Serial.println(\" seconds...\")\n\n  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP\
+    \ * uS_TO_S_FACTOR);\n  esp_deep_sleep_start();\n}\n\nvoid loop() {\n  // Never reached - deep sleep resets the board on wake\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: light-sleep-esp32-arduino
   title: Light Sleep with GPIO Wake
   description: Enter light sleep mode and wake on a GPIO interrupt
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: power
-  tags: [light sleep, low power, gpio, wake, interrupt, esp32, energy saving]
-  code: |
-    // Light Sleep with GPIO Wake - XIAO ESP32 Series
-    // Wake from light sleep when a button is pressed on GPIO 0
-    #include "driver/rtc_io.h"
-
-    #define WAKE_PIN 0     // GPIO pin to wake from sleep
-    #define uS_TO_S 1000000ULL
-
-    RTC_DATA_ATTR int bootCount = 0;
-
-    void setup() {
-      Serial.begin(115200);
-      delay(1000);
-
-      bootCount++;
-      Serial.printf("Boot count: %d\n", bootCount);
-
-      // Configure wake pin
-      pinMode(WAKE_PIN, INPUT_PULLUP);
-
-      // Configure ESP32 to wake on GPIO (active low)
-      esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_PIN, 0);
-
-      // Also set a timer wake as backup (60 seconds)
-      esp_sleep_enable_timer_wakeup(60 * uS_TO_S);
-
-      Serial.println("Entering light sleep...");
-      Serial.println("Press button on pin 0 or wait 60s to wake");
-      delay(100);
-
-      esp_light_sleep_start();
-
-      // Code continues here after waking
-      esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
-      switch (cause) {
-        case ESP_SLEEP_WAKEUP_EXT0:
-          Serial.println("Woke up from GPIO button press");
-          break;
-        case ESP_SLEEP_WAKEUP_TIMER:
-          Serial.println("Woke up from timer");
-          break;
-        default:
-          Serial.printf("Wakeup cause: %d\n", cause);
-          break;
-      }
-    }
-
-    void loop() {
-      Serial.println("Awake! Doing work...");
-      delay(5000);
-      Serial.println("Going back to sleep...");
-      esp_light_sleep_start();
-    }
+  tags:
+  - light sleep
+  - low power
+  - gpio
+  - wake
+  - interrupt
+  - esp32
+  - energy saving
+  code: "// Light Sleep with GPIO Wake - XIAO ESP32 Series\n// Wake from light sleep when a button is pressed on GPIO 0\n#include \"driver/rtc_io.h\"\n\n#define WAKE_PIN 0     // GPIO pin to wake from sleep\n\
+    #define uS_TO_S 1000000ULL\n\nRTC_DATA_ATTR int bootCount = 0;\n\nvoid setup() {\n  Serial.begin(115200);\n  delay(1000);\n\n  bootCount++;\n  Serial.print(\"Boot count: \"); Serial.print(bootCount);\
+    \ Serial.println()\n\n  // Configure wake pin\n  pinMode(WAKE_PIN, INPUT_PULLUP);\n\n  // Configure ESP32 to wake on GPIO (active low)\n  esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKE_PIN, 0);\n\n \
+    \ // Also set a timer wake as backup (60 seconds)\n  esp_sleep_enable_timer_wakeup(60 * uS_TO_S);\n\n  Serial.println(\"Entering light sleep...\");\n  Serial.println(\"Press button on pin 0 or wait\
+    \ 60s to wake\");\n  delay(100);\n\n  esp_light_sleep_start();\n\n  // Code continues here after waking\n  esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();\n  switch (cause) {\n    case\
+    \ ESP_SLEEP_WAKEUP_EXT0:\n      Serial.println(\"Woke up from GPIO button press\");\n      break;\n    case ESP_SLEEP_WAKEUP_TIMER:\n      Serial.println(\"Woke up from timer\");\n      break;\n   \
+    \ default:\n      Serial.print(\"Wakeup cause: \"); Serial.print(cause); Serial.println()\n      break;\n  }\n}\n\nvoid loop() {\n  Serial.println(\"Awake! Doing work...\");\n  delay(5000);\n  Serial.println(\"\
+    Going back to sleep...\");\n  esp_light_sleep_start();\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: battery-monitor-arduino
   title: Battery Voltage Monitor
   description: Monitor the battery voltage on XIAO boards with built-in battery support
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, nrf52840, nrf52840-sense, samd21, ra4m1]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - nrf52840
+  - nrf52840-sense
+  - samd21
+  - ra4m1
   category: power
-  tags: [battery, voltage, monitor, power, lipo, charging, adc]
-  code: |
-    // Battery Voltage Monitor - XIAO
-    // Reads battery voltage through the voltage divider on XIAO boards
-    // Note: Only works when powered by battery, not USB
-
-    #define BATT_ADC_PIN A0  // Battery voltage divider pin
-    #define ADC_RESOLUTION 4095.0
-    #define ADC_REF_VOLTAGE 3.3
-    #define VOLTAGE_DIVIDER_RATIO 2.0  // Board has a 1:1 voltage divider
-
-    // Battery level thresholds (single-cell LiPo)
-    #define BATT_FULL   4.2
-    #define BATT_EMPTY  3.3
-    #define BATT_LOW    3.5
-    #define BATT_CUTOFF 3.2
-
-    float readBatteryVoltage() {
-      long sum = 0;
-      for (int i = 0; i < 16; i++) {
-        sum += analogRead(BATT_ADC_PIN);
-        delay(5);
-      }
-      float avgReading = sum / 16.0;
-      float voltage = (avgReading / ADC_RESOLUTION) * ADC_REF_VOLTAGE * VOLTAGE_DIVIDER_RATIO;
-      return voltage;
-    }
-
-    int voltageToPercent(float voltage) {
-      if (voltage >= BATT_FULL) return 100;
-      if (voltage <= BATT_EMPTY) return 0;
-      return (int)((voltage - BATT_EMPTY) / (BATT_FULL - BATT_EMPTY) * 100);
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-      Serial.println("Battery Voltage Monitor");
-      analogReadResolution(12);  // Set to 12-bit ADC for ESP32
-    }
-
-    void loop() {
-      float voltage = readBatteryVoltage();
-      int percent = voltageToPercent(voltage);
-
-      Serial.printf("Battery: %.2f V (%d%%)\n", voltage, percent);
-
-      if (voltage < BATT_CUTOFF) {
-        Serial.println("WARNING: Battery critically low! Shutting down...");
-        // esp_deep_sleep_start(); // Uncomment to auto-shutdown
-      } else if (voltage < BATT_LOW) {
-        Serial.println("Low battery warning!");
-      }
-
-      delay(10000);
-    }
+  tags:
+  - battery
+  - voltage
+  - monitor
+  - power
+  - lipo
+  - charging
+  - adc
+  code: "// Battery Voltage Monitor - XIAO\n// Reads battery voltage through the voltage divider on XIAO boards\n// Note: Only works when powered by battery, not USB\n\n#define BATT_ADC_PIN A0  // Battery\
+    \ voltage divider pin\n#define ADC_RESOLUTION 4095.0\n#define ADC_REF_VOLTAGE 3.3\n#define VOLTAGE_DIVIDER_RATIO 2.0  // Board has a 1:1 voltage divider\n\n// Battery level thresholds (single-cell LiPo)\n\
+    #define BATT_FULL   4.2\n#define BATT_EMPTY  3.3\n#define BATT_LOW    3.5\n#define BATT_CUTOFF 3.2\n\nfloat readBatteryVoltage() {\n  long sum = 0;\n  for (int i = 0; i < 16; i++) {\n    sum += analogRead(BATT_ADC_PIN);\n\
+    \    delay(5);\n  }\n  float avgReading = sum / 16.0;\n  float voltage = (avgReading / ADC_RESOLUTION) * ADC_REF_VOLTAGE * VOLTAGE_DIVIDER_RATIO;\n  return voltage;\n}\n\nint voltageToPercent(float\
+    \ voltage) {\n  if (voltage >= BATT_FULL) return 100;\n  if (voltage <= BATT_EMPTY) return 0;\n  return (int)((voltage - BATT_EMPTY) / (BATT_FULL - BATT_EMPTY) * 100);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  while (!Serial) { delay(10); }\n  Serial.println(\"Battery Voltage Monitor\");\n  analogReadResolution(12);  // Set to 12-bit ADC for ESP32\n}\n\nvoid loop() {\n  float voltage = readBatteryVoltage();\n\
+    \  int percent = voltageToPercent(voltage);\n\n  Serial.print(\"Battery: \"); Serial.print(voltage, 2); Serial.print(\" V (\"); Serial.print(percent); Serial.print(\"%\"); Serial.println(\")\")\n\n\
+    \  if (voltage < BATT_CUTOFF) {\n    Serial.println(\"WARNING: Battery critically low! Shutting down...\");\n    // esp_deep_sleep_start(); // Uncomment to auto-shutdown\n  } else if (voltage < BATT_LOW)\
+    \ {\n    Serial.println(\"Low battery warning!\");\n  }\n\n  delay(10000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
-
 - id: solar-charging-arduino
   title: Solar Charging Monitor
   description: Monitor a solar panel's voltage and current to track charging performance
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350, nrf52840, nrf52840-sense, samd21, ra4m1, mg24, mg24-sense]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - rp2040
+  - rp2350
+  - nrf52840
+  - nrf52840-sense
+  - samd21
+  - ra4m1
+  - mg24
+  - mg24-sense
   category: power
-  tags: [solar, charging, monitor, energy, renewable, power, battery, voltage]
-  code: |
-    // Solar Charging Monitor - XIAO
-    // Monitors solar panel voltage and battery charge state
-    #define SOLAR_ADC A0    // Solar panel voltage (via voltage divider)
-    #define BATT_ADC  A1    // Battery voltage (via voltage divider)
-    #define CURRENT_ADC A2  // ACS712 current sensor output
-
-    #define VDIV_RATIO 3.0  // Voltage divider ratio (adjust to your circuit)
-    #define ADC_MAX 4095.0
-    #define VREF 3.3
-
-    unsigned long lastUpdate = 0;
-    float totalEnergy = 0;  // Wh accumulated
-
-    float readVoltage(int pin, float ratio) {
-      long sum = 0;
-      for (int i = 0; i < 8; i++) {
-        sum += analogRead(pin);
-        delay(2);
-      }
-      return (sum / 8.0 / ADC_MAX) * VREF * ratio;
-    }
-
-    float readCurrent() {
-      // ACS712-5A: 185 mV/A, midpoint at 2.5V
-      float voltage = readVoltage(CURRENT_ADC, 1.0);
-      return (voltage - 2.5) / 0.185;
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      analogReadResolution(12);
-      Serial.println("Solar Charging Monitor");
-      Serial.println("Time | Solar V | Batt V | Current | Power | Energy");
-    }
-
-    void loop() {
-      float solarV = readVoltage(SOLAR_ADC, VDIV_RATIO);
-      float battV = readVoltage(BATT_ADC, VDIV_RATIO);
-      float current = readCurrent();
-      if (current < 0) current = 0;  // Ignore negative current
-
-      float power = battV * current;  // Watts
-
-      // Accumulate energy (Wh) over 1-second intervals
-      unsigned long now = millis();
-      if (lastUpdate > 0) {
-        float hours = (now - lastUpdate) / 3600000.0;
-        totalEnergy += power * hours;
-      }
-      lastUpdate = now;
-
-      Serial.printf("%lus | %.2fV | %.2fV | %.2fA | %.2fW | %.3fWh\n",
-        now / 1000, solarV, battV, current, power, totalEnergy);
-
-      delay(1000);
-    }
+  tags:
+  - solar
+  - charging
+  - monitor
+  - energy
+  - renewable
+  - power
+  - battery
+  - voltage
+  code: "// Solar Charging Monitor - XIAO\n// Monitors solar panel voltage and battery charge state\n#define SOLAR_ADC A0    // Solar panel voltage (via voltage divider)\n#define BATT_ADC  A1    // Battery\
+    \ voltage (via voltage divider)\n#define CURRENT_ADC A2  // ACS712 current sensor output\n\n#define VDIV_RATIO 3.0  // Voltage divider ratio (adjust to your circuit)\n#define ADC_MAX 4095.0\n#define\
+    \ VREF 3.3\n\nunsigned long lastUpdate = 0;\nfloat totalEnergy = 0;  // Wh accumulated\n\nfloat readVoltage(int pin, float ratio) {\n  long sum = 0;\n  for (int i = 0; i < 8; i++) {\n    sum += analogRead(pin);\n\
+    \    delay(2);\n  }\n  return (sum / 8.0 / ADC_MAX) * VREF * ratio;\n}\n\nfloat readCurrent() {\n  // ACS712-5A: 185 mV/A, midpoint at 2.5V\n  float voltage = readVoltage(CURRENT_ADC, 1.0);\n  return\
+    \ (voltage - 2.5) / 0.185;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  analogReadResolution(12);\n  Serial.println(\"Solar Charging Monitor\");\n  Serial.println(\"\
+    Time | Solar V | Batt V | Current | Power | Energy\");\n}\n\nvoid loop() {\n  float solarV = readVoltage(SOLAR_ADC, VDIV_RATIO);\n  float battV = readVoltage(BATT_ADC, VDIV_RATIO);\n  float current\
+    \ = readCurrent();\n  if (current < 0) current = 0;  // Ignore negative current\n\n  float power = battV * current;  // Watts\n\n  // Accumulate energy (Wh) over 1-second intervals\n  unsigned long\
+    \ now = millis();\n  if (lastUpdate > 0) {\n    float hours = (now - lastUpdate) / 3600000.0;\n    totalEnergy += power * hours;\n  }\n  lastUpdate = now;\n\n  Serial.print(now / 1000); Serial.print(\"\
+    s | \"); Serial.print(solarV, 2); Serial.print(\"V | \"); Serial.print(battV, 2); Serial.print(\"V | \"); Serial.print(current, 2); Serial.print(\"A | \"); Serial.print(power, 2); Serial.print(\"W |\
+    \ \"); Serial.print(totalEnergy, 3); Serial.println(\"Wh\")\n\n  delay(1000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/

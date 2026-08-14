@@ -32,7 +32,8 @@
   - nrf54l15
   code: "// I2C-0 on XIAO nRF54L15: D5 = SDA, D4 = SCL\n// (in the lolren core: D5 -> PIN_WIRE_SDA, D4 -> PIN_WIRE_SCL)\n#include <Wire.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) {}\n\
     \  Wire.begin();\n}\n\nvoid loop() {\n  Serial.println(\"Scanning I2C bus...\");\n  int found = 0;\n  for (uint8_t addr = 1; addr < 127; addr++) {\n    Wire.beginTransmission(addr);\n    if (Wire.endTransmission()\
-    \ == 0) {\n      Serial.printf(\"  device at 0x%02X\\n\", addr);\n      found++;\n    }\n  }\n  if (found == 0) Serial.println(\"  no devices found\");\n  delay(5000);\n}\n"
+    \ == 0) {\n      Serial.print(\"  device at 0x\"); Serial.print(addr, HEX); Serial.println()\n      found++;\n    }\n  }\n  if (found == 0) Serial.println(\"  no devices found\");\n  delay(5000);\n\
+    }\n"
   requirements:
   - Arduino core for nRF54L15 (lolren) via Boards Manager URL
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_arduino/

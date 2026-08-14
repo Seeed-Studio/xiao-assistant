@@ -2,319 +2,150 @@
   title: WiFi Network Scan
   description: Scan for available WiFi networks in range
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, scan, network, ssid, discovery]
-  code: |
-    // WiFi Scan - XIAO ESP32 Series
-    #include <WiFi.h>
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      // Set WiFi to station mode
-      WiFi.mode(WIFI_STA);
-      WiFi.disconnect();
-      delay(100);
-
-      Serial.println("WiFi Scan started");
-    }
-
-    void loop() {
-      Serial.println("Scanning...");
-
-      int networkCount = WiFi.scanNetworks();
-
-      if (networkCount == 0) {
-        Serial.println("No networks found");
-      } else {
-        Serial.printf("%d networks found:\n", networkCount);
-        for (int i = 0; i < networkCount; i++) {
-          Serial.printf("%d: %s (RSSI: %d) %s\n",
-            i + 1,
-            WiFi.SSID(i).c_str(),
-            WiFi.RSSI(i),
-            WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "(Open)" : "(Encrypted)"
-          );
-        }
-      }
-      Serial.println("");
-      delay(5000);
-    }
+  tags:
+  - wifi
+  - scan
+  - network
+  - ssid
+  - discovery
+  code: "// WiFi Scan - XIAO ESP32 Series\n#include <WiFi.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  // Set WiFi to station mode\n  WiFi.mode(WIFI_STA);\n  WiFi.disconnect();\n\
+    \  delay(100);\n\n  Serial.println(\"WiFi Scan started\");\n}\n\nvoid loop() {\n  Serial.println(\"Scanning...\");\n\n  int networkCount = WiFi.scanNetworks();\n\n  if (networkCount == 0) {\n    Serial.println(\"\
+    No networks found\");\n  } else {\n    Serial.print(networkCount); Serial.println(\" networks found:\")\n    for (int i = 0; i < networkCount; i++) {\n      Serial.print(i + 1); Serial.print(\": \"\
+    ); Serial.print(WiFi.SSID(i).c_str()) Serial.print(\" (RSSI: \"); Serial.print(WiFi.RSSI(i)) Serial.print(\") \"); Serial.print(WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? \"(Open)\" : \"(Encrypted)\"\
+    ) Serial.println()\n    }\n  }\n  Serial.println(\"\");\n  delay(5000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: wifi-connect-arduino
   title: WiFi Connect
   description: Connect to a WiFi network and display the assigned IP address
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, connect, network, ssid, ip address]
-  code: |
-    // WiFi Connect - XIAO ESP32 Series
-    #include <WiFi.h>
-
-    const char* ssid = "YOUR_SSID";
-    const char* password = "YOUR_PASSWORD";
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      Serial.printf("Connecting to %s", ssid);
-      WiFi.begin(ssid, password);
-
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-
-      Serial.println("\nConnected!");
-      Serial.print("IP Address: ");
-      Serial.println(WiFi.localIP());
-      Serial.print("RSSI: ");
-      Serial.print(WiFi.RSSI());
-      Serial.println(" dBm");
-    }
-
-    void loop() {
-      // Check connection status
-      if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("Connection lost. Reconnecting...");
-        WiFi.begin(ssid, password);
-      }
-      delay(10000);
-    }
+  tags:
+  - wifi
+  - connect
+  - network
+  - ssid
+  - ip address
+  code: "// WiFi Connect - XIAO ESP32 Series\n#include <WiFi.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\";\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial)\
+    \ { delay(10); }\n\n  Serial.print(\"Connecting to \"); Serial.print(ssid)\n  WiFi.begin(ssid, password);\n\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n\
+    \n  Serial.println(\"\\nConnected!\");\n  Serial.print(\"IP Address: \");\n  Serial.println(WiFi.localIP());\n  Serial.print(\"RSSI: \");\n  Serial.print(WiFi.RSSI());\n  Serial.println(\" dBm\");\n\
+    }\n\nvoid loop() {\n  // Check connection status\n  if (WiFi.status() != WL_CONNECTED) {\n    Serial.println(\"Connection lost. Reconnecting...\");\n    WiFi.begin(ssid, password);\n  }\n  delay(10000);\n\
+    }\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: http-server-arduino
   title: Simple HTTP Server
   description: Run a web server to control the onboard LED from a browser
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, http, server, web, led control, html]
-  code: |
-    // Simple HTTP Server - XIAO ESP32 Series
-    #include <WiFi.h>
-    #include <WebServer.h>
-
-    const char* ssid = "YOUR_SSID";
-    const char* password = "YOUR_PASSWORD";
-
-    WebServer server(80);
-    bool ledState = false;
-
-    void handleRoot() {
-      String html = "<!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'>";
-      html += "<title>XIAO LED Control</title></head><body><h1>XIAO LED Control</h1>";
-      html += "<p>LED is now: <strong>" + String(ledState ? "ON" : "OFF") + "</strong></p>";
-      html += "<a href='/on'><button>Turn ON</button></a> ";
-      html += "<a href='/off'><button>Turn OFF</button></a></body></html>";
-      server.send(200, "text/html", html);
-    }
-
-    void handleOn() {
-      ledState = true;
-      digitalWrite(LED_BUILTIN, HIGH);
-      server.sendHeader("Location", "/");
-      server.send(303);
-    }
-
-    void handleOff() {
-      ledState = false;
-      digitalWrite(LED_BUILTIN, LOW);
-      server.sendHeader("Location", "/");
-      server.send(303);
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      pinMode(LED_BUILTIN, OUTPUT);
-
-      WiFi.begin(ssid, password);
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-      Serial.println("\nConnected! IP: " + WiFi.localIP().toString());
-
-      server.on("/", handleRoot);
-      server.on("/on", handleOn);
-      server.on("/off", handleOff);
-      server.begin();
-    }
-
-    void loop() {
-      server.handleClient();
-    }
+  tags:
+  - wifi
+  - http
+  - server
+  - web
+  - led control
+  - html
+  code: "// Simple HTTP Server - XIAO ESP32 Series\n#include <WiFi.h>\n#include <WebServer.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\";\n\nWebServer server(80);\nbool\
+    \ ledState = false;\n\nvoid handleRoot() {\n  String html = \"<!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'>\";\n  html += \"<title>XIAO LED Control</title></head><body><h1>XIAO\
+    \ LED Control</h1>\";\n  html += \"<p>LED is now: <strong>\" + String(ledState ? \"ON\" : \"OFF\") + \"</strong></p>\";\n  html += \"<a href='/on'><button>Turn ON</button></a> \";\n  html += \"<a href='/off'><button>Turn\
+    \ OFF</button></a></body></html>\";\n  server.send(200, \"text/html\", html);\n}\n\nvoid handleOn() {\n  ledState = true;\n  digitalWrite(LED_BUILTIN, HIGH);\n  server.sendHeader(\"Location\", \"/\"\
+    );\n  server.send(303);\n}\n\nvoid handleOff() {\n  ledState = false;\n  digitalWrite(LED_BUILTIN, LOW);\n  server.sendHeader(\"Location\", \"/\");\n  server.send(303);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  pinMode(LED_BUILTIN, OUTPUT);\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println(\"\\nConnected! IP: \"\
+    \ + WiFi.localIP().toString());\n\n  server.on(\"/\", handleRoot);\n  server.on(\"/on\", handleOn);\n  server.on(\"/off\", handleOff);\n  server.begin();\n}\n\nvoid loop() {\n  server.handleClient();\n\
+    }\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: wifi-reconnect-arduino
   title: WiFi Auto-Reconnect
   description: Connect to WiFi with automatic reconnection and exponential backoff
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, reconnect, robust, connection, resilience]
-  code: |
-    // WiFi Auto-Reconnect with Exponential Backoff - XIAO ESP32
-    #include <WiFi.h>
-
-    const char* ssid = "YOUR_SSID";
-    const char* password = "YOUR_PASSWORD";
-
-    unsigned long lastAttempt = 0;
-    int retryDelay = 1000;       // Start with 1 second
-    int maxRetryDelay = 60000;   // Max 60 seconds between retries
-    bool wasConnected = false;
-
-    void connectToWiFi() {
-      Serial.printf("Connecting to %s...\n", ssid);
-      WiFi.disconnect();
-      WiFi.begin(ssid, password);
-      lastAttempt = millis();
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      WiFi.setAutoReconnect(false); // We handle reconnection manually
-      connectToWiFi();
-    }
-
-    void loop() {
-      if (WiFi.status() == WL_CONNECTED) {
-        if (!wasConnected) {
-          Serial.printf("Connected! IP: %s\n", WiFi.localIP().toString().c_str());
-          retryDelay = 1000; // Reset backoff on successful connection
-          wasConnected = true;
-        }
-      } else {
-        if (wasConnected) {
-          Serial.println("Connection lost!");
-          wasConnected = false;
-        }
-        // Exponential backoff reconnection
-        if (millis() - lastAttempt > (unsigned long)retryDelay) {
-          Serial.printf("Reconnecting (retry delay: %d ms)...\n", retryDelay);
-          connectToWiFi();
-          retryDelay = min(retryDelay * 2, maxRetryDelay);
-        }
-      }
-      delay(100);
-    }
+  tags:
+  - wifi
+  - reconnect
+  - robust
+  - connection
+  - resilience
+  code: "// WiFi Auto-Reconnect with Exponential Backoff - XIAO ESP32\n#include <WiFi.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\";\n\nunsigned long lastAttempt = 0;\n\
+    int retryDelay = 1000;       // Start with 1 second\nint maxRetryDelay = 60000;   // Max 60 seconds between retries\nbool wasConnected = false;\n\nvoid connectToWiFi() {\n  Serial.print(\"Connecting\
+    \ to \"); Serial.print(ssid); Serial.println(\"...\")\n  WiFi.disconnect();\n  WiFi.begin(ssid, password);\n  lastAttempt = millis();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial)\
+    \ { delay(10); }\n\n  WiFi.setAutoReconnect(false); // We handle reconnection manually\n  connectToWiFi();\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    if (!wasConnected) {\n   \
+    \   Serial.print(\"Connected! IP: \"); Serial.print(WiFi.localIP().toString().c_str()) Serial.println()\n      retryDelay = 1000; // Reset backoff on successful connection\n      wasConnected = true;\n\
+    \    }\n  } else {\n    if (wasConnected) {\n      Serial.println(\"Connection lost!\");\n      wasConnected = false;\n    }\n    // Exponential backoff reconnection\n    if (millis() - lastAttempt\
+    \ > (unsigned long)retryDelay) {\n      Serial.print(\"Reconnecting (retry delay: \"); Serial.print(retryDelay); Serial.println(\" ms)...\")\n      connectToWiFi();\n      retryDelay = min(retryDelay\
+    \ * 2, maxRetryDelay);\n    }\n  }\n  delay(100);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: http-client-get-arduino
   title: HTTP Client GET Request
   description: Make an HTTP GET request and read the response from a remote server
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, http, client, get, request, rest, api]
-  code: |
-    // HTTP Client GET Request - XIAO ESP32 Series
-    #include <WiFi.h>
-    #include <HTTPClient.h>
-
-    const char* ssid = "YOUR_SSID";
-    const char* password = "YOUR_PASSWORD";
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      WiFi.begin(ssid, password);
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-      Serial.println("\nWiFi connected");
-    }
-
-    void loop() {
-      if (WiFi.status() == WL_CONNECTED) {
-        HTTPClient http;
-        http.begin("http://worldtimeapi.org/api/timezone/Etc/UTC");
-        http.setTimeout(5000);
-
-        int httpCode = http.GET();
-
-        if (httpCode > 0) {
-          Serial.printf("HTTP Response: %d\n", httpCode);
-          String payload = http.getString();
-          Serial.println(payload);
-        } else {
-          Serial.printf("HTTP request failed: %s\n", http.errorToString(httpCode).c_str());
-        }
-
-        http.end();
-      } else {
-        Serial.println("WiFi not connected");
-      }
-
-      delay(10000);
-    }
+  tags:
+  - wifi
+  - http
+  - client
+  - get
+  - request
+  - rest
+  - api
+  code: "// HTTP Client GET Request - XIAO ESP32 Series\n#include <WiFi.h>\n#include <HTTPClient.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\";\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  while (!Serial) { delay(10); }\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println(\"\\nWiFi connected\"\
+    );\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    HTTPClient http;\n    http.begin(\"http://worldtimeapi.org/api/timezone/Etc/UTC\");\n    http.setTimeout(5000);\n\n    int httpCode\
+    \ = http.GET();\n\n    if (httpCode > 0) {\n      Serial.print(\"HTTP Response: \"); Serial.print(httpCode); Serial.println()\n      String payload = http.getString();\n      Serial.println(payload);\n\
+    \    } else {\n      Serial.print(\"HTTP request failed: \"); Serial.print(http.errorToString(httpCode).c_str()) Serial.println()\n    }\n\n    http.end();\n  } else {\n    Serial.println(\"WiFi not\
+    \ connected\");\n  }\n\n  delay(10000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: wifi-ap-mode-arduino
   title: WiFi Access Point
   description: Create a WiFi access point that other devices can connect to
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: communication
-  tags: [wifi, access point, ap, hotspot, softap, server]
-  code: |
-    // WiFi Access Point Mode - XIAO ESP32 Series
-    #include <WiFi.h>
-    #include <WebServer.h>
-
-    const char* apSSID = "XIAO-AP";
-    const char* apPassword = "xiao1234";  // Min 8 characters
-
-    WebServer server(80);
-    int clientCount = 0;
-
-    void handleRoot() {
-      String html = "<!DOCTYPE html><html><body>";
-      html += "<h1>XIAO Access Point</h1>";
-      html += "<p>Connected clients: " + String(WiFi.softAPgetStationNum()) + "</p>";
-      html += "<p>AP IP: " + WiFi.softAPIP().toString() + "</p>";
-      html += "</body></html>";
-      server.send(200, "text/html", html);
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      WiFi.mode(WIFI_AP);
-      WiFi.softAP(apSSID, apPassword);
-
-      Serial.println("Access Point started");
-      Serial.printf("SSID: %s\n", apSSID);
-      Serial.printf("IP: %s\n", WiFi.softAPIP().toString().c_str());
-
-      server.on("/", handleRoot);
-      server.begin();
-    }
-
-    void loop() {
-      server.handleClient();
-
-      int currentCount = WiFi.softAPgetStationNum();
-      if (currentCount != clientCount) {
-        clientCount = currentCount;
-        Serial.printf("Connected clients: %d\n", clientCount);
-      }
-    }
+  tags:
+  - wifi
+  - access point
+  - ap
+  - hotspot
+  - softap
+  - server
+  code: "// WiFi Access Point Mode - XIAO ESP32 Series\n#include <WiFi.h>\n#include <WebServer.h>\n\nconst char* apSSID = \"XIAO-AP\";\nconst char* apPassword = \"xiao1234\";  // Min 8 characters\n\nWebServer\
+    \ server(80);\nint clientCount = 0;\n\nvoid handleRoot() {\n  String html = \"<!DOCTYPE html><html><body>\";\n  html += \"<h1>XIAO Access Point</h1>\";\n  html += \"<p>Connected clients: \" + String(WiFi.softAPgetStationNum())\
+    \ + \"</p>\";\n  html += \"<p>AP IP: \" + WiFi.softAPIP().toString() + \"</p>\";\n  html += \"</body></html>\";\n  server.send(200, \"text/html\", html);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  while (!Serial) { delay(10); }\n\n  WiFi.mode(WIFI_AP);\n  WiFi.softAP(apSSID, apPassword);\n\n  Serial.println(\"Access Point started\");\n  Serial.print(\"SSID: \"); Serial.print(apSSID); Serial.println()\n\
+    \  Serial.print(\"IP: \"); Serial.print(WiFi.softAPIP().toString().c_str()) Serial.println()\n\n  server.on(\"/\", handleRoot);\n  server.begin();\n}\n\nvoid loop() {\n  server.handleClient();\n\n \
+    \ int currentCount = WiFi.softAPgetStationNum();\n  if (currentCount != clientCount) {\n    clientCount = currentCount;\n    Serial.print(\"Connected clients: \"); Serial.print(clientCount); Serial.println()\n\
+    \  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

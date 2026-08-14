@@ -2,370 +2,152 @@
   title: Hardware Interrupts
   description: Use hardware interrupts to respond to pin state changes immediately
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - rp2040
+  - rp2350
   category: advanced
-  tags: [interrupt, hardware, isr, gpio, edge, real-time, priority]
-  code: |
-    // Hardware Interrupts - XIAO ESP32/RP2040
-    // Demonstrates rising, falling, and change edge interrupts
-    #define ENCODER_A 2   // Rotary encoder pin A
-    #define ENCODER_B 3   // Rotary encoder pin B
-    #define BUTTON_PIN 0  // Push button
-
-    volatile long encoderCount = 0;
-    volatile bool buttonPressed = false;
-    volatile unsigned long lastInterruptTime = 0;
-
-    // Encoder ISR - fires on pin A rising edge
-    void IRAM_ATTR encoderISR() {
-      unsigned long now = micros();
-      if (now - lastInterruptTime < 500) return;  // Debounce 500us
-      lastInterruptTime = now;
-
-      if (digitalRead(ENCODER_B)) {
-        encoderCount--;
-      } else {
-        encoderCount++;
-      }
-    }
-
-    // Button ISR - fires on falling edge (button press)
-    void IRAM_ATTR buttonISR() {
-      buttonPressed = true;
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      pinMode(ENCODER_A, INPUT_PULLUP);
-      pinMode(ENCODER_B, INPUT_PULLUP);
-      pinMode(BUTTON_PIN, INPUT_PULLUP);
-
-      // Attach interrupts
-      attachInterrupt(digitalPinToInterrupt(ENCODER_A), encoderISR, RISING);
-      attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING);
-
-      Serial.println("Hardware Interrupt Example");
-      Serial.println("Rotate encoder or press button on pin 0");
-    }
-
-    void loop() {
-      static long lastCount = 0;
-      static unsigned long lastPrint = 0;
-
-      if (millis() - lastPrint > 200) {
-        lastPrint = millis();
-        if (encoderCount != lastCount) {
-          Serial.printf("Encoder: %ld\n", encoderCount);
-          lastCount = encoderCount;
-        }
-      }
-
-      if (buttonPressed) {
-        Serial.println("Button pressed! Resetting encoder.");
-        encoderCount = 0;
-        buttonPressed = false;
-      }
-    }
+  tags:
+  - interrupt
+  - hardware
+  - isr
+  - gpio
+  - edge
+  - real-time
+  - priority
+  code: "// Hardware Interrupts - XIAO ESP32/RP2040\n// Demonstrates rising, falling, and change edge interrupts\n#define ENCODER_A 2   // Rotary encoder pin A\n#define ENCODER_B 3   // Rotary encoder pin\
+    \ B\n#define BUTTON_PIN 0  // Push button\n\nvolatile long encoderCount = 0;\nvolatile bool buttonPressed = false;\nvolatile unsigned long lastInterruptTime = 0;\n\n// Encoder ISR - fires on pin A rising\
+    \ edge\nvoid IRAM_ATTR encoderISR() {\n  unsigned long now = micros();\n  if (now - lastInterruptTime < 500) return;  // Debounce 500us\n  lastInterruptTime = now;\n\n  if (digitalRead(ENCODER_B)) {\n\
+    \    encoderCount--;\n  } else {\n    encoderCount++;\n  }\n}\n\n// Button ISR - fires on falling edge (button press)\nvoid IRAM_ATTR buttonISR() {\n  buttonPressed = true;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  while (!Serial) { delay(10); }\n\n  pinMode(ENCODER_A, INPUT_PULLUP);\n  pinMode(ENCODER_B, INPUT_PULLUP);\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n\n  // Attach interrupts\n  attachInterrupt(digitalPinToInterrupt(ENCODER_A),\
+    \ encoderISR, RISING);\n  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING);\n\n  Serial.println(\"Hardware Interrupt Example\");\n  Serial.println(\"Rotate encoder or press button\
+    \ on pin 0\");\n}\n\nvoid loop() {\n  static long lastCount = 0;\n  static unsigned long lastPrint = 0;\n\n  if (millis() - lastPrint > 200) {\n    lastPrint = millis();\n    if (encoderCount != lastCount)\
+    \ {\n      Serial.print(\"Encoder: \"); Serial.print(encoderCount); Serial.println()\n      lastCount = encoderCount;\n    }\n  }\n\n  if (buttonPressed) {\n    Serial.println(\"Button pressed! Resetting\
+    \ encoder.\");\n    encoderCount = 0;\n    buttonPressed = false;\n  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
-
 - id: watchdog-timer-esp32-arduino
   title: Watchdog Timer
   description: Use the hardware watchdog timer to recover from software hangs
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - rp2040
+  - rp2350
   category: advanced
-  tags: [watchdog, timer, reset, recovery, safety, hang, wdt]
-  code: |
-    // Watchdog Timer - XIAO ESP32 Series
-    // Resets the board if the loop hangs for too long
-    #include <esp_task_wdt.h>
-
-    #define WDT_TIMEOUT 5  // Watchdog timeout in seconds
-
-    bool simulateHang = false;
-    unsigned long hangStart = 0;
-
-    void setup() {
-      Serial.begin(115200);
-      delay(1000);
-
-      // Initialize watchdog with panic handler
-      esp_task_wdt_init(WDT_TIMEOUT, true);
-      esp_task_wdt_add(NULL);  // Add current task (loop task)
-
-      Serial.printf("Watchdog started with %d second timeout\n", WDT_TIMEOUT);
-      Serial.println("System will reset if loop() doesn't feed the watchdog");
-    }
-
-    void loop() {
-      Serial.printf("Running... (uptime: %lu s)\n", millis() / 1000);
-
-      // Simulate a hang after 15 seconds
-      if (millis() > 15000 && !simulateHang) {
-        simulateHang = true;
-        Serial.println("Simulating hang! Watchdog will reset the board...");
-      }
-
-      if (simulateHang) {
-        // Intentionally hang - do NOT feed the watchdog
-        while (true) {
-          delay(1000);
-        }
-      }
-
-      // Feed the watchdog to prevent reset
-      esp_task_wdt_reset();
-      delay(1000);
-    }
+  tags:
+  - watchdog
+  - timer
+  - reset
+  - recovery
+  - safety
+  - hang
+  - wdt
+  code: "// Watchdog Timer - XIAO ESP32 Series\n// Resets the board if the loop hangs for too long\n#include <esp_task_wdt.h>\n\n#define WDT_TIMEOUT 5  // Watchdog timeout in seconds\n\nbool simulateHang\
+    \ = false;\nunsigned long hangStart = 0;\n\nvoid setup() {\n  Serial.begin(115200);\n  delay(1000);\n\n  // Initialize watchdog with panic handler\n  esp_task_wdt_init(WDT_TIMEOUT, true);\n  esp_task_wdt_add(NULL);\
+    \  // Add current task (loop task)\n\n  Serial.print(\"Watchdog started with \"); Serial.print(WDT_TIMEOUT); Serial.println(\" second timeout\"); Serial.println(\"System will reset if loop() doesn't\
+    \ feed the watchdog\");\n}\n\nvoid loop() {\n  Serial.print(\"Running... (uptime: \"); Serial.print(millis() / 1000) Serial.println(\" s)\")\n\n  // Simulate a hang after 15 seconds\n  if (millis()\
+    \ > 15000 && !simulateHang) {\n    simulateHang = true;\n    Serial.println(\"Simulating hang! Watchdog will reset the board...\");\n  }\n\n  if (simulateHang) {\n    // Intentionally hang - do NOT\
+    \ feed the watchdog\n    while (true) {\n      delay(1000);\n    }\n  }\n\n  // Feed the watchdog to prevent reset\n  esp_task_wdt_reset();\n  delay(1000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: dual-core-task-esp32-arduino
   title: Dual-Core Task
   description: Run tasks on both ESP32 cores for true parallel execution
   language: arduino
-  boards: [esp32s3, esp32s3-sense]
+  boards:
+  - esp32s3
+  - esp32s3-sense
   category: advanced
-  tags: [dual core, freertos, task, parallel, threading, esp32s3, multitask]
-  code: |
-    // Dual-Core Task - XIAO ESP32S3
-    // Runs sensor reading on Core 0, communication on Core 1
-    #include <freertos/FreeRTOS.h>
-    #include <freertos/task.h>
-
-    TaskHandle_t sensorTaskHandle;
-    TaskHandle_t commTaskHandle;
-
-    volatile float sharedTemperature = 0.0;
-    volatile float sharedHumidity = 0.0;
-    SemaphoreHandle_t dataMutex;
-
-    // Sensor task - runs on Core 0
-    void sensorTask(void *parameter) {
-      Serial.printf("Sensor task on core %d\n", xPortGetCoreID());
-
-      while (true) {
-        // Simulate sensor reading
-        float temp = 22.0 + random(-200, 200) / 100.0;
-        float hum = 55.0 + random(-500, 500) / 100.0;
-
-        if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
-          sharedTemperature = temp;
-          sharedHumidity = hum;
-          xSemaphoreGive(dataMutex);
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
-      }
-    }
-
-    // Communication task - runs on Core 1
-    void commTask(void *parameter) {
-      Serial.printf("Comm task on core %d\n", xPortGetCoreID());
-
-      while (true) {
-        float temp, hum;
-        if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {
-          temp = sharedTemperature;
-          hum = sharedHumidity;
-          xSemaphoreGive(dataMutex);
-        }
-
-        Serial.printf("[Core1] Temp: %.1f C, Humidity: %.1f %%\n", temp, hum);
-        // Here you would send data via WiFi, BLE, etc.
-
-        vTaskDelay(pdMS_TO_TICKS(3000));
-      }
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      dataMutex = xSemaphoreCreateMutex();
-
-      // Create tasks on specific cores
-      xTaskCreatePinnedToCore(sensorTask, "Sensor", 4096, NULL, 1, &sensorTaskHandle, 0);
-      xTaskCreatePinnedToCore(commTask, "Comm", 4096, NULL, 1, &commTaskHandle, 1);
-
-      Serial.println("Dual-core tasks started");
-    }
-
-    void loop() {
-      // Main loop runs on Core 1 by default
-      // Can do housekeeping here or just yield
-      delay(1000);
-    }
+  tags:
+  - dual core
+  - freertos
+  - task
+  - parallel
+  - threading
+  - esp32s3
+  - multitask
+  code: "// Dual-Core Task - XIAO ESP32S3\n// Runs sensor reading on Core 0, communication on Core 1\n#include <freertos/FreeRTOS.h>\n#include <freertos/task.h>\n\nTaskHandle_t sensorTaskHandle;\nTaskHandle_t\
+    \ commTaskHandle;\n\nvolatile float sharedTemperature = 0.0;\nvolatile float sharedHumidity = 0.0;\nSemaphoreHandle_t dataMutex;\n\n// Sensor task - runs on Core 0\nvoid sensorTask(void *parameter)\
+    \ {\n  Serial.print(\"Sensor task on core \"); Serial.print(xPortGetCoreID()) Serial.println()\n\n  while (true) {\n    // Simulate sensor reading\n    float temp = 22.0 + random(-200, 200) / 100.0;\n\
+    \    float hum = 55.0 + random(-500, 500) / 100.0;\n\n    if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {\n      sharedTemperature = temp;\n      sharedHumidity = hum;\n      xSemaphoreGive(dataMutex);\n\
+    \    }\n\n    vTaskDelay(pdMS_TO_TICKS(1000));\n  }\n}\n\n// Communication task - runs on Core 1\nvoid commTask(void *parameter) {\n  Serial.print(\"Comm task on core \"); Serial.print(xPortGetCoreID())\
+    \ Serial.println()\n\n  while (true) {\n    float temp, hum;\n    if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {\n      temp = sharedTemperature;\n      hum = sharedHumidity;\n      xSemaphoreGive(dataMutex);\n\
+    \    }\n\n    Serial.print(\"[Core1] Temp: \"); Serial.print(temp, 1); Serial.print(\" C, Humidity: \"); Serial.print(hum, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n    // Here\
+    \ you would send data via WiFi, BLE, etc.\n\n    vTaskDelay(pdMS_TO_TICKS(3000));\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  dataMutex = xSemaphoreCreateMutex();\n\
+    \n  // Create tasks on specific cores\n  xTaskCreatePinnedToCore(sensorTask, \"Sensor\", 4096, NULL, 1, &sensorTaskHandle, 0);\n  xTaskCreatePinnedToCore(commTask, \"Comm\", 4096, NULL, 1, &commTaskHandle,\
+    \ 1);\n\n  Serial.println(\"Dual-core tasks started\");\n}\n\nvoid loop() {\n  // Main loop runs on Core 1 by default\n  // Can do housekeeping here or just yield\n  delay(1000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/
-
 - id: dma-transfer-esp32-arduino
   title: DMA Transfer
   description: Use DMA for high-speed ADC sampling without CPU intervention
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
   category: advanced
-  tags: [dma, adc, high speed, sampling, continuous, analog, performance]
-  code: |
-    // DMA ADC Transfer - XIAO ESP32 Series
-    // High-speed ADC sampling using I2S DMA
-    #include <driver/i2s.h>
-
-    #define ADC_PIN        A0
-    #define SAMPLE_RATE    10000
-    #define BUFFER_SAMPLES 256
-
-    uint16_t adcBuffer[BUFFER_SAMPLES];
-    TaskHandle_t processTaskHandle;
-
-    void IRAM_ATTR onI2SEvent(void *arg) {
-      // Notify processing task when buffer is ready
-      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-      vTaskNotifyGiveFromISR(processTaskHandle, &xHigherPriorityTaskWoken);
-      if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();
-    }
-
-    void processTask(void *parameter) {
-      while (true) {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        // Process the DMA buffer
-        uint32_t sum = 0;
-        uint16_t minVal = 4095, maxVal = 0;
-
-        for (int i = 0; i < BUFFER_SAMPLES; i++) {
-          sum += adcBuffer[i];
-          if (adcBuffer[i] < minVal) minVal = adcBuffer[i];
-          if (adcBuffer[i] > maxVal) maxVal = adcBuffer[i];
-        }
-
-        float avg = (float)sum / BUFFER_SAMPLES;
-        float voltage = avg * (3.3 / 4095.0);
-        int ppAmplitude = maxVal - minVal;
-
-        Serial.printf("Avg: %.1f (%.3f V) | Peak-Peak: %d | Min: %d Max: %d\n",
-          avg, voltage, ppAmplitude, minVal, maxVal);
-      }
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      // Configure I2S for ADC reading via DMA
-      i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),
-        .sample_rate = SAMPLE_RATE,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 4,
-        .dma_buf_len = BUFFER_SAMPLES,
-        .use_apll = false
-      };
-
-      i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
-      i2s_set_adc_mode(ADC_UNIT_1, ADC1_CHANNEL_0);
-      i2s_adc_enable(I2S_NUM_0);
-
-      xTaskCreatePinnedToCore(processTask, "Process", 4096, NULL, 2, &processTaskHandle, 1);
-
-      Serial.printf("DMA ADC active: %d Hz, %d samples/buffer\n",
-        SAMPLE_RATE, BUFFER_SAMPLES);
-    }
-
-    void loop() {
-      size_t bytesRead;
-      i2s_read(I2S_NUM_0, adcBuffer, sizeof(adcBuffer), &bytesRead, portMAX_DELAY);
-    }
+  tags:
+  - dma
+  - adc
+  - high speed
+  - sampling
+  - continuous
+  - analog
+  - performance
+  code: "// DMA ADC Transfer - XIAO ESP32 Series\n// High-speed ADC sampling using I2S DMA\n#include <driver/i2s.h>\n\n#define ADC_PIN        A0\n#define SAMPLE_RATE    10000\n#define BUFFER_SAMPLES 256\n\
+    \nuint16_t adcBuffer[BUFFER_SAMPLES];\nTaskHandle_t processTaskHandle;\n\nvoid IRAM_ATTR onI2SEvent(void *arg) {\n  // Notify processing task when buffer is ready\n  BaseType_t xHigherPriorityTaskWoken\
+    \ = pdFALSE;\n  vTaskNotifyGiveFromISR(processTaskHandle, &xHigherPriorityTaskWoken);\n  if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();\n}\n\nvoid processTask(void *parameter) {\n  while (true)\
+    \ {\n    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);\n\n    // Process the DMA buffer\n    uint32_t sum = 0;\n    uint16_t minVal = 4095, maxVal = 0;\n\n    for (int i = 0; i < BUFFER_SAMPLES; i++) {\n\
+    \      sum += adcBuffer[i];\n      if (adcBuffer[i] < minVal) minVal = adcBuffer[i];\n      if (adcBuffer[i] > maxVal) maxVal = adcBuffer[i];\n    }\n\n    float avg = (float)sum / BUFFER_SAMPLES;\n\
+    \    float voltage = avg * (3.3 / 4095.0);\n    int ppAmplitude = maxVal - minVal;\n\n    Serial.print(\"Avg: \"); Serial.print(avg, 1); Serial.print(\" (\"); Serial.print(voltage, 3); Serial.print(\"\
+    \ V) | Peak-Peak: \"); Serial.print(ppAmplitude); Serial.print(\" | Min: \"); Serial.print(minVal); Serial.print(\" Max: \"); Serial.print(maxVal); Serial.println()\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \  while (!Serial) { delay(10); }\n\n  // Configure I2S for ADC reading via DMA\n  i2s_config_t i2s_config = {\n    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),\n   \
+    \ .sample_rate = SAMPLE_RATE,\n    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,\n    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,\n    .communication_format = I2S_COMM_FORMAT_STAND_I2S,\n    .intr_alloc_flags\
+    \ = ESP_INTR_FLAG_LEVEL1,\n    .dma_buf_count = 4,\n    .dma_buf_len = BUFFER_SAMPLES,\n    .use_apll = false\n  };\n\n  i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);\n  i2s_set_adc_mode(ADC_UNIT_1,\
+    \ ADC1_CHANNEL_0);\n  i2s_adc_enable(I2S_NUM_0);\n\n  xTaskCreatePinnedToCore(processTask, \"Process\", 4096, NULL, 2, &processTaskHandle, 1);\n\n  Serial.print(\"DMA ADC active: \"); Serial.print(SAMPLE_RATE);\
+    \ Serial.print(\" Hz, \"); Serial.print(BUFFER_SAMPLES); Serial.println(\" samples/buffer\")\n}\n\nvoid loop() {\n  size_t bytesRead;\n  i2s_read(I2S_NUM_0, adcBuffer, sizeof(adcBuffer), &bytesRead,\
+    \ portMAX_DELAY);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
-
 - id: pwm-servo-50hz-esp32-arduino
   title: PWM Servo at 50Hz (LEDC)
   description: Generate precise 50Hz PWM signals for servo control using the LEDC peripheral
   language: arduino
-  boards: [esp32c3, esp32s3, esp32s3-sense, esp32c6, rp2040, rp2350]
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - rp2040
+  - rp2350
   category: advanced
-  tags: [pwm, servo, ledc, 50hz, precision, hardware, peripheral]
-  code: |
-    // PWM Servo at 50Hz using LEDC - XIAO ESP32
-    // Hardware PWM for precise servo control without Servo library
-    #include <driver/ledc.h>
-
-    #define SERVO_PIN     3
-    #define SERVO_CHANNEL LEDC_CHANNEL_0
-    #define SERVO_TIMER   LEDC_TIMER_0
-    #define PWM_FREQ      50      // 50 Hz for standard servos
-    #define PWM_BITS      16      // 16-bit resolution
-
-    // Servo pulse width limits (in microseconds)
-    #define MIN_PULSE_US  500     // 0 degrees
-    #define MAX_PULSE_US  2500    // 180 degrees
-    #define PERIOD_US     20000   // 20ms = 50Hz
-
-    void setServoAngle(int angle) {
-      angle = constrain(angle, 0, 180);
-
-      // Map angle to pulse width
-      int pulseUs = map(angle, 0, 180, MIN_PULSE_US, MAX_PULSE_US);
-
-      // Convert pulse width to duty cycle (16-bit)
-      uint32_t duty = (uint32_t)((float)pulseUs / PERIOD_US * 65535);
-
-      ledc_set_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL, duty);
-      ledc_update_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL);
-
-      Serial.printf("Angle: %d | Pulse: %d us | Duty: %u\n", angle, pulseUs, duty);
-    }
-
-    void setup() {
-      Serial.begin(115200);
-      while (!Serial) { delay(10); }
-
-      // Configure LEDC timer
-      ledc_timer_config_t timer_conf = {
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        .duty_resolution = LEDC_TIMER_16_BIT,
-        .timer_num = SERVO_TIMER,
-        .freq_hz = PWM_FREQ,
-        .clk_cfg = LEDC_AUTO_CLK
-      };
-      ledc_timer_config(&timer_conf);
-
-      // Configure LEDC channel
-      ledc_channel_config_t channel_conf = {
-        .gpio_num = SERVO_PIN,
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        .channel = SERVO_CHANNEL,
-        .timer_sel = SERVO_TIMER,
-        .duty = 0,
-        .hpoint = 0
-      };
-      ledc_channel_config(&channel_conf);
-
-      Serial.println("LEDC Servo Control (50Hz)");
-      Serial.println("Hardware PWM for precise timing");
-    }
-
-    void loop() {
-      // Sweep from 0 to 180
-      for (int angle = 0; angle <= 180; angle += 5) {
-        setServoAngle(angle);
-        delay(50);
-      }
-      delay(500);
-
-      // Sweep from 180 to 0
-      for (int angle = 180; angle >= 0; angle -= 5) {
-        setServoAngle(angle);
-        delay(50);
-      }
-      delay(500);
-    }
+  tags:
+  - pwm
+  - servo
+  - ledc
+  - 50hz
+  - precision
+  - hardware
+  - peripheral
+  code: "// PWM Servo at 50Hz using LEDC - XIAO ESP32\n// Hardware PWM for precise servo control without Servo library\n#include <driver/ledc.h>\n\n#define SERVO_PIN     3\n#define SERVO_CHANNEL LEDC_CHANNEL_0\n\
+    #define SERVO_TIMER   LEDC_TIMER_0\n#define PWM_FREQ      50      // 50 Hz for standard servos\n#define PWM_BITS      16      // 16-bit resolution\n\n// Servo pulse width limits (in microseconds)\n\
+    #define MIN_PULSE_US  500     // 0 degrees\n#define MAX_PULSE_US  2500    // 180 degrees\n#define PERIOD_US     20000   // 20ms = 50Hz\n\nvoid setServoAngle(int angle) {\n  angle = constrain(angle,\
+    \ 0, 180);\n\n  // Map angle to pulse width\n  int pulseUs = map(angle, 0, 180, MIN_PULSE_US, MAX_PULSE_US);\n\n  // Convert pulse width to duty cycle (16-bit)\n  uint32_t duty = (uint32_t)((float)pulseUs\
+    \ / PERIOD_US * 65535);\n\n  ledc_set_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL, duty);\n  ledc_update_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL);\n\n  Serial.print(\"Angle: \"); Serial.print(angle);\
+    \ Serial.print(\" | Pulse: \"); Serial.print(pulseUs); Serial.print(\" us | Duty: \"); Serial.print(duty); Serial.println()\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10);\
+    \ }\n\n  // Configure LEDC timer\n  ledc_timer_config_t timer_conf = {\n    .speed_mode = LEDC_HIGH_SPEED_MODE,\n    .duty_resolution = LEDC_TIMER_16_BIT,\n    .timer_num = SERVO_TIMER,\n    .freq_hz\
+    \ = PWM_FREQ,\n    .clk_cfg = LEDC_AUTO_CLK\n  };\n  ledc_timer_config(&timer_conf);\n\n  // Configure LEDC channel\n  ledc_channel_config_t channel_conf = {\n    .gpio_num = SERVO_PIN,\n    .speed_mode\
+    \ = LEDC_HIGH_SPEED_MODE,\n    .channel = SERVO_CHANNEL,\n    .timer_sel = SERVO_TIMER,\n    .duty = 0,\n    .hpoint = 0\n  };\n  ledc_channel_config(&channel_conf);\n\n  Serial.println(\"LEDC Servo\
+    \ Control (50Hz)\");\n  Serial.println(\"Hardware PWM for precise timing\");\n}\n\nvoid loop() {\n  // Sweep from 0 to 180\n  for (int angle = 0; angle <= 180; angle += 5) {\n    setServoAngle(angle);\n\
+    \    delay(50);\n  }\n  delay(500);\n\n  // Sweep from 180 to 0\n  for (int angle = 180; angle >= 0; angle -= 5) {\n    setServoAngle(angle);\n    delay(50);\n  }\n  delay(500);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
