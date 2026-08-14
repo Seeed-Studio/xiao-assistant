@@ -255,14 +255,18 @@ Returns detailed problem descriptions, solutions, and often working code.`,
     ],
   }));
 
-  // NOTE: SDK 1.30's Server.setRequestHandler re-validates tools/call requests
-  // against its strict envelope schema before our handler runs — malformed
-  // envelopes (arguments: null, name: 123) come back as InvalidParams with a
-  // bounded zod message from the SDK itself. Value-level validation below.
+  // NOTE: the SDK validates the tools/call envelope before our handler runs.
+  // Malformed envelopes (arguments: null, name: 123) come back as -32603 with
+  // a bounded zod message from the SDK (its InvalidParams branch is unreachable
+  // for envelope failures). Value-level validation below.
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name } = request.params;
     // Zero-arg tools (list_boards) may legally omit "arguments" entirely.
     const a: Record<string, unknown> = request.params.arguments ?? {};
+
+    // Bounded echo for error messages: never replay more than 60 chars of input.
+    const short = (v: unknown): string =>
+      typeof v === 'string' ? (v.length > 60 ? v.slice(0, 60) + '…' : v) : String(v);
 
     // Typed accessor: malformed arguments are the caller's fault (InvalidParams),
     // not an internal error.
@@ -275,6 +279,11 @@ Returns detailed problem descriptions, solutions, and often working code.`,
       }
       if (typeof v !== 'string')
         throw new McpError(ErrorCode.InvalidParams, `Argument "${key}" must be a string`);
+      if (v.length > 200)
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          `Argument "${key}" too long (${v.length} chars, max 200)`
+        );
       return v;
     };
 
@@ -325,7 +334,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           if (!board) {
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Board "${a.board}" not found. Use resolve_board or list_boards first.`
+              `Board "${short(a.board)}" not found. Use resolve_board or list_boards first.`
             );
           }
           return {
@@ -340,7 +349,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
             // Unknown board is a caller error, not an internal one.
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Board "${a.board}" not found. Use resolve_board or list_boards first.`
+              `Board "${short(a.board)}" not found. Use resolve_board or list_boards first.`
             );
           }
           return {
@@ -397,7 +406,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
         case 'get_example': {
           const example = assistant.getExampleById(str('id') as string);
           if (!example) {
-            throw new McpError(ErrorCode.InvalidParams, `Example "${a.id}" not found.`);
+            throw new McpError(ErrorCode.InvalidParams, `Example "${short(a.id)}" not found.`);
           }
           return {
             content: [
@@ -446,7 +455,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
                   type: 'text',
                   text: board
                     ? `No quickstart guide available for ${board.fullName}. Visit the wiki: ${board.wikiUrl}`
-                    : `Board "${a.board}" not found. Use resolve_board first.`,
+                    : `Board "${short(a.board)}" not found. Use resolve_board first.`,
                 },
               ],
             };

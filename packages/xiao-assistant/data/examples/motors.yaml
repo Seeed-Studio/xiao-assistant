@@ -25,8 +25,8 @@
   - actuator
   code: "// Servo Motor Control - XIAO\n// Sweep a servo motor from 0 to 180 degrees and back\n#include <Servo.h>\n\n#define SERVO_PIN 3\n\nServo myServo;\nint angle = 0;\nint step = 1;\n\nvoid setup()\
     \ {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  myServo.attach(SERVO_PIN);\n  myServo.write(0);\n  Serial.println(\"Servo sweep example\");\n  Serial.println(\"Connect servo signal\
-    \ wire to pin 3\");\n}\n\nvoid loop() {\n  myServo.write(angle);\n  Serial.print(\"Angle: \"); Serial.print(angle); Serial.println(\" degrees\")\n\n  angle += step;\n  if (angle >= 180 || angle <= 0)\
-    \ {\n    step = -step;\n  }\n\n  delay(15);  // Allow servo to reach position\n}\n"
+    \ wire to pin 3\");\n}\n\nvoid loop() {\n  myServo.write(angle);\n  Serial.print(\"Angle: \"); Serial.print(angle); Serial.println(\" degrees\");\n\n  angle += step;\n  if (angle >= 180 || angle <=\
+    \ 0) {\n    step = -step;\n  }\n\n  delay(15);  // Allow servo to reach position\n}\n"
   requirements:
   - Servo
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
@@ -131,6 +131,6 @@
     \ 0-255\n  if (tempC < 25.0) return 0;\n  if (tempC > 50.0) return 255;\n  return (int)((tempC - 25.0) / 25.0 * 255);\n}\n\nvoid loop() {\n  // Read temperature (replace with real sensor)\n  int raw\
     \ = analogRead(TEMP_SENSOR);\n  // Simulated temperature for demonstration\n  float tempC = 20.0 + (raw / 4095.0) * 40.0;\n\n  int fanSpeed = temperatureToFanSpeed(tempC);\n  analogWrite(FAN_PWM_PIN,\
     \ fanSpeed);\n\n  // Calculate RPM (tach pulses per revolution = 2 for most fans)\n  unsigned long count = tachCount;\n  tachCount = 0;\n  int rpm = (count / 2) * 60;  // Convert to RPM over 1 second\n\
-    \n  Serial.print(\"Temp: \"); Serial.print(tempC, 1); Serial.print(\" C | Fan: \"); Serial.print(fanSpeed); Serial.print(\"/255 | RPM: \"); Serial.print(rpm); Serial.println()\n\n  delay(1000);\n}\n"
+    \n  Serial.print(\"Temp: \"); Serial.print(tempC, 1); Serial.print(\" C | Fan: \"); Serial.print(fanSpeed); Serial.print(\"/255 | RPM: \"); Serial.print(rpm); Serial.println();\n\n  delay(1000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/

@@ -20,9 +20,9 @@
     \  config.pin_d2 = Y4_GPIO_NUM;\n  config.pin_d3 = Y5_GPIO_NUM;\n  config.pin_d4 = Y6_GPIO_NUM;\n  config.pin_d5 = Y7_GPIO_NUM;\n  config.pin_d6 = Y8_GPIO_NUM;\n  config.pin_d7 = Y9_GPIO_NUM;\n  config.pin_xclk\
     \ = XCLK_GPIO_NUM;\n  config.pin_pclk = PCLK_GPIO_NUM;\n  config.pin_vsync = VSYNC_GPIO_NUM;\n  config.pin_href = HREF_GPIO_NUM;\n  config.pin_sccb_sda = SIOD_GPIO_NUM;\n  config.pin_sccb_scl = SIOC_GPIO_NUM;\n\
     \  config.pin_pwdn = PWDN_GPIO_NUM;\n  config.pin_reset = RESET_GPIO_NUM;\n  config.xclk_freq_hz = 20000000;\n  config.pixel_format = PIXFORMAT_JPEG;\n  config.frame_size = FRAMESIZE_UXGA;\n  config.jpeg_quality\
-    \ = 12;\n  config.fb_count = 2;\n\n  esp_err_t err = esp_camera_init(&config);\n  if (err != ESP_OK) {\n    Serial.print(\"Camera init failed with error 0x\"); Serial.print(err, HEX)\n    return;\n\
+    \ = 12;\n  config.fb_count = 2;\n\n  esp_err_t err = esp_camera_init(&config);\n  if (err != ESP_OK) {\n    Serial.print(\"Camera init failed with error 0x\"); Serial.print(err, HEX);\n    return;\n\
     \  }\n  Serial.println(\"Camera initialized successfully!\");\n}\n\nvoid loop() {\n  camera_fb_t *fb = esp_camera_fb_get();\n  if (!fb) {\n    Serial.println(\"Camera capture failed\");\n    return;\n\
-    \  }\n  Serial.print(\"Image captured! Size: \"); Serial.print(fb->len); Serial.println(\" bytes\")\n  esp_camera_fb_return(fb);\n  delay(5000);\n}\n"
+    \  }\n  Serial.print(\"Image captured! Size: \"); Serial.print(fb->len); Serial.println(\" bytes\");\n  esp_camera_fb_return(fb);\n  delay(5000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/
 - id: camera-stream-http-arduino
@@ -55,7 +55,7 @@
     \ = PWDN_GPIO_NUM;\n  config.pin_reset = RESET_GPIO_NUM;\n  config.xclk_freq_hz = 20000000;\n  config.pixel_format = PIXFORMAT_JPEG;\n  config.frame_size = FRAMESIZE_VGA;\n  config.jpeg_quality = 12;\n\
     \  config.fb_count = 2;\n  return esp_camera_init(&config) == ESP_OK;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\n  if (!initCamera()) {\n    Serial.println(\"Camera init failed!\");\n    while\
     \ (1);\n  }\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) { delay(500); }\n  Serial.println(\"\\nWiFi connected\");\n\n  server.on(\"/\", handleRoot);\n  server.on(\"/stream\"\
-    , HTTP_GET, handleStream);\n  server.begin();\n\n  Serial.print(\"Stream at: http://\"); Serial.print(WiFi.localIP().toString().c_str()) Serial.println(\"/stream\")\n}\n\nvoid loop() {\n  server.handleClient();\n\
+    , HTTP_GET, handleStream);\n  server.begin();\n\n  Serial.print(\"Stream at: http://\"); Serial.print(WiFi.localIP().toString().c_str());  Serial.println(\"/stream\");\n}\n\nvoid loop() {\n  server.handleClient();\n\
     }\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/
@@ -83,12 +83,12 @@
     \ = PWDN_GPIO_NUM;\n  config.pin_reset = RESET_GPIO_NUM;\n  config.xclk_freq_hz = 20000000;\n  config.pixel_format = PIXFORMAT_JPEG;\n  config.frame_size = FRAMESIZE_SVGA;\n  config.jpeg_quality = 10;\n\
     \  config.fb_count = 2;\n  return esp_camera_init(&config) == ESP_OK;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  if (!initCamera()) {\n    Serial.println(\"\
     Camera init failed!\");\n    while (1);\n  }\n  Serial.println(\"Camera ready\");\n\n  if (!SD.begin(SD_CS_PIN)) {\n    Serial.println(\"SD card mount failed! Running in serial-only mode.\");\n  } else\
-    \ {\n    Serial.print(\"SD card ready. Capacity: \"); Serial.print(SD.cardSize()) Serial.println(\" bytes\")\n  }\n\n  // Create directory for this session\n  String dir = \"/timelapse_\" + String(millis());\n\
-    \  SD.mkdir(dir.c_str());\n  Serial.print(\"Saving to: \"); Serial.print(dir.c_str()) Serial.println()\n}\n\nvoid loop() {\n  static unsigned long lastCapture = 0;\n\n  if (millis() - lastCapture >=\
-    \ CAPTURE_INTERVAL_MS) {\n    lastCapture = millis();\n    captureCount++;\n\n    camera_fb_t *fb = esp_camera_fb_get();\n    if (!fb) {\n      Serial.println(\"Capture failed\");\n      return;\n \
-    \   }\n\n    // Save to SD card\n    String filename = \"/timelapse_\" + String(millis() / 1000) + \".jpg\";\n    File file = SD.open(filename.c_str(), FILE_WRITE);\n    if (file) {\n      file.write(fb->buf,\
-    \ fb->len);\n      file.close();\n      Serial.print(\"[\"); Serial.print(captureCount); Serial.print(\"] Saved \"); Serial.print(filename.c_str()) Serial.print(\" (\"); Serial.print(fb->len); Serial.println(\"\
-    \ bytes)\")\n    } else {\n      Serial.print(\"[\"); Serial.print(captureCount); Serial.print(\"] SD write failed, image size: \"); Serial.print(fb->len); Serial.println(\" bytes\")\n    }\n\n    esp_camera_fb_return(fb);\n\
-    \  }\n}\n"
+    \ {\n    Serial.print(\"SD card ready. Capacity: \"); Serial.print(SD.cardSize());  Serial.println(\" bytes\");\n  }\n\n  // Create directory for this session\n  String dir = \"/timelapse_\" + String(millis());\n\
+    \  SD.mkdir(dir.c_str());\n  Serial.print(\"Saving to: \"); Serial.print(dir.c_str());  Serial.println();\n}\n\nvoid loop() {\n  static unsigned long lastCapture = 0;\n\n  if (millis() - lastCapture\
+    \ >= CAPTURE_INTERVAL_MS) {\n    lastCapture = millis();\n    captureCount++;\n\n    camera_fb_t *fb = esp_camera_fb_get();\n    if (!fb) {\n      Serial.println(\"Capture failed\");\n      return;\n\
+    \    }\n\n    // Save to SD card\n    String filename = \"/timelapse_\" + String(millis() / 1000) + \".jpg\";\n    File file = SD.open(filename.c_str(), FILE_WRITE);\n    if (file) {\n      file.write(fb->buf,\
+    \ fb->len);\n      file.close();\n      Serial.print(\"[\"); Serial.print(captureCount); Serial.print(\"] Saved \"); Serial.print(filename.c_str());  Serial.print(\" (\"); Serial.print(fb->len); Serial.println(\"\
+    \ bytes)\");\n    } else {\n      Serial.print(\"[\"); Serial.print(captureCount); Serial.print(\"] SD write failed, image size: \"); Serial.print(fb->len); Serial.println(\" bytes\");\n    }\n\n  \
+    \  esp_camera_fb_return(fb);\n  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32S3_Sense_Getting_Started/

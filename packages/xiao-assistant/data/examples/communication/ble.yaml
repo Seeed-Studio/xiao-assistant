@@ -50,7 +50,7 @@
     ,\n    &uuid[0], &uuid[1], &uuid[2], &uuid[3], &uuid[4], &uuid[5], &uuid[6], &uuid[7],\n    &uuid[8], &uuid[9], &uuid[10], &uuid[11], &uuid[12], &uuid[13], &uuid[14], &uuid[15]);\n  memcpy(&beaconData[2],\
     \ uuid, 16);\n  beaconData[18] = major >> 8; beaconData[19] = major & 0xFF;\n  beaconData[20] = minor >> 8; beaconData[21] = minor & 0xFF;\n  beaconData[22] = txPower;\n\n  BLE.setManufacturerData(beaconData,\
     \ 23);\n  BLE.setLocalName(\"XIAO-iBeacon\");\n\n  BLE.advertise();\n  Serial.println(\"iBeacon advertising...\");\n  Serial.print(\"UUID: \"); Serial.print(beaconUUID); Serial.print(\"\\nMajor: \"\
-    ); Serial.print(major); Serial.print(\", Minor: \"); Serial.print(minor); Serial.println()\n}\n\nvoid loop() {\n  // iBeacon just advertises; no connections needed\n  delay(1000);\n}\n"
+    ); Serial.print(major); Serial.print(\", Minor: \"); Serial.print(minor); Serial.println();\n}\n\nvoid loop() {\n  // iBeacon just advertises; no connections needed\n  delay(1000);\n}\n"
   requirements:
   - ArduinoBLE
   wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/
@@ -77,7 +77,7 @@
     \  while (!Serial) { delay(10); }\n\n  if (!BLE.begin()) {\n    Serial.println(\"BLE init failed!\");\n    while (1);\n  }\n\n  BLE.setLocalName(\"XIAO-Sensor\");\n  BLE.setAdvertisedService(sensorService);\n\
     \  sensorService.addCharacteristic(tempChar);\n  sensorService.addCharacteristic(humidChar);\n  BLE.addService(sensorService);\n\n  BLE.advertise();\n  Serial.println(\"BLE sensor broadcast active\"\
     );\n}\n\nvoid loop() {\n  float temp = readTemperature();\n  float humid = readHumidity();\n\n  tempChar.writeValue(temp);\n  humidChar.writeValue(humid);\n\n  Serial.print(\"Broadcasting: \"); Serial.print(temp,\
-    \ 1); Serial.print(\" C, \"); Serial.print(humid, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n  delay(5000);\n}\n"
+    \ 1); Serial.print(\" C, \"); Serial.print(humid, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println();\n  delay(5000);\n}\n"
   requirements:
   - ArduinoBLE
   wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/

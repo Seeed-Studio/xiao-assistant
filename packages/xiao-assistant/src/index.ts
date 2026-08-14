@@ -10,6 +10,7 @@ import { registerSearchCommand } from './commands/search.js';
 import { registerExampleCommand } from './commands/example.js';
 import { registerBoardsCommand } from './commands/boards.js';
 import { registerKnowledgeCommand } from './commands/knowledge.js';
+import { registerTroubleshootCommand } from './commands/troubleshoot.js';
 import { startMcpServer } from './mcp/index.js';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
@@ -43,6 +44,7 @@ program
     console.log(`    ${pc.cyan('xiao boards')}        - List all supported XIAO boards`);
     console.log(`    ${pc.cyan('xiao search <query>')} - Search examples and docs`);
     console.log(`    ${pc.cyan('xiao example <name>')} - Show a code example`);
+    console.log(`    ${pc.cyan('xiao troubleshoot <issue>')} - Diagnose problems from symptoms`);
     console.log(`    ${pc.cyan('xiao knowledge')}     - Launch knowledge editor web UI`);
     console.log(`    ${pc.cyan('xiao mcp')}           - Start MCP server for AI assistants`);
     console.log(`\n  Example: ${pc.yellow('xiao pinout esp32c3')}`);
@@ -56,6 +58,7 @@ registerBoardsCommand(program);
 registerSearchCommand(program);
 registerExampleCommand(program);
 registerKnowledgeCommand(program);
+registerTroubleshootCommand(program);
 
 program
   .command('mcp')

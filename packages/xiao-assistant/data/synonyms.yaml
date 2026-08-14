@@ -1,227 +1,248 @@
-# Query synonym expansion. Keys and their synonyms are ALL added as search
-# terms when any of them appears in the query. Chinese aliases let zh queries
-# hit English content (the query term itself stays, expanded terms do the work).
 mqtt:
-  - pubsub
-  - publish
-  - subscribe
-  - broker
-  - mosquitto
-  - iot
-  - 物联网
-  - 消息
+- pubsub
+- publish
+- subscribe
+- broker
+- mosquitto
+- iot
+- 物联网
+- 消息
 temperature:
-  - dht
-  - dht11
-  - dht22
-  - bme280
-  - aht20
-  - ntc
-  - thermistor
-  - temp
-  - heat
-  - 温度
-  - 温度传感器
-  - 热敏
+- dht
+- dht11
+- dht22
+- bme280
+- aht20
+- ntc
+- thermistor
+- temp
+- heat
+- 温度
+- 温度传感器
+- 热敏
 humidity:
-  - dht
-  - dht11
-  - dht22
-  - bme280
-  - aht20
-  - hygrometer
-  - moisture
-  - 湿度
-  - 湿度传感器
-  - 土壤
+- dht
+- dht11
+- dht22
+- bme280
+- aht20
+- hygrometer
+- moisture
+- 湿度
+- 湿度传感器
+- 土壤
 bluetooth:
-  - ble
-  - bluetooth le
-  - btle
-  - nrf
-  - central
-  - peripheral
-  - 蓝牙
-  - 蓝牙低功耗
+- ble
+- bluetooth le
+- btle
+- nrf
+- central
+- peripheral
+- 蓝牙
+- 蓝牙低功耗
 wifi:
-  - wi-fi
-  - wireless
-  - wlan
-  - sta
-  - station
-  - access point
-  - ap
-  - 无线网
-  - 无线
-  - 网络
-  - 联网
+- wi-fi
+- wireless
+- wlan
+- sta
+- station
+- access point
+- ap
+- 无线网
+- 无线
+- 网络
+- 联网
 wifi6:
-  - wifi 6
-  - wi-fi 6
-  - dual band
-  - esp32c5
-  - 双频
+- wifi 6
+- wi-fi 6
+- dual band
+- esp32c5
+- 双频
 display:
-  - oled
-  - ssd1306
-  - lcd
-  - tft
-  - st7789
-  - e-paper
-  - epaper
-  - screen
-  - 屏幕
-  - 显示屏
-  - 显示器
-  - 墨水屏
+- oled
+- ssd1306
+- lcd
+- tft
+- st7789
+- e-paper
+- epaper
+- screen
+- 屏幕
+- 显示屏
+- 显示器
+- 墨水屏
 sensor:
-  - accelerometer
-  - gyroscope
-  - imu
-  - magnetometer
-  - pressure
-  - barometer
-  - 传感器
-  - 加速度
-  - 陀螺仪
-  - 气压
+- accelerometer
+- gyroscope
+- imu
+- magnetometer
+- pressure
+- barometer
+- 传感器
+- 加速度
+- 陀螺仪
+- 气压
 servo:
-  - motor
-  - actuator
-  - pwm
-  - 舵机
-  - 电机
-  - 马达
+- motor
+- actuator
+- pwm
+- 舵机
+- 电机
+- 马达
 camera:
-  - ov2640
-  - ov3660
-  - image
-  - video
-  - streaming
-  - vision
-  - 摄像头
-  - 相机
-  - 拍照
-  - 图像
+- ov2640
+- ov3660
+- image
+- video
+- streaming
+- vision
+- 摄像头
+- 相机
+- 拍照
+- 图像
 sleep:
-  - deep sleep
-  - light sleep
-  - low power
-  - power save
-  - hibernate
-  - standby
-  - 睡眠
-  - 深度睡眠
-  - 低功耗
-  - 省电
-  - 休眠
+- deep sleep
+- light sleep
+- low power
+- power save
+- hibernate
+- standby
+- 睡眠
+- 深度睡眠
+- 低功耗
+- 省电
+- 休眠
 storage:
-  - spiffs
-  - littlefs
-  - eeprom
-  - preferences
-  - sd card
-  - flash
-  - nvs
-  - 存储
-  - sd卡
-  - 文件系统
+- spiffs
+- littlefs
+- eeprom
+- preferences
+- sd card
+- flash
+- nvs
+- 存储
+- sd卡
+- 文件系统
 audio:
-  - microphone
-  - pdm
-  - i2s
-  - speaker
-  - buzzer
-  - tone
-  - sound
-  - 音频
-  - 麦克风
-  - 喇叭
-  - 蜂鸣器
-  - 声音
-  - 录音
+- microphone
+- pdm
+- i2s
+- speaker
+- buzzer
+- tone
+- sound
+- 音频
+- 麦克风
+- 喇叭
+- 蜂鸣器
+- 声音
+- 录音
 usb:
-  - hid
-  - serial
-  - cdc
-  - dfu
-  - 串口
-  - 键盘
+- hid
+- serial
+- cdc
+- dfu
+- 串口
+- 键盘
 interrupt:
-  - gpio
-  - falling edge
-  - rising edge
-  - isr
-  - 中断
-  - 引脚
+- gpio
+- falling edge
+- rising edge
+- isr
+- 中断
+- 引脚
 watchdog:
-  - wdt
-  - reset
-  - timeout
-  - 看门狗
-  - 复位
-  - 重启
+- wdt
+- reset
+- timeout
+- 看门狗
+- 复位
+- 重启
 stepper:
-  - motor
-  - step
-  - direction
-  - 步进电机
+- motor
+- step
+- direction
+- 步进电机
 matter:
-  - thread
-  - zigbee
-  - 802.15.4
-  - nrf54lm20a
-  - 智能家居
+- thread
+- zigbee
+- 802.15.4
+- nrf54lm20a
+- 智能家居
 led:
-  - blink
-  - neon
-  - user led
-  - rgb
-  - 点灯
-  - 闪烁
-  - 灯
+- blink
+- neon
+- user led
+- rgb
+- 点灯
+- 闪烁
+- 灯
 battery:
-  - charging
-  - lipo
-  - voltage
-  - 电池
-  - 充电
-  - 电压
+- charging
+- lipo
+- voltage
+- 电池
+- 充电
+- 电压
 lora:
-  - lorawan
-  - radio
-  - 远距离
-  - 无线电
+- lorawan
+- radio
+- 远距离
+- 无线电
 gnss:
-  - gps
-  - positioning
-  - 定位
-  - 北斗
+- gps
+- positioning
+- 定位
+- 北斗
 rtc:
-  - clock
-  - time
-  - 时钟
-  - 时间
+- clock
+- time
+- 时钟
+- 时间
 uart:
-  - serial
-  - tx
-  - rx
-  - 串口通信
+- serial
+- tx
+- rx
+- 串口通信
 i2c:
-  - sda
-  - scl
-  - wire
+- sda
+- scl
+- wire
 spi:
-  - mosi
-  - miso
-  - sck
+- mosi
+- miso
+- sck
 adc:
-  - analog
-  - 模拟
-  - 采样
+- analog
+- 模拟
+- 采样
 boot:
-  - bootloader
-  - dfu
-  - 启动
-  - 烧录
-  - 下载模式
+- bootloader
+- dfu
+- 启动
+- 烧录
+- 下载模式
+upload:
+- uploading
+- flash
+- 烧录
+- 上传
+- 刷机
+- 下载
+fail:
+- failure
+- error
+- fails
+- 失败
+- 报错
+- 不行
+connect:
+- connection
+- connecting
+- 连接
+- 连不上
+- 断连
+driver:
+- usb driver
+- 串口驱动
+- 驱动

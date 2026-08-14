@@ -166,7 +166,7 @@
   code: "// Analog Read - XIAO\n// Reads an analog input on pin A0 and prints the value\n\n#define ANALOG_PIN A0\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n  Serial.println(\"\
     Analog read example\");\n  Serial.println(\"Connect a potentiometer wiper to A0\");\n}\n\nvoid loop() {\n  int rawValue = analogRead(ANALOG_PIN);\n\n  // Convert to voltage (assuming 3.3V reference,\
     \ 12-bit ADC on ESP32)\n  float voltage = rawValue * (3.3 / 4095.0);\n  // For boards with 10-bit ADC (SAMD21/RA4M1): use (3.3 / 1023.0)\n\n  Serial.print(\"Raw: \"); Serial.print(rawValue); Serial.print(\"\
-    \ | Voltage: \"); Serial.print(voltage, 3); Serial.println(\" V\")\n  delay(500);\n}\n"
+    \ | Voltage: \"); Serial.print(voltage, 3); Serial.println(\" V\");\n  delay(500);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
 - id: serial-echo-arduino

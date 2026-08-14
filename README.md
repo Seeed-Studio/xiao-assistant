@@ -6,8 +6,8 @@ XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series board
 
 ## Features
 
-- **17 XIAO Boards**: Full pinouts, specs, and quickstart guides (incl. new ESP32-C5 and nRF54LM20A)
-- **61 Code Examples**: WiFi, BLE, MQTT, sensors, displays, motors, and more
+- **17 XIAO Boards**: Full pinouts, specs, power data, and quickstart guides (incl. ESP32-C5 and nRF54LM20A)
+- **64 Code Examples**: WiFi, BLE, MQTT, sensors, displays, motors, and more
 - **CLI Tools**: Initialize projects, search examples, view pinouts
 - **MCP Server**: Native integration with Claude, Cursor, and other AI tools
 - **Knowledge Base**: Internal troubleshooting experience from customer support

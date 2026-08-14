@@ -60,7 +60,7 @@
   - Reset button
   - User LED
   connectivity:
-  - WiFi 6 (802.11 ax)
+  - WiFi 4 (802.11 b/g/n)
   - Bluetooth 5 (LE)
   builtinSensors: []
   supportedLanguages:
@@ -142,7 +142,7 @@
   - Reset button
   - User LED
   connectivity:
-  - WiFi 6 (802.11 ax)
+  - WiFi 4 (802.11 b/g/n)
   - Bluetooth 5 (LE)
   builtinSensors:
   - OV2640/OV3660 camera
@@ -155,6 +155,6 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
-  lowPowerMode: 26.5mA deep sleep (camera/SD rail stays powered unless cut)
+  lowPowerMode: deep sleep ~3mA (camera/SD rail powered; cut their VCC for µA-level, see wiki)
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
   sku: '113991115'

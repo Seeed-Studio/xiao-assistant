@@ -25,8 +25,8 @@
   - address
   code: "// I2C Scanner - XIAO Boards\n#include <Wire.h>\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n  Serial.println(\"\\nI2C Scanner\");\n\n  Wire.begin();\n}\n\nvoid\
     \ loop() {\n  Serial.println(\"Scanning...\");\n\n  int deviceCount = 0;\n  for (byte address = 1; address < 127; address++) {\n    Wire.beginTransmission(address);\n    byte error = Wire.endTransmission();\n\
-    \n    if (error == 0) {\n      Serial.print(\"Device found at 0x\"); Serial.print(address, HEX); Serial.println()\n      deviceCount++;\n    }\n  }\n\n  if (deviceCount == 0) {\n    Serial.println(\"\
-    No I2C devices found!\");\n  } else {\n    Serial.print(\"Found \"); Serial.print(deviceCount); Serial.println(\" device(s)\")\n  }\n\n  delay(5000);\n}\n"
+    \n    if (error == 0) {\n      Serial.print(\"Device found at 0x\"); Serial.print(address, HEX); Serial.println();\n      deviceCount++;\n    }\n  }\n\n  if (deviceCount == 0) {\n    Serial.println(\"\
+    No I2C devices found!\");\n  } else {\n    Serial.print(\"Found \"); Serial.print(deviceCount); Serial.println(\" device(s)\");\n  }\n\n  delay(5000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
 - id: dht11-arduino
@@ -57,7 +57,7 @@
     \ {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n  Serial.println(\"DHT11 Sensor Reading\");\n  dht.begin();\n}\n\nvoid loop() {\n  delay(2000);  // DHT11 needs at least 1 second between\
     \ readings\n\n  float humidity = dht.readHumidity();\n  float temperature = dht.readTemperature();\n\n  if (isnan(humidity) || isnan(temperature)) {\n    Serial.println(\"Failed to read from DHT sensor!\"\
     );\n    return;\n  }\n\n  float heatIndex = dht.computeHeatIndex(temperature, humidity, false);\n\n  Serial.print(\"Temperature: \"); Serial.print(temperature, 1); Serial.println(\" °C\"); Serial.print(\"\
-    Humidity: \"); Serial.print(humidity, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n  Serial.print(\"Heat Index: \"); Serial.print(heatIndex, 1); Serial.println(\" °C\"); Serial.println(\"\
+    Humidity: \"); Serial.print(humidity, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println(); \n  Serial.print(\"Heat Index: \"); Serial.print(heatIndex, 1); Serial.println(\" °C\"); Serial.println(\"\
     ---\");\n}\n"
   requirements:
   - DHT sensor library
@@ -115,9 +115,9 @@
   - weather
   code: "// BME280 Environmental Sensor - XIAO\n#include <Wire.h>\n#include <Adafruit_BME280.h>\n\nAdafruit_BME280 bme;\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n \
     \ if (!bme.begin(0x76)) {\n    Serial.println(\"Could not find BME280 sensor at 0x76, trying 0x77...\");\n    if (!bme.begin(0x77)) {\n      Serial.println(\"BME280 not found! Check wiring.\");\n  \
-    \    while (1) { delay(10); }\n    }\n  }\n\n  Serial.println(\"BME280 sensor initialized\");\n}\n\nvoid loop() {\n  Serial.print(\"Temperature: \"); Serial.print(bme.readTemperature(), 2) Serial.println(\"\
-    \ °C\"); Serial.print(\"Humidity: \"); Serial.print(bme.readHumidity(), 2) Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n  Serial.print(\"Pressure: \"); Serial.print(bme.readPressure()\
-    \ / 100.0F, 2) Serial.println(\" hPa\"); Serial.print(\"Altitude: \"); Serial.print(bme.readAltitude(1013.25), 2) Serial.println(\" m\"); Serial.println(\"---\");\n  delay(2000);\n}\n"
+    \    while (1) { delay(10); }\n    }\n  }\n\n  Serial.println(\"BME280 sensor initialized\");\n}\n\nvoid loop() {\n  Serial.print(\"Temperature: \"); Serial.print(bme.readTemperature(), 2);  Serial.println(\"\
+    \ °C\"); Serial.print(\"Humidity: \"); Serial.print(bme.readHumidity(), 2);  Serial.print(\" \"); Serial.print(\"%\"); Serial.println(); \n  Serial.print(\"Pressure: \"); Serial.print(bme.readPressure()\
+    \ / 100.0F, 2);  Serial.println(\" hPa\"); Serial.print(\"Altitude: \"); Serial.print(bme.readAltitude(1013.25), 2);  Serial.println(\" m\"); Serial.println(\"---\");\n  delay(2000);\n}\n"
   requirements:
   - Adafruit BME280 Library
   - Adafruit Unified Sensor
@@ -150,7 +150,7 @@
   code: "// AHT20 Temperature & Humidity Sensor - XIAO\n#include <Wire.h>\n#include <Adafruit_AHTX0.h>\n\nAdafruit_AHTX0 aht;\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\
     \n  if (!aht.begin()) {\n    Serial.println(\"Could not find AHT20 sensor! Check wiring.\");\n    while (1) { delay(10); }\n  }\n\n  Serial.println(\"AHT20 sensor initialized\");\n}\n\nvoid loop() {\n\
     \  sensors_event_t humidity, temp;\n  aht.getEvent(&humidity, &temp);\n\n  Serial.print(\"Temperature: \"); Serial.print(temp.temperature, 2); Serial.println(\" °C\"); Serial.print(\"Humidity: \");\
-    \ Serial.print(humidity.relative_humidity, 2); Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n  Serial.println(\"---\");\n  delay(2000);\n}\n"
+    \ Serial.print(humidity.relative_humidity, 2); Serial.print(\" \"); Serial.print(\"%\"); Serial.println(); \n  Serial.println(\"---\");\n  delay(2000);\n}\n"
   requirements:
   - Adafruit AHTX0
   wikiUrl: https://wiki.seeedstudio.com/Grove-AHT20-I2C-Industrial-Grade-Temperature&Humidity-Sensor/
@@ -183,7 +183,7 @@
     \  pinMode(ECHO_PIN, INPUT);\n  Serial.println(\"HC-SR04 Ultrasonic Distance Sensor\");\n}\n\nvoid loop() {\n  // Send trigger pulse\n  digitalWrite(TRIG_PIN, LOW);\n  delayMicroseconds(2);\n  digitalWrite(TRIG_PIN,\
     \ HIGH);\n  delayMicroseconds(10);\n  digitalWrite(TRIG_PIN, LOW);\n\n  // Measure echo duration\n  long duration = pulseIn(ECHO_PIN, HIGH, 30000);\n\n  if (duration == 0) {\n    Serial.println(\"Out\
     \ of range\");\n  } else {\n    // Calculate distance in cm (speed of sound = 343 m/s)\n    float distanceCm = duration * 0.0343 / 2.0;\n    Serial.print(\"Distance: \"); Serial.print(distanceCm, 1);\
-    \ Serial.println(\" cm\")\n  }\n\n  delay(200);\n}\n"
+    \ Serial.println(\" cm\");\n  }\n\n  delay(200);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/Grove-Ultrasonic_Ranger/
 - id: soil-moisture-arduino
@@ -214,7 +214,7 @@
   code: "// Soil Moisture Sensor - XIAO\n// Connect sensor analog output to A0\n\n#define SENSOR_PIN A0\n#define DRY_VALUE 3200    // ADC reading when completely dry\n#define WET_VALUE 1400    // ADC reading\
     \ when submerged in water\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n  Serial.println(\"Soil Moisture Sensor Example\");\n}\n\nvoid loop() {\n  int rawValue = analogRead(SENSOR_PIN);\n\
     \n  // Map to percentage (0% = dry, 100% = wet)\n  int moisturePercent = map(rawValue, DRY_VALUE, WET_VALUE, 0, 100);\n  moisturePercent = constrain(moisturePercent, 0, 100);\n\n  Serial.print(\"Raw\
-    \ ADC: \"); Serial.print(rawValue); Serial.print(\" | Moisture: \"); Serial.print(moisturePercent); Serial.print(\"%\"); Serial.println()\n\n  if (moisturePercent < 30) {\n    Serial.println(\"Soil\
+    \ ADC: \"); Serial.print(rawValue); Serial.print(\" | Moisture: \"); Serial.print(moisturePercent); Serial.print(\"%\"); Serial.println();\n\n  if (moisturePercent < 30) {\n    Serial.println(\"Soil\
     \ is dry - needs watering!\");\n  } else if (moisturePercent > 70) {\n    Serial.println(\"Soil is very wet\");\n  } else {\n    Serial.println(\"Soil moisture is good\");\n  }\n\n  Serial.println(\"\
     ---\");\n  delay(2000);\n}\n"
   requirements: []
@@ -247,7 +247,7 @@
   code: "// Light Sensor (LDR) - XIAO\n// Connect LDR with a voltage divider to A0\n\n#define LDR_PIN A0\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n  Serial.println(\"\
     LDR Light Sensor Example\");\n  Serial.println(\"Higher value = more light\");\n}\n\nvoid loop() {\n  int rawValue = analogRead(LDR_PIN);\n\n  // Approximate lux mapping (varies with resistor and LDR)\n\
     \  // Using a simple linear approximation for demonstration\n  float voltage = rawValue * (3.3 / 4095.0);\n  int lightPercent = map(rawValue, 0, 4095, 0, 100);\n\n  Serial.print(\"Raw: \"); Serial.print(rawValue);\
-    \ Serial.print(\" | Voltage: \"); Serial.print(voltage, 2); Serial.print(\" V | Light: \"); Serial.print(lightPercent); Serial.print(\"%\"); Serial.println()\n\n  if (lightPercent < 20) {\n    Serial.println(\"\
+    \ Serial.print(\" | Voltage: \"); Serial.print(voltage, 2); Serial.print(\" V | Light: \"); Serial.print(lightPercent); Serial.print(\"%\"); Serial.println();\n\n  if (lightPercent < 20) {\n    Serial.println(\"\
     Environment: Dark\");\n  } else if (lightPercent < 60) {\n    Serial.println(\"Environment: Indoor / Dim\");\n  } else {\n    Serial.println(\"Environment: Bright / Outdoor\");\n  }\n\n  Serial.println(\"\
     ---\");\n  delay(1000);\n}\n"
   requirements: []

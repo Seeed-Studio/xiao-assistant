@@ -25,7 +25,7 @@
     \  while (!Serial) { delay(10); }\n\n  pinMode(ENCODER_A, INPUT_PULLUP);\n  pinMode(ENCODER_B, INPUT_PULLUP);\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n\n  // Attach interrupts\n  attachInterrupt(digitalPinToInterrupt(ENCODER_A),\
     \ encoderISR, RISING);\n  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING);\n\n  Serial.println(\"Hardware Interrupt Example\");\n  Serial.println(\"Rotate encoder or press button\
     \ on pin 0\");\n}\n\nvoid loop() {\n  static long lastCount = 0;\n  static unsigned long lastPrint = 0;\n\n  if (millis() - lastPrint > 200) {\n    lastPrint = millis();\n    if (encoderCount != lastCount)\
-    \ {\n      Serial.print(\"Encoder: \"); Serial.print(encoderCount); Serial.println()\n      lastCount = encoderCount;\n    }\n  }\n\n  if (buttonPressed) {\n    Serial.println(\"Button pressed! Resetting\
+    \ {\n      Serial.print(\"Encoder: \"); Serial.print(encoderCount); Serial.println();\n      lastCount = encoderCount;\n    }\n  }\n\n  if (buttonPressed) {\n    Serial.println(\"Button pressed! Resetting\
     \ encoder.\");\n    encoderCount = 0;\n    buttonPressed = false;\n  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
@@ -52,7 +52,7 @@
   code: "// Watchdog Timer - XIAO ESP32 Series\n// Resets the board if the loop hangs for too long\n#include <esp_task_wdt.h>\n\n#define WDT_TIMEOUT 5  // Watchdog timeout in seconds\n\nbool simulateHang\
     \ = false;\nunsigned long hangStart = 0;\n\nvoid setup() {\n  Serial.begin(115200);\n  delay(1000);\n\n  // Initialize watchdog with panic handler\n  esp_task_wdt_init(WDT_TIMEOUT, true);\n  esp_task_wdt_add(NULL);\
     \  // Add current task (loop task)\n\n  Serial.print(\"Watchdog started with \"); Serial.print(WDT_TIMEOUT); Serial.println(\" second timeout\"); Serial.println(\"System will reset if loop() doesn't\
-    \ feed the watchdog\");\n}\n\nvoid loop() {\n  Serial.print(\"Running... (uptime: \"); Serial.print(millis() / 1000) Serial.println(\" s)\")\n\n  // Simulate a hang after 15 seconds\n  if (millis()\
+    \ feed the watchdog\");\n}\n\nvoid loop() {\n  Serial.print(\"Running... (uptime: \"); Serial.print(millis() / 1000);  Serial.println(\" s)\");\n\n  // Simulate a hang after 15 seconds\n  if (millis()\
     \ > 15000 && !simulateHang) {\n    simulateHang = true;\n    Serial.println(\"Simulating hang! Watchdog will reset the board...\");\n  }\n\n  if (simulateHang) {\n    // Intentionally hang - do NOT\
     \ feed the watchdog\n    while (true) {\n      delay(1000);\n    }\n  }\n\n  // Feed the watchdog to prevent reset\n  esp_task_wdt_reset();\n  delay(1000);\n}\n"
   requirements: []
@@ -75,11 +75,11 @@
   - multitask
   code: "// Dual-Core Task - XIAO ESP32S3\n// Runs sensor reading on Core 0, communication on Core 1\n#include <freertos/FreeRTOS.h>\n#include <freertos/task.h>\n\nTaskHandle_t sensorTaskHandle;\nTaskHandle_t\
     \ commTaskHandle;\n\nvolatile float sharedTemperature = 0.0;\nvolatile float sharedHumidity = 0.0;\nSemaphoreHandle_t dataMutex;\n\n// Sensor task - runs on Core 0\nvoid sensorTask(void *parameter)\
-    \ {\n  Serial.print(\"Sensor task on core \"); Serial.print(xPortGetCoreID()) Serial.println()\n\n  while (true) {\n    // Simulate sensor reading\n    float temp = 22.0 + random(-200, 200) / 100.0;\n\
+    \ {\n  Serial.print(\"Sensor task on core \"); Serial.print(xPortGetCoreID());  Serial.println();\n\n  while (true) {\n    // Simulate sensor reading\n    float temp = 22.0 + random(-200, 200) / 100.0;\n\
     \    float hum = 55.0 + random(-500, 500) / 100.0;\n\n    if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {\n      sharedTemperature = temp;\n      sharedHumidity = hum;\n      xSemaphoreGive(dataMutex);\n\
-    \    }\n\n    vTaskDelay(pdMS_TO_TICKS(1000));\n  }\n}\n\n// Communication task - runs on Core 1\nvoid commTask(void *parameter) {\n  Serial.print(\"Comm task on core \"); Serial.print(xPortGetCoreID())\
-    \ Serial.println()\n\n  while (true) {\n    float temp, hum;\n    if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {\n      temp = sharedTemperature;\n      hum = sharedHumidity;\n      xSemaphoreGive(dataMutex);\n\
-    \    }\n\n    Serial.print(\"[Core1] Temp: \"); Serial.print(temp, 1); Serial.print(\" C, Humidity: \"); Serial.print(hum, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println()\n    // Here\
+    \    }\n\n    vTaskDelay(pdMS_TO_TICKS(1000));\n  }\n}\n\n// Communication task - runs on Core 1\nvoid commTask(void *parameter) {\n  Serial.print(\"Comm task on core \"); Serial.print(xPortGetCoreID());\
+    \  Serial.println();\n\n  while (true) {\n    float temp, hum;\n    if (xSemaphoreTake(dataMutex, portMAX_DELAY)) {\n      temp = sharedTemperature;\n      hum = sharedHumidity;\n      xSemaphoreGive(dataMutex);\n\
+    \    }\n\n    Serial.print(\"[Core1] Temp: \"); Serial.print(temp, 1); Serial.print(\" C, Humidity: \"); Serial.print(hum, 1); Serial.print(\" \"); Serial.print(\"%\"); Serial.println();\n    // Here\
     \ you would send data via WiFi, BLE, etc.\n\n    vTaskDelay(pdMS_TO_TICKS(3000));\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  dataMutex = xSemaphoreCreateMutex();\n\
     \n  // Create tasks on specific cores\n  xTaskCreatePinnedToCore(sensorTask, \"Sensor\", 4096, NULL, 1, &sensorTaskHandle, 0);\n  xTaskCreatePinnedToCore(commTask, \"Comm\", 4096, NULL, 1, &commTaskHandle,\
     \ 1);\n\n  Serial.println(\"Dual-core tasks started\");\n}\n\nvoid loop() {\n  // Main loop runs on Core 1 by default\n  // Can do housekeeping here or just yield\n  delay(1000);\n}\n"
@@ -109,12 +109,12 @@
     \ {\n    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);\n\n    // Process the DMA buffer\n    uint32_t sum = 0;\n    uint16_t minVal = 4095, maxVal = 0;\n\n    for (int i = 0; i < BUFFER_SAMPLES; i++) {\n\
     \      sum += adcBuffer[i];\n      if (adcBuffer[i] < minVal) minVal = adcBuffer[i];\n      if (adcBuffer[i] > maxVal) maxVal = adcBuffer[i];\n    }\n\n    float avg = (float)sum / BUFFER_SAMPLES;\n\
     \    float voltage = avg * (3.3 / 4095.0);\n    int ppAmplitude = maxVal - minVal;\n\n    Serial.print(\"Avg: \"); Serial.print(avg, 1); Serial.print(\" (\"); Serial.print(voltage, 3); Serial.print(\"\
-    \ V) | Peak-Peak: \"); Serial.print(ppAmplitude); Serial.print(\" | Min: \"); Serial.print(minVal); Serial.print(\" Max: \"); Serial.print(maxVal); Serial.println()\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
+    \ V) | Peak-Peak: \"); Serial.print(ppAmplitude); Serial.print(\" | Min: \"); Serial.print(minVal); Serial.print(\" Max: \"); Serial.print(maxVal); Serial.println();\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
     \  while (!Serial) { delay(10); }\n\n  // Configure I2S for ADC reading via DMA\n  i2s_config_t i2s_config = {\n    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),\n   \
     \ .sample_rate = SAMPLE_RATE,\n    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,\n    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,\n    .communication_format = I2S_COMM_FORMAT_STAND_I2S,\n    .intr_alloc_flags\
     \ = ESP_INTR_FLAG_LEVEL1,\n    .dma_buf_count = 4,\n    .dma_buf_len = BUFFER_SAMPLES,\n    .use_apll = false\n  };\n\n  i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);\n  i2s_set_adc_mode(ADC_UNIT_1,\
     \ ADC1_CHANNEL_0);\n  i2s_adc_enable(I2S_NUM_0);\n\n  xTaskCreatePinnedToCore(processTask, \"Process\", 4096, NULL, 2, &processTaskHandle, 1);\n\n  Serial.print(\"DMA ADC active: \"); Serial.print(SAMPLE_RATE);\
-    \ Serial.print(\" Hz, \"); Serial.print(BUFFER_SAMPLES); Serial.println(\" samples/buffer\")\n}\n\nvoid loop() {\n  size_t bytesRead;\n  i2s_read(I2S_NUM_0, adcBuffer, sizeof(adcBuffer), &bytesRead,\
+    \ Serial.print(\" Hz, \"); Serial.print(BUFFER_SAMPLES); Serial.println(\" samples/buffer\");\n}\n\nvoid loop() {\n  size_t bytesRead;\n  i2s_read(I2S_NUM_0, adcBuffer, sizeof(adcBuffer), &bytesRead,\
     \ portMAX_DELAY);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
@@ -143,7 +143,7 @@
     #define MIN_PULSE_US  500     // 0 degrees\n#define MAX_PULSE_US  2500    // 180 degrees\n#define PERIOD_US     20000   // 20ms = 50Hz\n\nvoid setServoAngle(int angle) {\n  angle = constrain(angle,\
     \ 0, 180);\n\n  // Map angle to pulse width\n  int pulseUs = map(angle, 0, 180, MIN_PULSE_US, MAX_PULSE_US);\n\n  // Convert pulse width to duty cycle (16-bit)\n  uint32_t duty = (uint32_t)((float)pulseUs\
     \ / PERIOD_US * 65535);\n\n  ledc_set_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL, duty);\n  ledc_update_duty(LEDC_HIGH_SPEED_MODE, SERVO_CHANNEL);\n\n  Serial.print(\"Angle: \"); Serial.print(angle);\
-    \ Serial.print(\" | Pulse: \"); Serial.print(pulseUs); Serial.print(\" us | Duty: \"); Serial.print(duty); Serial.println()\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10);\
+    \ Serial.print(\" | Pulse: \"); Serial.print(pulseUs); Serial.print(\" us | Duty: \"); Serial.print(duty); Serial.println();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10);\
     \ }\n\n  // Configure LEDC timer\n  ledc_timer_config_t timer_conf = {\n    .speed_mode = LEDC_HIGH_SPEED_MODE,\n    .duty_resolution = LEDC_TIMER_16_BIT,\n    .timer_num = SERVO_TIMER,\n    .freq_hz\
     \ = PWM_FREQ,\n    .clk_cfg = LEDC_AUTO_CLK\n  };\n  ledc_timer_config(&timer_conf);\n\n  // Configure LEDC channel\n  ledc_channel_config_t channel_conf = {\n    .gpio_num = SERVO_PIN,\n    .speed_mode\
     \ = LEDC_HIGH_SPEED_MODE,\n    .channel = SERVO_CHANNEL,\n    .timer_sel = SERVO_TIMER,\n    .duty = 0,\n    .hpoint = 0\n  };\n  ledc_channel_config(&channel_conf);\n\n  Serial.println(\"LEDC Servo\

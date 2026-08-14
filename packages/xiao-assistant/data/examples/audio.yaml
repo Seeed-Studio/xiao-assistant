@@ -17,10 +17,10 @@
   code: "// PDM Microphone - XIAO nRF52840 Sense\n#include <PDM.h>\n\n#define SAMPLE_RATE 16000\n#define BUFFER_SIZE 256\n\nshort sampleBuffer[BUFFER_SIZE];\nvolatile int samplesRead = 0;\nbool micReady\
     \ = false;\n\nvoid onPDMdata() {\n  int bytesAvailable = PDM.available();\n  PDM.read(sampleBuffer, bytesAvailable);\n  samplesRead = bytesAvailable / 2;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\
     \  while (!Serial) { delay(10); }\n\n  PDM.onReceive(onPDMdata);\n  PDM.setBufferSize(BUFFER_SIZE * 2);\n\n  if (!PDM.begin(1, SAMPLE_RATE)) {\n    Serial.println(\"PDM init failed!\");\n    while (1);\n\
-    \  }\n\n  Serial.println(\"PDM microphone active\");\n  Serial.print(\"Sample rate: \"); Serial.print(SAMPLE_RATE); Serial.println(\" Hz\")\n  micReady = true;\n}\n\nvoid loop() {\n  if (samplesRead\
+    \  }\n\n  Serial.println(\"PDM microphone active\");\n  Serial.print(\"Sample rate: \"); Serial.print(SAMPLE_RATE); Serial.println(\" Hz\");\n  micReady = true;\n}\n\nvoid loop() {\n  if (samplesRead\
     \ > 0) {\n    // Calculate RMS level for visualization\n    long sum = 0;\n    for (int i = 0; i < samplesRead; i++) {\n      sum += (long)sampleBuffer[i] * sampleBuffer[i];\n    }\n    float rms =\
     \ sqrt((float)sum / samplesRead);\n    int level = map(constrain(rms, 0, 5000), 0, 5000, 0, 20);\n\n    // Print audio level bar\n    Serial.print(\"Level: \");\n    for (int i = 0; i < level; i++)\
-    \ Serial.print(\"#\");\n    for (int i = level; i < 20; i++) Serial.print(\"-\");\n    Serial.print(\" \"); Serial.print(rms, 1); Serial.println()\n\n    samplesRead = 0;\n  }\n}\n"
+    \ Serial.print(\"#\");\n    for (int i = level; i < 20; i++) Serial.print(\"-\");\n    Serial.print(\" \"); Serial.print(rms, 1); Serial.println();\n\n    samplesRead = 0;\n  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO-BLE-Sense-Getting-Started/
 - id: tone-buzzer-arduino
@@ -83,7 +83,7 @@
     \ = I2S_BCLK,\n  .ws_io_num = I2S_LRC,\n  .data_out_num = I2S_DOUT,\n  .data_in_num = I2S_PIN_NO_CHANGE\n};\n\nint16_t sineBuffer[128];\nint phaseIndex = 0;\n\nvoid generateSineWave() {\n  for (int\
     \ i = 0; i < 128; i++) {\n    float phase = (2.0 * PI * FREQUENCY * i) / SAMPLE_RATE;\n    sineBuffer[i] = (int16_t)(sin(phase) * 16000);\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while\
     \ (!Serial) { delay(10); }\n\n  i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);\n  i2s_set_pin(I2S_NUM_0, &pin_config);\n\n  generateSineWave();\n  Serial.print(\"I2S output active: \"); Serial.print(FREQUENCY);\
-    \ Serial.print(\" Hz tone at \"); Serial.print(SAMPLE_RATE); Serial.println(\" Hz sample rate\")\n}\n\nvoid loop() {\n  size_t bytesWritten;\n  i2s_write(I2S_NUM_0, sineBuffer, sizeof(sineBuffer), &bytesWritten,\
-    \ portMAX_DELAY);\n}\n"
+    \ Serial.print(\" Hz tone at \"); Serial.print(SAMPLE_RATE); Serial.println(\" Hz sample rate\");\n}\n\nvoid loop() {\n  size_t bytesWritten;\n  i2s_write(I2S_NUM_0, sineBuffer, sizeof(sineBuffer),\
+    \ &bytesWritten, portMAX_DELAY);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

@@ -113,8 +113,15 @@ export function registerKnowledgeCommand(program: Command) {
     .description('Launch the knowledge editor web UI')
     .option('-p, --port <port>', 'Port number', '3456')
     .action(async (options: { port: string }) => {
+      // Strict digits-only: parseInt('80a') === 80 would silently pass and
+      // try to bind a privileged port.
+      if (!/^\d+$/.test(options.port.trim())) {
+        console.error(pc.red(`Invalid port "${options.port}" (expected 1-65535).`));
+        process.exitCode = 1;
+        return;
+      }
       const port = Number.parseInt(options.port, 10);
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      if (port < 1 || port > 65535) {
         console.error(pc.red(`Invalid port "${options.port}" (expected 1-65535).`));
         process.exitCode = 1;
         return;
@@ -198,10 +205,19 @@ export function registerKnowledgeCommand(program: Command) {
             existing = parse(readFileSync(filePath, 'utf-8')) || [];
           }
 
-          if (existing.some((e: any) => e.id === entry.id)) {
-            res
-              .status(409)
-              .json({ error: `Entry with id "${entry.id}" already exists in ${fileName}` });
+          // Duplicate-id protection must scan the WHOLE knowledge dir: ids are
+          // globally unique per the XIAOKnowledge contract, and a cross-file
+          // duplicate would crash every entry point on next startup.
+          const idsTaken = new Set<string>();
+          for (const f of readdirSync(dir).filter((n: string) => n.endsWith('.yaml'))) {
+            for (const e of (parse(readFileSync(join(dir, f), 'utf-8')) as any[]) || []) {
+              if (e?.id) idsTaken.add(e.id);
+            }
+          }
+          if (idsTaken.has(entry.id)) {
+            res.status(409).json({
+              error: `Entry with id "${entry.id}" already exists (checked all knowledge files)`,
+            });
             return;
           }
 
@@ -261,7 +277,7 @@ export function registerKnowledgeCommand(program: Command) {
 
       // Localhost only: this editor has no auth and writes to the repo's YAML files,
       // so it must never be reachable from the network.
-      app.listen(port, '127.0.0.1', () => {
+      const server = app.listen(port, '127.0.0.1', () => {
         const url = `http://localhost:${port}`;
         console.log(pc.cyan(`\n  XIAO Knowledge Editor`));
         console.log(pc.green(`  ${url}\n`));
@@ -269,6 +285,12 @@ export function registerKnowledgeCommand(program: Command) {
         open(url).catch(() => {
           console.log(pc.yellow(`  Could not open browser. Visit ${url} manually.`));
         });
+      });
+      // A banner followed by silent exit 0 (EADDRINUSE etc.) reads as success.
+      server.on('error', (err: NodeJS.ErrnoException) => {
+        const reason = err.code === 'EADDRINUSE' ? 'port already in use' : err.message;
+        console.error(pc.red(`\n  Failed to listen on port ${port}: ${reason}`));
+        process.exitCode = 1;
       });
     });
 }

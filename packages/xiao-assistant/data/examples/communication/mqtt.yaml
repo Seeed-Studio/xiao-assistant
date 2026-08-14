@@ -18,13 +18,13 @@
   - messaging
   code: "// MQTT Client - XIAO ESP32 Series\n#include <WiFi.h>\n#include <PubSubClient.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\";\nconst char* mqttServer = \"broker.emqx.io\"\
     ;\nconst int mqttPort = 1883;\n\nWiFiClient espClient;\nPubSubClient client(espClient);\n\nvoid callback(char* topic, byte* payload, unsigned int length) {\n  String message;\n  for (unsigned int i\
-    \ = 0; i < length; i++) {\n    message += (char)payload[i];\n  }\n  Serial.print(\"Message arrived [\"); Serial.print(topic); Serial.print(\"]: \"); Serial.print(message.c_str()) Serial.println()\n\
+    \ = 0; i < length; i++) {\n    message += (char)payload[i];\n  }\n  Serial.print(\"Message arrived [\"); Serial.print(topic); Serial.print(\"]: \"); Serial.print(message.c_str());  Serial.println();\n\
     }\n\nvoid reconnect() {\n  while (!client.connected()) {\n    String clientId = \"XIAO-\" + String(random(0xffff), HEX);\n    if (client.connect(clientId.c_str())) {\n      Serial.println(\"MQTT connected\"\
-    );\n      client.subscribe(\"xiao/command\");\n    } else {\n      Serial.print(\"Failed, rc=\"); Serial.print(client.state()) Serial.println(\". Retrying in 5s...\")\n      delay(5000);\n    }\n  }\n\
-    }\n\nvoid setup() {\n  Serial.begin(115200);\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println(\"\\nWiFi connected.\
-    \ IP: \" + WiFi.localIP().toString());\n\n  client.setServer(mqttServer, mqttPort);\n  client.setCallback(callback);\n}\n\nvoid loop() {\n  if (!client.connected()) { reconnect(); }\n  client.loop();\n\
-    \n  static unsigned long lastMsg = 0;\n  if (millis() - lastMsg > 5000) {\n    lastMsg = millis();\n    float temp = random(200, 350) / 10.0;\n    client.publish(\"xiao/temperature\", String(temp).c_str());\n\
-    \    Serial.print(\"Published temperature: \"); Serial.print(temp, 1); Serial.println()\n  }\n}\n"
+    );\n      client.subscribe(\"xiao/command\");\n    } else {\n      Serial.print(\"Failed, rc=\"); Serial.print(client.state());  Serial.println(\". Retrying in 5s...\");\n      delay(5000);\n    }\n\
+    \  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println(\"\\\
+    nWiFi connected. IP: \" + WiFi.localIP().toString());\n\n  client.setServer(mqttServer, mqttPort);\n  client.setCallback(callback);\n}\n\nvoid loop() {\n  if (!client.connected()) { reconnect(); }\n\
+    \  client.loop();\n\n  static unsigned long lastMsg = 0;\n  if (millis() - lastMsg > 5000) {\n    lastMsg = millis();\n    float temp = random(200, 350) / 10.0;\n    client.publish(\"xiao/temperature\"\
+    , String(temp).c_str());\n    Serial.print(\"Published temperature: \"); Serial.print(temp, 1); Serial.println();\n  }\n}\n"
   requirements:
   - PubSubClient
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
@@ -80,9 +80,9 @@
   code: "// MQTT over TLS - XIAO ESP32 Series\n#include <WiFi.h>\n#include <WiFiClientSecure.h>\n#include <PubSubClient.h>\n\nconst char* ssid = \"YOUR_SSID\";\nconst char* password = \"YOUR_PASSWORD\"\
     ;\nconst char* mqttServer = \"mqtt.example.com\";\nconst int mqttPort = 8883;\nconst char* mqttUser = \"your_user\";\nconst char* mqttPass = \"your_password\";\n\n// For self-signed certs, paste your\
     \ CA cert here\n// For public brokers, set to NULL to skip verification\nconst char* caCert = NULL;\n\nWiFiClientSecure secureClient;\nPubSubClient client(secureClient);\n\nvoid callback(char* topic,\
-    \ byte* payload, unsigned int length) {\n  String msg;\n  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];\n  Serial.print(\"[\"); Serial.print(topic); Serial.print(\"]: \"); Serial.print(msg.c_str())\
-    \ Serial.println()\n}\n\nvoid reconnect() {\n  while (!client.connected()) {\n    String id = \"XIAO-tls-\" + String(random(0xffff), HEX);\n    if (client.connect(id.c_str(), mqttUser, mqttPass)) {\n\
-    \      Serial.println(\"MQTT connected (TLS)\");\n      client.subscribe(\"xiao/secure/command\");\n    } else {\n      Serial.print(\"MQTT failed, rc=\"); Serial.print(client.state()) Serial.println()\n\
+    \ byte* payload, unsigned int length) {\n  String msg;\n  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];\n  Serial.print(\"[\"); Serial.print(topic); Serial.print(\"]: \"); Serial.print(msg.c_str());\
+    \  Serial.println();\n}\n\nvoid reconnect() {\n  while (!client.connected()) {\n    String id = \"XIAO-tls-\" + String(random(0xffff), HEX);\n    if (client.connect(id.c_str(), mqttUser, mqttPass))\
+    \ {\n      Serial.println(\"MQTT connected (TLS)\");\n      client.subscribe(\"xiao/secure/command\");\n    } else {\n      Serial.print(\"MQTT failed, rc=\"); Serial.print(client.state());  Serial.println();\n\
     \      delay(5000);\n    }\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED) { delay(500); }\n  Serial.println(\"\\nWiFi connected\"\
     );\n\n  if (caCert) {\n    secureClient.setCACert(caCert);\n  } else {\n    secureClient.setInsecure(); // Skip cert verification (dev only)\n  }\n\n  client.setServer(mqttServer, mqttPort);\n  client.setCallback(callback);\n\
     }\n\nvoid loop() {\n  if (!client.connected()) reconnect();\n  client.loop();\n\n  static unsigned long lastMsg = 0;\n  if (millis() - lastMsg > 10000) {\n    lastMsg = millis();\n    client.publish(\"\
@@ -115,7 +115,7 @@
     \":{\\\"identifiers\\\":[\\\"\" + String(deviceId) + \"\\\"],\";\n  config += \"\\\"name\\\":\\\"\" + String(deviceName) + \"\\\",\";\n  config += \"\\\"manufacturer\\\":\\\"Seeed Studio\\\"}}\";\n\n\
     \  client.publish(configTopic.c_str(), config.c_str(), true);\n  Serial.println(\"Published HA discovery config\");\n}\n\nvoid publishState() {\n  String topic = \"homeassistant/sensor/\" + String(deviceId)\
     \ + \"/state\";\n  float temp = 22.0 + random(-50, 50) / 10.0;\n  String payload = \"{\\\"temperature\\\":\" + String(temp, 1) + \"}\";\n  client.publish(topic.c_str(), payload.c_str());\n  Serial.print(\"\
-    Published state: \"); Serial.print(temp, 1); Serial.println(\" °C\")\n}\n\nvoid reconnect() {\n  while (!client.connected()) {\n    String id = \"XIAO-ha-\" + String(random(0xffff), HEX);\n    if (client.connect(id.c_str(),\
+    Published state: \"); Serial.print(temp, 1); Serial.println(\" °C\");\n}\n\nvoid reconnect() {\n  while (!client.connected()) {\n    String id = \"XIAO-ha-\" + String(random(0xffff), HEX);\n    if (client.connect(id.c_str(),\
     \ mqttUser, mqttPass)) {\n      Serial.println(\"MQTT connected\");\n      publishDiscovery();\n    } else {\n      delay(5000);\n    }\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  WiFi.begin(ssid,\
     \ password);\n  while (WiFi.status() != WL_CONNECTED) { delay(500); }\n  Serial.println(\"\\nWiFi connected\");\n\n  client.setServer(mqttServer, mqttPort);\n}\n\nvoid loop() {\n  if (!client.connected())\
     \ reconnect();\n  client.loop();\n\n  static unsigned long lastMsg = 0;\n  if (millis() - lastMsg > 30000) {\n    lastMsg = millis();\n    publishState();\n  }\n}\n"

@@ -77,7 +77,7 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
-  lowPowerMode: light sleep ~9.96µA (see power consumption wiki page)
+  lowPowerMode: System OFF deep sleep supported (see power consumption wiki page)
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_getting_started/
   sku: '101991421'
 - id: nrf54l15-sense
@@ -157,6 +157,6 @@
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
-  lowPowerMode: light sleep ~9.96µA (see power consumption wiki page)
+  lowPowerMode: System OFF deep sleep supported (see power consumption wiki page)
   wikiUrl: https://wiki.seeedstudio.com/xiao_nrf54l15_sense_getting_started/
   sku: '101991422'

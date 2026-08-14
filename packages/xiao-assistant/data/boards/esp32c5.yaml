@@ -1,5 +1,3 @@
-# XIAO ESP32-C5 — first dual-band Wi-Fi 6 XIAO (released 2026-01).
-# Verified against https://wiki.seeedstudio.com/xiao_esp32c5_getting_started/
 - id: esp32c5
   name: XIAO ESP32C5
   fullName: Seeed Studio XIAO ESP32-C5
@@ -8,28 +6,63 @@
   clockSpeed: 240 MHz
   flashSize: 8MB
   ramSize: 8MB PSRAM
-  onboardFlash: "8MB Flash + 8MB PSRAM"
+  onboardFlash: 8MB Flash + 8MB PSRAM
   pins:
-    digital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    analog: [0]
-    pwm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    digital:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    analog:
+    - 0
+    pwm:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
     i2c:
-      - sda: 4
-        scl: 5
+    - sda: 4
+      scl: 5
     spi:
-      - mosi: 10
-        miso: 9
-        sck: 8
-        cs: 3
+    - mosi: 10
+      miso: 9
+      sck: 8
+      cs: 3
     uart:
-      - tx: 6
-        rx: 7
-  features: [USB-C, Battery charging, Battery voltage sensing]
-  connectivity: ["WiFi 6 (2.4GHz + 5GHz dual-band)", "Bluetooth 5", "Zigbee", "Thread"]
+    - tx: 6
+      rx: 7
+  features:
+  - USB-C
+  - Battery charging
+  - Battery voltage sensing
+  connectivity:
+  - WiFi 6 (2.4GHz + 5GHz dual-band)
+  - Bluetooth 5
+  - Zigbee
+  - Thread
   builtinSensors: []
-  supportedLanguages: [arduino, micropython, platformio, zephyr]
+  supportedLanguages:
+  - arduino
+  - micropython
+  - platformio
+  - zephyr
   hasResetButton: true
   hasBootButton: true
   hasBatteryCharging: true
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32c5_getting_started/
-  sku: "100010048"
+  sku: '100010048'
+  lowPowerMode: not yet documented on the wiki

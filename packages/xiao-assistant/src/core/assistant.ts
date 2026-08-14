@@ -44,10 +44,10 @@ export class XIAOAssistant {
     for (const board of loadBoards()) {
       this.boards.set(XIAOAssistant.normalizeId(board.id), board);
     }
-    this.examples = loadExamples();
-    this.documents = loadDocuments();
-    this.troubleshootEntries = loadTroubleshootEntries();
-    this.knowledge = loadKnowledge();
+    this.examples = XIAOAssistant.dedupeById(loadExamples());
+    this.documents = XIAOAssistant.dedupeById(loadDocuments());
+    this.troubleshootEntries = XIAOAssistant.dedupeById(loadTroubleshootEntries());
+    this.knowledge = XIAOAssistant.dedupeById(loadKnowledge());
     this.synonyms = loadSynonyms();
 
     this.exampleIndex = new MiniSearch({
@@ -121,6 +121,20 @@ export class XIAOAssistant {
     return q.length > 0 ? q : null;
   }
 
+  /**
+   * MiniSearch throws on duplicate ids, which would brick every entry point
+   * (CLI/SDK/MCP) until someone hand-edits YAML. Hand-curated data WILL get
+   * duplicate ids eventually; skip the later ones and keep going.
+   */
+  private static dedupeById<T extends { id: string }>(items: T[]): T[] {
+    const seen = new Set<string>();
+    return items.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }
+
   /** Original query + synonym expansion as a multi-query (MiniSearch merges scores). */
   private searchIndex(index: MiniSearch<IdDoc>, q: string): string[] {
     const expanded = this.expandQuery(q);
@@ -153,6 +167,10 @@ export class XIAOAssistant {
   resolveBoard(query: string): XIAOBoard[] {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
+    // Natural-language selection ("battery BLE <10µA", "低功耗") only works if
+    // power data is indexed and synonyms (低功耗 -> deep sleep/low power) apply.
+    const terms = [q, ...q.split(/\s+/), ...this.expandQuery(q)];
+
     const results: Array<{ board: XIAOBoard; score: number }> = [];
 
     for (const board of this.boards.values()) {
@@ -166,16 +184,13 @@ export class XIAOAssistant {
         ...board.features,
         ...board.connectivity,
         ...board.builtinSensors,
+        ...(board.lowPowerMode ? [board.lowPowerMode] : []),
       ].map((f) => f.toLowerCase());
 
-      for (const field of fields) {
-        if (field === q) score += 10;
-        else if (field.includes(q)) score += 5;
-      }
-
-      for (const word of q.split(/\s+/)) {
+      for (const term of terms) {
         for (const field of fields) {
-          if (field.includes(word)) score += 2;
+          if (field === term) score += 10;
+          else if (field.includes(term)) score += 5;
         }
       }
 
@@ -357,11 +372,15 @@ export class XIAOAssistant {
 
     for (const [keyword, synonyms] of Object.entries(this.synonyms)) {
       const candidates = [keyword, ...synonyms];
-      // Word-level hit (single-word synonyms) OR whole-phrase hit (multi-word
-      // synonyms like "deep sleep" never match after whitespace splitting).
+      // Word-level hit (single-word synonyms), whole-phrase hit (multi-word
+      // synonyms like "deep sleep" never match after word splitting), or CJK
+      // compound hit ("上传失败" contains "上传", "温度传感器" contains "温度").
       const hit =
         words.some((w) => candidates.includes(w)) ||
-        candidates.some((c) => c.includes(' ') && q.includes(c));
+        candidates.some((c) => c.includes(' ') && q.includes(c)) ||
+        candidates.some(
+          (c) => c.length >= 2 && !c.includes(' ') && words.some((w) => w.includes(c))
+        );
       if (hit) terms.push(...candidates);
     }
 

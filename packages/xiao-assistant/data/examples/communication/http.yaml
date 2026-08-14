@@ -21,9 +21,9 @@
     );\n}\n\nvoid fetchWeather() {\n  HTTPClient http;\n  http.begin(\"https://api.open-meteo.com/v1/forecast?latitude=22.5&longitude=114.0&current_weather=true\");\n  http.setTimeout(10000);\n\n  int httpCode\
     \ = http.GET();\n  if (httpCode == 200) {\n    String payload = http.getString();\n\n    JsonDocument doc;\n    DeserializationError error = deserializeJson(doc, payload);\n    if (!error) {\n     \
     \ float temp = doc[\"current_weather\"][\"temperature\"];\n      float wind = doc[\"current_weather\"][\"windspeed\"];\n      Serial.print(\"Temperature: \"); Serial.print(temp, 1); Serial.println(\"\
-    \ C\"); Serial.print(\"Wind Speed: \"); Serial.print(wind, 1); Serial.println(\" km/h\")\n    } else {\n      Serial.print(\"JSON parse error: \"); Serial.print(error.c_str()) Serial.println()\n   \
-    \ }\n  } else {\n    Serial.print(\"HTTP error: \"); Serial.print(httpCode); Serial.println()\n  }\n  http.end();\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    fetchWeather();\n \
-    \ }\n  delay(60000);\n}\n"
+    \ C\"); Serial.print(\"Wind Speed: \"); Serial.print(wind, 1); Serial.println(\" km/h\");\n    } else {\n      Serial.print(\"JSON parse error: \"); Serial.print(error.c_str());  Serial.println();\n\
+    \    }\n  } else {\n    Serial.print(\"HTTP error: \"); Serial.print(httpCode); Serial.println();\n  }\n  http.end();\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    fetchWeather();\n\
+    \  }\n  delay(60000);\n}\n"
   requirements:
   - ArduinoJson
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
@@ -50,8 +50,8 @@
     \ != WL_CONNECTED) { delay(500); }\n  Serial.println(\"\\nWiFi connected\");\n}\n\nbool sendWebhook(float temperature, float humidity) {\n  HTTPClient http;\n  http.begin(webhookUrl);\n  http.addHeader(\"\
     Content-Type\", \"application/json\");\n  http.setTimeout(5000);\n\n  String json = \"{\\\"event\\\":\\\"sensor_update\\\",\";\n  json += \"\\\"device\\\":\\\"xiao-esp32c3\\\",\";\n  json += \"\\\"\
     temperature\\\":\" + String(temperature, 1) + \",\";\n  json += \"\\\"humidity\\\":\" + String(humidity, 1) + \",\";\n  json += \"\\\"timestamp\\\":\" + String(millis()) + \"}\";\n\n  int httpCode =\
-    \ http.POST(json);\n  http.end();\n\n  if (httpCode > 0) {\n    Serial.print(\"Webhook sent, response: \"); Serial.print(httpCode); Serial.println()\n    return httpCode >= 200 && httpCode < 300;\n\
-    \  }\n  Serial.print(\"Webhook failed: \"); Serial.print(httpCode); Serial.println()\n  return false;\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    float temp = 22.0 + random(-20,\
+    \ http.POST(json);\n  http.end();\n\n  if (httpCode > 0) {\n    Serial.print(\"Webhook sent, response: \"); Serial.print(httpCode); Serial.println();\n    return httpCode >= 200 && httpCode < 300;\n\
+    \  }\n  Serial.print(\"Webhook failed: \"); Serial.print(httpCode); Serial.println();\n  return false;\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    float temp = 22.0 + random(-20,\
     \ 20) / 10.0;\n    float hum = 55.0 + random(-100, 100) / 10.0;\n    sendWebhook(temp, hum);\n  }\n  delay(30000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/
@@ -75,14 +75,14 @@
   - upgrade
   code: "// OTA Version Check - XIAO ESP32 Series\n// Checks a server for new firmware versions\n#include <WiFi.h>\n#include <HTTPClient.h>\n#include <ArduinoJson.h>\n\nconst char* ssid = \"YOUR_SSID\"\
     ;\nconst char* password = \"YOUR_PASSWORD\";\nconst char* versionUrl = \"https://your-server.com/api/firmware/latest.json\";\n\nconst char* currentVersion = \"1.0.0\";\n\nvoid setup() {\n  Serial.begin(115200);\n\
-    \  while (!Serial) { delay(10); }\n\n  Serial.print(\"Firmware version: \"); Serial.print(currentVersion); Serial.println()\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED)\
+    \  while (!Serial) { delay(10); }\n\n  Serial.print(\"Firmware version: \"); Serial.print(currentVersion); Serial.println();\n\n  WiFi.begin(ssid, password);\n  while (WiFi.status() != WL_CONNECTED)\
     \ { delay(500); }\n  Serial.println(\"\\nWiFi connected\");\n}\n\nvoid checkForUpdate() {\n  HTTPClient http;\n  http.begin(versionUrl);\n  http.setTimeout(10000);\n\n  int httpCode = http.GET();\n\
     \  if (httpCode == 200) {\n    String payload = http.getString();\n\n    JsonDocument doc;\n    DeserializationError error = deserializeJson(doc, payload);\n    if (!error) {\n      String latestVersion\
     \ = doc[\"version\"].as<String>();\n      String downloadUrl = doc[\"url\"].as<String>();\n      String changelog = doc[\"changelog\"].as<String>();\n\n      Serial.print(\"Current: \"); Serial.print(currentVersion);\
-    \ Serial.print(\", Latest: \"); Serial.print(latestVersion.c_str()) Serial.println()\n\n      if (latestVersion != currentVersion) {\n        Serial.println(\"Update available!\");\n        Serial.print(\"\
-    Download: \"); Serial.print(downloadUrl.c_str()) Serial.println()\n        Serial.print(\"Changelog: \"); Serial.print(changelog.c_str()) Serial.println()\n        // Trigger OTA update here using ArduinoOTA\
-    \ or HTTPUpdate\n      } else {\n        Serial.println(\"Firmware is up to date.\");\n      }\n    }\n  } else {\n    Serial.print(\"Version check failed: \"); Serial.print(httpCode); Serial.println()\n\
-    \  }\n  http.end();\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    checkForUpdate();\n  }\n  delay(3600000);  // Check every hour\n}\n"
+    \ Serial.print(\", Latest: \"); Serial.print(latestVersion.c_str());  Serial.println();\n\n      if (latestVersion != currentVersion) {\n        Serial.println(\"Update available!\");\n        Serial.print(\"\
+    Download: \"); Serial.print(downloadUrl.c_str());  Serial.println(); \n        Serial.print(\"Changelog: \"); Serial.print(changelog.c_str());  Serial.println();\n        // Trigger OTA update here\
+    \ using ArduinoOTA or HTTPUpdate\n      } else {\n        Serial.println(\"Firmware is up to date.\");\n      }\n    }\n  } else {\n    Serial.print(\"Version check failed: \"); Serial.print(httpCode);\
+    \ Serial.println();\n  }\n  http.end();\n}\n\nvoid loop() {\n  if (WiFi.status() == WL_CONNECTED) {\n    checkForUpdate();\n  }\n  delay(3600000);  // Check every hour\n}\n"
   requirements:
   - ArduinoJson
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

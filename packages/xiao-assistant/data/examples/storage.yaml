@@ -22,11 +22,11 @@
   code: "// LittleFS File Read/Write - XIAO ESP32/RP2040\n#include <LittleFS.h>\n\n#define FILE_PATH \"/counter.txt\"\n\nint readCounter() {\n  File file = LittleFS.open(FILE_PATH, \"r\");\n  if (!file)\
     \ return 0;\n\n  String content = file.readString();\n  file.close();\n  return content.toInt();\n}\n\nvoid writeCounter(int value) {\n  File file = LittleFS.open(FILE_PATH, \"w\");\n  if (!file) {\n\
     \    Serial.println(\"Failed to open file for writing\");\n    return;\n  }\n  file.println(value);\n  file.close();\n}\n\nvoid listFiles() {\n  Serial.println(\"Files on LittleFS:\");\n  File root\
-    \ = LittleFS.open(\"/\", \"r\");\n  File file = root.openNextFile();\n  while (file) {\n    Serial.print(\"  \"); Serial.print(file.name()) Serial.print(\" (\"); Serial.print(file.size()) Serial.println(\"\
-    \ bytes)\")\n    file = root.openNextFile();\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  if (!LittleFS.begin(true)) {  // true = format on first use\n \
-    \   Serial.println(\"LittleFS mount failed!\");\n    while (1);\n  }\n  Serial.println(\"LittleFS mounted\");\n\n  // Read persisted counter\n  int counter = readCounter();\n  Serial.print(\"Counter\
-    \ was: \"); Serial.print(counter); Serial.println()\n\n  // Increment and save\n  counter++;\n  writeCounter(counter);\n  Serial.print(\"Counter now: \"); Serial.print(counter); Serial.println()\n\n\
-    \  listFiles();\n}\n\nvoid loop() {\n  delay(60000);\n}\n"
+    \ = LittleFS.open(\"/\", \"r\");\n  File file = root.openNextFile();\n  while (file) {\n    Serial.print(\"  \"); Serial.print(file.name());  Serial.print(\" (\"); Serial.print(file.size());  Serial.println(\"\
+    \ bytes)\");\n    file = root.openNextFile();\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  if (!LittleFS.begin(true)) {  // true = format on first use\n\
+    \    Serial.println(\"LittleFS mount failed!\");\n    while (1);\n  }\n  Serial.println(\"LittleFS mounted\");\n\n  // Read persisted counter\n  int counter = readCounter();\n  Serial.print(\"Counter\
+    \ was: \"); Serial.print(counter); Serial.println();\n\n  // Increment and save\n  counter++;\n  writeCounter(counter);\n  Serial.print(\"Counter now: \"); Serial.print(counter); Serial.println();\n\
+    \n  listFiles();\n}\n\nvoid loop() {\n  delay(60000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
 - id: sd-card-spi-arduino
@@ -56,9 +56,9 @@
   - fat32
   code: "// SD Card Read/Write via SPI - XIAO\n#include <SPI.h>\n#include <SD.h>\n\n#define SD_CS_PIN 2  // Chip select pin for SD module\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) {\
     \ delay(10); }\n\n  Serial.print(\"Initializing SD card...\");\n  if (!SD.begin(SD_CS_PIN)) {\n    Serial.println(\"Failed! Check wiring and card format.\");\n    while (1);\n  }\n  Serial.println(\"\
-    OK\");\n\n  // List root directory\n  File root = SD.open(\"/\");\n  Serial.println(\"Files on SD:\");\n  while (File entry = root.openNextFile()) {\n    Serial.print(\"  \"); Serial.print(entry.name())\
-    \ Serial.print(\" (\"); Serial.print(entry.size()) Serial.println(\" bytes)\")\n    entry.close();\n  }\n  root.close();\n\n  // Write to a file\n  Serial.println(\"Writing to /datalog.txt...\");\n\
-    \  File dataFile = SD.open(\"/datalog.txt\", FILE_WRITE);\n  if (dataFile) {\n    dataFile.printf(\"Log entry at millis=%lu\\n\", millis());\n    dataFile.close();\n    Serial.println(\"Write successful\"\
+    OK\");\n\n  // List root directory\n  File root = SD.open(\"/\");\n  Serial.println(\"Files on SD:\");\n  while (File entry = root.openNextFile()) {\n    Serial.print(\"  \"); Serial.print(entry.name());\
+    \  Serial.print(\" (\"); Serial.print(entry.size());  Serial.println(\" bytes)\");\n    entry.close();\n  }\n  root.close();\n\n  // Write to a file\n  Serial.println(\"Writing to /datalog.txt...\"\
+    );\n  File dataFile = SD.open(\"/datalog.txt\", FILE_WRITE);\n  if (dataFile) {\n    dataFile.printf(\"Log entry at millis=%lu\\n\", millis());\n    dataFile.close();\n    Serial.println(\"Write successful\"\
     );\n  } else {\n    Serial.println(\"Failed to open file for writing\");\n  }\n\n  // Read the file back\n  dataFile = SD.open(\"/datalog.txt\");\n  if (dataFile) {\n    Serial.println(\"Contents of\
     \ /datalog.txt:\");\n    while (dataFile.available()) {\n      Serial.write(dataFile.read());\n    }\n    dataFile.close();\n  }\n}\n\nvoid loop() {\n  delay(10000);\n}\n"
   requirements: []
@@ -85,9 +85,9 @@
     \ in read/write mode\n  prefs.begin(\"my-app\", false);\n\n  // Read stored boot count\n  int bootCount = prefs.getInt(\"bootCount\", 0);\n  bootCount++;\n  prefs.putInt(\"bootCount\", bootCount);\n\
     \n  // Read/write string values\n  if (!prefs.isKey(\"deviceId\")) {\n    prefs.putString(\"deviceId\", \"XIAO-\" + String(random(10000), HEX));\n  }\n  String deviceId = prefs.getString(\"deviceId\"\
     , \"unknown\");\n\n  // Read/write float values\n  float lastTemp = prefs.getFloat(\"lastTemp\", 0.0);\n  prefs.putFloat(\"lastTemp\", 22.5);\n\n  Serial.print(\"Boot count: \"); Serial.print(bootCount);\
-    \ Serial.println()\n  Serial.print(\"Device ID: \"); Serial.print(deviceId.c_str()) Serial.println()\n  Serial.print(\"Last temperature: \"); Serial.print(lastTemp, 1); Serial.println(\" C\")\n\n  //\
-    \ List all keys\n  Serial.println(\"\\nStored keys:\");\n  prefs.end();\n\n  // Re-open in read-only to enumerate\n  prefs.begin(\"my-app\", true);\n  Serial.print(\"  bootCount = \"); Serial.print(prefs.getInt(\"\
-    bootCount\", 0)) Serial.println()\n  Serial.print(\"  deviceId = \"); Serial.print(prefs.getString(\"deviceId\", \"\").c_str()) Serial.println()\n  Serial.print(\"  lastTemp = \"); Serial.print(prefs.getFloat(\"\
-    lastTemp\", 0.0), 1) Serial.println()\n  prefs.end();\n}\n\nvoid loop() {\n  delay(60000);\n}\n"
+    \ Serial.println(); \n  Serial.print(\"Device ID: \"); Serial.print(deviceId.c_str());  Serial.println(); \n  Serial.print(\"Last temperature: \"); Serial.print(lastTemp, 1); Serial.println(\" C\");\n\
+    \n  // List all keys\n  Serial.println(\"\\nStored keys:\");\n  prefs.end();\n\n  // Re-open in read-only to enumerate\n  prefs.begin(\"my-app\", true);\n  Serial.print(\"  bootCount = \"); Serial.print(prefs.getInt(\"\
+    bootCount\", 0));  Serial.println(); \n  Serial.print(\"  deviceId = \"); Serial.print(prefs.getString(\"deviceId\", \"\").c_str());  Serial.println(); \n  Serial.print(\"  lastTemp = \"); Serial.print(prefs.getFloat(\"\
+    lastTemp\", 0.0), 1);  Serial.println();\n  prefs.end();\n}\n\nvoid loop() {\n  delay(60000);\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/

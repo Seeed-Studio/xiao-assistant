@@ -39,20 +39,18 @@ function readYamlDir<T>(dirPath: string): T[] {
   const results: T[] = [];
   if (!existsSync(dirPath)) return results;
 
-  for (const entry of readdirSync(dirPath, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      const subDir = join(dirPath, entry.name);
-      for (const subEntry of readdirSync(subDir, { withFileTypes: true })) {
-        if (subEntry.isFile() && subEntry.name.endsWith('.yaml')) {
-          const items = readYamlFile<T[]>(join(subDir, subEntry.name));
-          results.push(...items);
-        }
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      // Dot-directories (e.g. knowledge/.trash) are recycle bins, never data.
+      if (entry.isDirectory()) {
+        if (!entry.name.startsWith('.')) walk(join(dir, entry.name));
+      } else if (entry.isFile() && entry.name.endsWith('.yaml')) {
+        const items = readYamlFile<T[]>(join(dir, entry.name));
+        results.push(...items);
       }
-    } else if (entry.isFile() && entry.name.endsWith('.yaml')) {
-      const items = readYamlFile<T[]>(join(dirPath, entry.name));
-      results.push(...items);
     }
-  }
+  };
+  walk(dirPath);
   return results;
 }
 
