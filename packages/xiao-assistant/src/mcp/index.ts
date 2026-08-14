@@ -255,10 +255,14 @@ Returns detailed problem descriptions, solutions, and often working code.`,
     ],
   }));
 
+  // NOTE: SDK 1.30's Server.setRequestHandler re-validates tools/call requests
+  // against its strict envelope schema before our handler runs — malformed
+  // envelopes (arguments: null, name: 123) come back as InvalidParams with a
+  // bounded zod message from the SDK itself. Value-level validation below.
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { name, arguments: args } = request.params;
+    const { name } = request.params;
     // Zero-arg tools (list_boards) may legally omit "arguments" entirely.
-    const a: Record<string, unknown> = args ?? {};
+    const a: Record<string, unknown> = request.params.arguments ?? {};
 
     // Typed accessor: malformed arguments are the caller's fault (InvalidParams),
     // not an internal error.
@@ -305,6 +309,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
                         `- **MCU**: ${b.microcontroller} (${b.architecture}) @ ${b.clockSpeed}\n` +
                         `- **Flash/RAM**: ${b.flashSize} / ${b.ramSize}\n` +
                         `- **Connectivity**: ${b.connectivity.join(', ') || 'None'}\n` +
+                        (b.lowPowerMode ? `- **Low power**: ${b.lowPowerMode}\n` : '') +
                         `- **Sensors**: ${b.builtinSensors.join(', ') || 'None'}\n` +
                         `- **Languages**: ${b.supportedLanguages.join(', ')}\n` +
                         `- **Wiki**: ${b.wikiUrl}`
