@@ -257,7 +257,6 @@
   description: Detect motion using a PIR (passive infrared) motion sensor
   language: arduino
   boards:
-  - esp32c3
   - esp32s3
   - esp32s3-sense
   - esp32c6

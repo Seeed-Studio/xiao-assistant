@@ -384,6 +384,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
               .map(
                 (ex: XIAOExample) =>
                   `## ${ex.title}\n` +
+                  `**ID**: \`${ex.id}\`\n\n` +
                   `${ex.description}\n\n` +
                   `**Language**: ${ex.language} | **Category**: ${ex.category} | **Boards**: ${ex.boards.join(', ')}\n` +
                   (ex.requirements?.length

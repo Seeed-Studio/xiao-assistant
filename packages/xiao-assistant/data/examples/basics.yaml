@@ -83,7 +83,6 @@
   description: Fade an LED in and out using PWM on any XIAO board
   language: arduino
   boards:
-  - esp32c3
   - esp32s3
   - esp32s3-sense
   - esp32c6
