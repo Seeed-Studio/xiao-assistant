@@ -102,3 +102,42 @@
   code: "const int LED = 10; // external LED via 150ohm on D10\n\nvoid setup() {\n  pinMode(LED, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED, HIGH);\n  delay(500);\n  digitalWrite(LED, LOW);\n  delay(500);\n\
     }"
   workaround: 'On the wiki: "there is no LED_BUILTIN available for the XIAO ESP32C3, you can use an external LED instead."'
+- id: manual-flash-rescue
+  title: Manual rescue flashing when the IDE cannot upload at all
+  tags:
+  - upload
+  - flash
+  - esptool
+  - bossac
+  - rescue
+  - 烧录
+  - 刷机
+  - 救援
+  boards:
+  - esp32c3
+  - esp32s3
+  - esp32s3-sense
+  - esp32c6
+  - esp32c5
+  - samd21
+  - ra4m1
+  category: upload
+  severity: medium
+  source: support-ticket
+  summary: When the IDE repeatedly fails to connect, flashing manually with esptool (ESP32) or bossac (SAMD) rescues the board.
+  problem: IDE upload loops on "Connecting..." and never succeeds; the board may have a half-erased firmware and looks bricked.
+  solution: Force download mode (hold BOOT / for SAMD21 double-tap reset) and flash or erase manually.
+  code: '# ESP32 series: full erase, then let the IDE retry
+
+    esptool.py --port /dev/ttyACM0 erase_flash
+
+
+    # ESP32: flash a known-good binary manually at slow speed
+
+    esptool.py --port /dev/ttyACM0 --baud 115200 write_flash 0x0 firmware.bin
+
+
+    # SAMD21 (bossac comes with the Seeeduino core)
+
+    bossac -d --port=/dev/ttyACM0 -U -i -e -w firmware.bin -R'
+  workaround: If esptool still cannot open the port on Linux, check the dialout group and that no serial monitor holds it.

@@ -6,6 +6,14 @@
   - connecting timeout
   - no serial port
   - cannot flash
+  - 怎么进入烧录模式
+  - 进入下载模式
+  - 无法进入bootloader
+  - 按键烧录
+  - 烧录模式
+  - boot模式
+  - download mode
+  - enter bootloader
   boards:
   - esp32c3
   - esp32s3
@@ -40,6 +48,10 @@
   - device descriptor failed
   - unknown device
   - driver error
+  - 找不到串口
+  - 没有串口
+  - 识别不到设备
+  - 未知设备
   boards:
   - esp32c3
   - esp32s3
@@ -67,6 +79,11 @@
   - espcomm_open
   - failed to connect
   - sync failed
+  - 烧录失败
+  - 刷机失败
+  - 上传超时
+  - 连接开发板失败
+  - 一直显示Connecting
   boards:
   - esp32c3
   - esp32s3
@@ -116,6 +133,9 @@
   - blank serial monitor
   - serial not working
   - no data in monitor
+  - 串口监视器没有输出
+  - 串口没有数据
+  - 监视器空白
   boards:
   - esp32c3
   - esp32s3
@@ -282,3 +302,66 @@
   - 'Increase connection interval: BLE.setConnectionInterval(0x06, 0x12)'
   - Avoid WiFi and BLE simultaneous use on ESP32 (shared radio)
   wikiUrl: https://wiki.seeedstudio.com/XIAO_BLE/
+- id: linux-port-permission
+  title: Serial port permission denied or busy (Linux)
+  symptoms:
+  - permission denied
+  - access denied
+  - could not open port
+  - device or resource busy
+  - port busy
+  - 无法打开串口
+  - 串口被占用
+  - 没有权限
+  - permission denied opening serial port
+  boards: &id001
+  - rp2040
+  - rp2350
+  - ra4m1
+  - samd21
+  - esp32c6
+  - esp32c3
+  - mg24
+  - mg24-sense
+  - nrf52840
+  - nrf52840-sense
+  - nrf54l15
+  - nrf54l15-sense
+  - esp32c5
+  - nrf54lm20a
+  - nrf54lm20a-sense
+  - esp32s3
+  - esp32s3-sense
+  category: usb
+  diagnosis:
+  - 'Run: ls -l /dev/ttyACM* - the group is usually dialout; your user is probably not in it'
+  - 'If the port exists but upload says busy: another program (serial monitor, previous upload, ModemManager) holds it'
+  - 'Confirm with: groups - dialout must be listed'
+  solutions:
+  - 'Add yourself to the dialout group and REBOOT (logging out is often not enough): sudo usermod -aG dialout $USER && sudo reboot'
+  - 'Free a busy port: sudo fuser -k /dev/ttyACM0 (or close the other serial monitor)'
+  - 'Disable ModemManager if it grabs the port on plug-in: sudo systemctl stop ModemManager'
+  wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
+- id: flash-success-but-no-run
+  title: Upload succeeds but the board does nothing (dead after flash)
+  symptoms:
+  - upload success but nothing happens
+  - board dead after flash
+  - program not running
+  - flash ok but no output
+  - 烧录成功但没反应
+  - 上传成功但程序不运行
+  - 烧录后没反应
+  boards: *id001
+  category: upload
+  diagnosis:
+  - The flash almost certainly succeeded - the sketch is just not starting or its output is invisible
+  - 'ESP32 series: after flashing, USB CDC On Boot must be Enabled (Tools menu) or Serial output never appears'
+  - Wrong board selected in the IDE compiles+uploads fine for a different chip and appears dead
+  - Insufficient USB power can brown-out the MCU right after boot
+  solutions:
+  - Press RESET once after upload (some boards halt in the bootloader until reset)
+  - 'ESP32: Tools > USB CDC On Boot > Enabled, then re-upload'
+  - Verify Tools > Board matches your exact XIAO model, and the COM port still belongs to the board
+  - Try a different USB port/cable (prefer a rear motherboard port or powered hub); watch the power LED
+  - 'Sanity check: upload the plain Blink example - if it runs, the issue is in your sketch (e.g. blocking while(!Serial))'
