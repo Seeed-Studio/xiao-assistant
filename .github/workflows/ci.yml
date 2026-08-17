@@ -71,10 +71,12 @@ jobs:
           mkdir -p "$HOME/bin"
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR="$HOME/bin" sh
           echo "$HOME/bin" >> "$GITHUB_PATH"
-          arduino-cli config init --overwrite
-          arduino-cli config add board_manager.additional_urls https://files.seeedstudio.com/arduino/package_seeeduino_index.json
-          arduino-cli core update-index
-          arduino-cli core install Seeeduino:samd
+          # GITHUB_PATH only applies to LATER steps - use the absolute path here.
+          CLI="$HOME/bin/arduino-cli"
+          "$CLI" config init --overwrite
+          "$CLI" config add board_manager.additional_urls https://files.seeedstudio.com/arduino/package_seeeduino_index.json
+          "$CLI" core update-index
+          "$CLI" core install Seeeduino:samd
 
       - name: Compile all samd21 examples (xiao verify --all)
-        run: cd packages/xiao-assistant && node dist/index.js verify samd21 --all --cli arduino-cli
+        run: cd packages/xiao-assistant && node dist/index.js verify samd21 --all --cli "$HOME/bin/arduino-cli"
