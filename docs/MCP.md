@@ -1,6 +1,6 @@
 # MCP Integration
 
-`xiao mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) stdio server exposing 11 tools (10 read-only knowledge tools + compile_sketch, which runs arduino-cli locally) over the XIAO knowledge base. Protocol negotiation up to **2025-06-18**. All results are markdown text sized for LLM contexts (search returns top hits with full source; the rest are listed by id).
+`xiao mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) stdio server exposing 12 tools (10 read-only knowledge tools, compile_sketch running arduino-cli locally, and diagnose_ticket) over the XIAO knowledge base. Protocol negotiation up to **2025-06-18**. All results are markdown text sized for LLM contexts (search returns top hits with full source; the rest are listed by id).
 
 ## Register the server
 
@@ -39,6 +39,7 @@ node packages/xiao-assistant/dist/index.js mcp
 | `search_examples` | `query`; optional `language` (arduino/micropython/circuitpython/zephyr), `board` | Top 3 with complete source code, each headed by its **ID**; further matches listed by id. Chinese and fuzzy queries work (蓝牙, `temprature`). |
 | `get_example` | `id` | One example with full source — use it for anything listed without code. |
 | `compile_sketch` | `board` + (`code` \| `exampleId`) | Real arduino-cli compile: firmware size on success (`isError` false), exact compiler error lines on failure (`isError: true`). Lets agents verify code before handing it to the user. Needs arduino-cli on PATH; first compile per board downloads toolchains. |
+| `diagnose_ticket` | `text` — the whole ticket, logs and all (≤32KB, zh/en) | triaged diagnosis: detected board/SKU, error fingerprints, matched entries, **L1/L2/L3 triage** (L3 hardware-risk replies never advise self-fixing) and a ready-to-send Chinese customer reply. |
 | `list_boards` | — | All 17 boards, one line each. |
 | `get_quickstart` | `board` id | Getting-started guide (IDE setup, first upload). |
 | `troubleshoot` | `symptoms` — paste the exact error text; optional `board` | Diagnosis steps + solutions. Chinese symptom vocabulary supported (上传失败, 连不上). |

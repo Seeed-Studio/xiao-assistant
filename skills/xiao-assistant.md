@@ -25,6 +25,7 @@ wiki. Chinese and misspelled queries both work.
 | Hit an error / board misbehaves | `troubleshoot` with the **exact error text** → `search_knowledge` for field-tested fixes → `search_wiki` as last resort |
 | Choosing between boards | `resolve_board` with the requirement ("battery BLE under 10µA") — power data is indexed; then `get_board_info` on the shortlist |
 | Setup / first flash | `get_quickstart` |
+| Support ticket / customer complaint (整段日志) | `diagnose_ticket` — fingerprints first, triage, ready-to-send reply |
 | Topic not in the 17 boards | `search_wiki` |
 
 `resolve_board` returns the **best match first (⭐)**, capped at 5 — treat the
@@ -40,6 +41,7 @@ first entry as the answer unless the query is genuinely ambiguous.
 | `search_examples` | `query`, optional `language`, `board` | top 3 with full code + **ID** line; remainder listed by id |
 | `get_example` | `id` | one complete example with source |
 | `compile_sketch` | `board` + `code` or `exampleId` | real arduino-cli compile - verify sketches BEFORE giving them to the user |
+| `diagnose_ticket` | `text` (whole ticket, zh/en, ≤32KB) | triage L1/L2/L3 + ready-to-send Chinese reply — L3 (发烫/短路) NEVER self-fix, tell the user to stop powering and RMA |
 | `list_boards` | — | all 17 boards, one line each |
 | `get_quickstart` | `board` id | IDE setup + first-upload guide |
 | `troubleshoot` | `symptoms` (paste the exact message), optional `board` | diagnosis steps + solutions |

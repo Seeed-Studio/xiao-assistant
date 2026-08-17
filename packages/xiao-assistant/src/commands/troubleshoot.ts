@@ -19,42 +19,24 @@ export function registerTroubleshootCommand(program: Command) {
       }
 
       const entries = assistant.troubleshoot(symptoms, options.board);
-      recordQuery({
-        tool: 'troubleshoot',
-        query: symptoms,
-        board: options.board,
-        hits: entries.length,
-        matched: entries.slice(0, 5).map((e) => e.id),
-      });
-      console.log(pc.cyan(`\n  Troubleshooting "${symptoms}"\n`));
-
-      if (entries.length === 0) {
-        console.log(pc.yellow('  No matching troubleshooting entries.'));
-      } else {
-        for (const e of entries.slice(0, 5)) {
-          console.log(`  ${pc.green('●')} ${pc.bold(e.title)}`);
-          console.log(`    ${pc.dim(`Category: ${e.category} | Boards: ${e.boards.join(', ')}`)}`);
-          console.log(`    ${pc.cyan('Diagnosis:')}`);
-          for (const d of e.diagnosis) console.log(`      - ${d}`);
-          console.log(`    ${pc.cyan('Solutions:')}`);
-          for (const s of e.solutions) console.log(`      - ${s}`);
-          if (e.wikiUrl) console.log(`    ${pc.blue(e.wikiUrl)}`);
-          console.log('');
-        }
-        if (entries.length > 5) {
-          console.log(pc.dim(`  ... and ${entries.length - 5} more matches`));
-        }
-      }
-
-      // Internal knowledge often holds the exact fix (e.g. compile-error text
-      // lives in a knowledge entry's problem field) - surface it here so the
-      // CLI isn't a blind spot for it.
+      // Internal knowledge often holds the EXACT fix (compile-error text lives
+      // in a knowledge entry's problem field). Rendered FIRST: the audit found
+      // the knowledge hit buried 77 lines deep where no first screen showed it.
       const knowledge = assistant
         .searchKnowledge(symptoms, options.board ? { board: options.board } : undefined)
         .filter((k) => !entries.some((e) => e.id === k.id))
         .slice(0, 2);
+      recordQuery({
+        tool: 'troubleshoot',
+        query: symptoms,
+        board: options.board,
+        hits: entries.length + knowledge.length,
+        matched: [...entries.slice(0, 5).map((e) => e.id), ...knowledge.map((k) => k.id)],
+      });
+      console.log(pc.cyan(`\n  Troubleshooting "${symptoms}"\n`));
+
       if (knowledge.length > 0) {
-        console.log(pc.magenta('  Internal Knowledge:'));
+        console.log(pc.magenta('  Internal Knowledge (specific fixes):'));
         for (const k of knowledge) {
           console.log(`  ${pc.magenta('◆')} ${pc.bold(k.title)}`);
           console.log(
@@ -68,6 +50,27 @@ export function registerTroubleshootCommand(program: Command) {
               )
             );
           console.log('');
+        }
+      }
+
+      if (entries.length === 0) {
+        if (knowledge.length === 0) {
+          console.log(pc.yellow('  No matching troubleshooting entries.'));
+        }
+      } else {
+        console.log(pc.cyan('  General troubleshooting:'));
+        for (const e of entries.slice(0, 3)) {
+          console.log(`  ${pc.green('●')} ${pc.bold(e.title)}`);
+          console.log(`    ${pc.dim(`Category: ${e.category} | Boards: ${e.boards.join(', ')}`)}`);
+          console.log(`    ${pc.cyan('Diagnosis:')}`);
+          for (const d of e.diagnosis) console.log(`      - ${d}`);
+          console.log(`    ${pc.cyan('Solutions:')}`);
+          for (const s of e.solutions) console.log(`      - ${s}`);
+          if (e.wikiUrl) console.log(`    ${pc.blue(e.wikiUrl)}`);
+          console.log('');
+        }
+        if (entries.length > 3) {
+          console.log(pc.dim(`  ... and ${entries.length - 3} more general matches`));
         }
       }
 

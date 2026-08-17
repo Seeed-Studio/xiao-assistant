@@ -32,7 +32,7 @@ const FINGERPRINTS: Array<{ id: string; label: string; re: RegExp; query: string
   {
     id: 'esp-connect-failed',
     label: '上传时连接开发板失败(卡 Connecting / Failed to connect)',
-    re: /A fatal error occurred[^\n]*Failed to connect|Failed to connect to ESP32|Connecting[.\s_]{12,}|espcomm_(open|failed)|上传失败|烧录失败|一直\s*connecting|连不上开发板/i,
+    re: /A fatal error occurred[^\n]*Failed to connect|Failed to connect to ESP32|Connecting[.\s_]{12,}|espcomm_(open|failed)|上传.{0,6}失败|烧录.{0,6}失败|刷机.{0,6}失败|一直\s*卡|卡在?\s*connecting|连不上开发板/i,
     query: 'upload fails connecting timeout',
   },
   {
@@ -102,7 +102,10 @@ export function analyzeTicket(rawText: string, assistant: XIAOAssistant): Ticket
       if (String(b.sku) === sku && !detectedBoards.includes(b.id)) detectedBoards.push(b.id);
     }
   }
-  const board = detectedBoards[0];
+  // Multiple boards detected (e.g. a ticket quoting both an S3 and a C3):
+  // filtering by the first one misattributed wiki links (found by audit) -
+  // query unfiltered and let the reply name both boards.
+  const board = detectedBoards.length === 1 ? detectedBoards[0] : undefined;
 
   // 2) Fingerprint extraction.
   const fingerprints = FINGERPRINTS.filter((f) => f.re.test(text));
@@ -126,7 +129,14 @@ export function analyzeTicket(rawText: string, assistant: XIAOAssistant): Ticket
   else if (troubleshooting.length > 0 || knowledge.length > 0) triage = 'L1-selfserve';
 
   // 5) Reply + follow-ups.
-  const reply = buildReply({ fingerprints, troubleshooting, knowledge, triage, board });
+  const reply = buildReply({
+    fingerprints,
+    troubleshooting,
+    knowledge,
+    triage,
+    board,
+    detectedBoards,
+  });
   const followUp = buildFollowUp({ fingerprints, board, detectedBoards });
 
   return {
@@ -142,6 +152,7 @@ export function analyzeTicket(rawText: string, assistant: XIAOAssistant): Ticket
 
 function buildReply(ctx: {
   fingerprints: Array<{ id: string; label: string }>;
+  detectedBoards?: string[];
   troubleshooting: XIAOTroubleshootEntry[];
   knowledge: XIAOKnowledge[];
   triage: TriageLevel;
@@ -159,6 +170,9 @@ function buildReply(ctx: {
   }
 
   const lines: string[] = ['您好,感谢您的反馈。根据日志分析:'];
+  if (ctx.detectedBoards && ctx.detectedBoards.length > 1) {
+    lines.push(`检测到多个板型(${ctx.detectedBoards.join('、')}),以下步骤请按您的板型选择适用项。`);
+  }
   if (ctx.fingerprints.length > 0) {
     lines.push(`问题定位:${ctx.fingerprints.map((f) => f.label).join(' + ')}`);
   }

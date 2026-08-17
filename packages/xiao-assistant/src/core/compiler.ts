@@ -7,8 +7,9 @@ import type { XIAOBoard } from './types.js';
 /**
  * Shared arduino-cli compile layer used by `xiao verify` (CLI) and the MCP
  * compile_sketch tool. Compilation is the one place this package executes an
- * external binary: inputs are bounded, runs are sandboxed to a temp sketch
- * dir, and every invocation is cleaned up.
+ * external binary: inputs are bounded and each run gets a temp sketch dir
+ * that is removed afterwards. On timeout only the direct arduino-cli child is
+ * killed - compiler grandchildren may run to completion on their own.
  */
 
 export interface FqbnResolution {
@@ -81,16 +82,20 @@ export function compileSketch(opts: {
       encoding: 'utf-8',
       timeout: opts.timeoutMs ?? 120_000,
     });
-    // Binary missing (ENOENT) is the most common failure and must be said
-    // plainly, not as an empty "no error lines captured".
-    if (res.error && !res.stdout && !res.stderr) {
+    if (res.error) {
+      // Distinguish the two real-world failures: timeout (first builds
+      // download toolchains and legitimately take minutes) vs binary missing.
+      // ETIMEDOUT previously fell into the "install arduino-cli" branch.
+      const code = (res.error as NodeJS.ErrnoException).code;
+      const msg =
+        code === 'ETIMEDOUT'
+          ? `compile timed out after ${opts.timeoutMs ?? 120_000} ms - first builds download toolchains and can take minutes, retry`
+          : `arduino-cli failed to start (${res.error.message}). Install it from https://arduino.github.io/arduino-cli/ and make sure it is on PATH.`;
       return {
         ok: false,
         fqbn: resolution.fqbn,
         discovered: resolution.discovered,
-        errors: [
-          `arduino-cli failed to start (${res.error.message}). Install it from https://arduino.github.io/arduino-cli/ and make sure it is on PATH.`,
-        ],
+        errors: [msg],
       };
     }
     const out = (res.stdout ?? '') + (res.stderr ?? '');
@@ -106,9 +111,12 @@ export function compileSketch(opts: {
     }
     const errs = out
       .split('\n')
-      .filter((l) => /error|Error|fatal|timed out/.test(l))
+      // 错误/失败: Chinese-only compiler error lines were dropped entirely
+      .filter((l) => /error|Error|fatal|timed out|错误|失败/.test(l))
       .slice(0, 6)
-      .map((l) => l.trim().slice(0, 200));
+      // Code-point-safe truncation: slicing UTF-16 units can split an emoji
+      // surrogate pair and emit U+FFFD (found by adversarial audit).
+      .map((l) => Array.from(l.trim()).slice(0, 200).join(''));
     return {
       ok: false,
       fqbn: resolution.fqbn,

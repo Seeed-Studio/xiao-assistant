@@ -77,3 +77,82 @@ describe('query log (records loop)', () => {
     rmSync(home, { recursive: true, force: true });
   });
 });
+
+describe('audit-fix regressions (phase-2 adversarial audit)', () => {
+  it('multi-board tickets do not filter by the first board', () => {
+    const a = analyzeTicket(
+      'ESP32S3 upload failure: Failed to connect. Also my ESP32C3 wifi does not connect.',
+      assistant
+    );
+    expect(a.detectedBoards.length).toBe(2);
+    expect(a.reply).toContain('多个板型');
+  });
+
+  it('Chinese upload phrasings hit the connect-failed fingerprint', () => {
+    for (const text of ['上传总是失败', '一直卡在 Connecting', '烧录一直失败']) {
+      const a = analyzeTicket(text, assistant);
+      expect(a.fingerprints, text).toContain('esp-connect-failed');
+    }
+  });
+
+  it('code-point-safe error truncation (no U+FFFD)', async () => {
+    const { compileSketch } = await import('../src/core/compiler.js');
+    // fake cli emitting an error line with an emoji at the cut boundary
+    const fs = await import('node:fs');
+    const fake = '/tmp/fake-err-cli.sh';
+    fs.writeFileSync(
+      fake,
+      '#!/bin/bash\necho "error: ' + 'x'.repeat(150) + '🎉🎉🎉 broken line"\nexit 1\n',
+      { mode: 0o755 }
+    );
+    const board = assistant.getBoard('samd21');
+    if (!board) throw new Error('no board');
+    const res = compileSketch({ board, sketchName: 't', code: 'void setup(){}', cliPath: fake });
+    expect(res.ok).toBe(false);
+    expect(res.errors.join(' ')).not.toContain('�');
+  });
+
+  it('readStats survives a directory at the log path and malformed lines', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const home = '/tmp/xiao-audit-fix-' + Math.random().toString(36).slice(2);
+    process.env.XIAO_HOME = home;
+    fs.mkdirSync(home, { recursive: true });
+    fs.mkdirSync(path.join(home, 'query-log.jsonl')); // directory at log path
+    const { readStats } = await import('../src/core/query-log.js');
+    const s1 = readStats(); // must not throw
+    expect(s1.total).toBe(0);
+    fs.rmdirSync(path.join(home, 'query-log.jsonl'));
+    fs.writeFileSync(
+      path.join(home, 'query-log.jsonl'),
+      '[not-a-record]\n' + JSON.stringify({ tool: 'search', query: '蓝牙', hits: 1, matched: [] }) + '\n'
+    );
+    const s2 = readStats();
+    expect(s2.total).toBe(1);
+    expect(s2.byTool.search).toBe(1);
+    delete process.env.XIAO_HOME;
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('compile timeout branch (audit fix)', () => {
+  it('reports a real timeout message instead of "install arduino-cli"', async () => {
+    const { compileSketch } = await import('../src/core/compiler.js');
+    const fs = await import('node:fs');
+    const fake = '/tmp/fake-slow-cli.sh';
+    fs.writeFileSync(fake, '#!/bin/bash\nsleep 30\n', { mode: 0o755 });
+    const board = assistant.getBoard('samd21');
+    if (!board) throw new Error('no board');
+    const res = compileSketch({
+      board,
+      sketchName: 't',
+      code: 'void setup(){}',
+      cliPath: fake,
+      timeoutMs: 600,
+    });
+    expect(res.ok).toBe(false);
+    expect(res.errors[0]).toMatch(/timed out after 600 ms/);
+    expect(res.errors[0]).not.toMatch(/Install it/);
+    fs.rmSync(fake);
+  });
+});

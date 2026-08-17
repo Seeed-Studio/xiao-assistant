@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { readFileSync } from 'node:fs';
+import { statSync, openSync, readSync, closeSync } from 'node:fs';
 import { XIAOAssistant } from '../core/assistant.js';
 import { analyzeTicket } from '../core/ticket.js';
 import { recordQuery } from '../core/query-log.js';
@@ -15,14 +15,32 @@ export function registerTicketCommand(program: Command) {
     .command('ticket [text...]')
     .description('Diagnose a pasted support ticket and draft a customer reply')
     .option('-f, --file <path>', 'read the ticket from a file instead of an argument')
-    .usage(
-      'xiao ticket "整段工单文本..." | xiao ticket -f ticket.txt | cat ticket.txt | xiao ticket'
-    )
+    .usage('xiao ticket [options] [text...]')
     .action(async (textParts: string[], options: { file?: string }) => {
       let text = textParts.join(' ');
       if (options.file) {
         try {
-          text = readFileSync(options.file, 'utf-8');
+          // Cap BEFORE reading: special files (/dev/zero) would read forever
+          // (found by adversarial audit).
+          const st = statSync(options.file);
+          if (st.size > 1024 * 1024) {
+            console.error(pc.red(`${options.file} is larger than 1MB - paste a shorter excerpt.`));
+            process.exitCode = 1;
+            return;
+          }
+          const fh = openSync(options.file, 'r');
+          try {
+            const buf = Buffer.alloc(1024 * 1024 + 1);
+            const n = readSync(fh, buf, 0, buf.length, null);
+            if (n > 1024 * 1024) {
+              console.error(pc.red(`${options.file} exceeds 1MB - paste a shorter excerpt.`));
+              process.exitCode = 1;
+              return;
+            }
+            text = buf.toString('utf-8', 0, n);
+          } finally {
+            closeSync(fh);
+          }
         } catch (err) {
           console.error(pc.red(`Cannot read ${options.file}: ${(err as Error).message}`));
           process.exitCode = 1;
@@ -96,10 +114,23 @@ export function registerTicketCommand(program: Command) {
 function readStdin(): Promise<string> {
   return new Promise((resolve) => {
     let data = '';
+    let done = false;
+    const finish = (v: string) => {
+      if (done) return;
+      done = true;
+      // Destroy the stream: an open 'data' listener otherwise keeps the event
+      // loop alive and the process hangs after printing its error (found by
+      // adversarial audit).
+      process.stdin.destroy();
+      resolve(v);
+    };
     process.stdin.setEncoding('utf-8');
-    process.stdin.on('data', (c) => (data += c));
-    process.stdin.on('end', () => resolve(data));
-    // Safety: don't hang forever on a TTY-less but empty stream.
-    setTimeout(() => resolve(data), 1000);
+    process.stdin.on('data', (c: string) => {
+      data += c;
+      if (data.length > 1024 * 1024) finish(data.slice(0, 1024 * 1024));
+    });
+    process.stdin.on('end', () => finish(data));
+    process.stdin.on('error', () => finish(data));
+    setTimeout(() => finish(data), 1000);
   });
 }

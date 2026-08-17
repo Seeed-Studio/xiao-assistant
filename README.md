@@ -29,10 +29,7 @@ xiao search 蓝牙                        # Chinese works
 claude mcp add xiao-assistant -- npx -y @seeed-studio/xiao-assistant mcp
 ```
 
-11 tools (incl. `compile_sketch` — real firmware compilation): `resolve_board` (natural-language + Chinese + typo
-tolerant, power-aware), `get_board_info`, `get_pinout`, `search_examples`,
-`get_example`, `list_boards`, `get_quickstart`, `troubleshoot`,
-`search_knowledge`, `search_wiki`, `compile_sketch`. See **[docs/MCP.md](./docs/MCP.md)** for
+12 tools (incl. `compile_sketch` — real firmware compilation, and `diagnose_ticket` — paste a whole support ticket for triaged diagnosis + a ready-to-send Chinese reply): `resolve_board` (natural-language + Chinese + typo tolerant, power-aware), `get_board_info`, `get_pinout`, `search_examples`, `get_example`, `compile_sketch`, `list_boards`, `get_quickstart`, `troubleshoot`, `search_wiki`, `search_knowledge`, `diagnose_ticket`. See **[docs/MCP.md](./docs/MCP.md)** for
 every tool, config snippets for Claude Code / Claude Desktop / Cursor, and a
 sample session.
 

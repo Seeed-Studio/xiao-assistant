@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -46,21 +46,40 @@ export interface LogStats {
 export function readStats(): LogStats {
   const file = join(logDir(), 'query-log.jsonl');
   const stats: LogStats = { total: 0, byTool: {}, zeroHit: [], topQueries: [], entryHits: [] };
-  if (!existsSync(file)) return stats;
+  let content: string;
+  try {
+    content = readFileSync(file, 'utf-8');
+  } catch {
+    // Missing file, a directory at that path, permission errors: empty stats,
+    // never a stack trace (recordQuery swallows errors the same way).
+    return stats;
+  }
 
   const zeroHit = new Map<string, number>();
   const top = new Map<string, number>();
   const hits = new Map<string, number>();
-  for (const line of readFileSync(file, 'utf-8').split('\n')) {
+  for (const line of content.split('\n')) {
     if (!line.trim()) continue;
     try {
       const rec = JSON.parse(line) as QueryRecord;
+      // Shape check: a parseable-but-wrong line (e.g. "[]" or a number) used
+      // to pollute stats with "undefined" keys.
+      if (
+        typeof rec !== 'object' ||
+        rec === null ||
+        typeof rec.tool !== 'string' ||
+        typeof rec.query !== 'string' ||
+        typeof rec.hits !== 'number'
+      ) {
+        continue;
+      }
       stats.total++;
       stats.byTool[rec.tool] = (stats.byTool[rec.tool] ?? 0) + 1;
       const key = `${rec.tool}::${rec.query}`;
       top.set(key, (top.get(key) ?? 0) + 1);
       if (rec.hits === 0) zeroHit.set(key, (zeroHit.get(key) ?? 0) + 1);
-      for (const id of rec.matched) hits.set(id, (hits.get(id) ?? 0) + 1);
+      for (const id of Array.isArray(rec.matched) ? rec.matched : [])
+        hits.set(id, (hits.get(id) ?? 0) + 1);
     } catch {
       // skip malformed lines
     }

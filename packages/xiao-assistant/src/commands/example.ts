@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { XIAOAssistant } from '../core/assistant.js';
 import { buildSimProject } from '../core/sim.js';
 
@@ -9,11 +10,12 @@ export function registerExampleCommand(program: Command) {
     .command('example <id>')
     .description('Show a code example by ID')
     .option('--sim [dir]', 'export the example as a Wokwi simulation project (no hardware needed)')
+    .option('--force', 'with --sim: overwrite an existing export in the target directory')
     .option(
       '-b, --board <board>',
       'board to simulate on (default: first Wokwi-supported compatible board)'
     )
-    .action((id: string, options: { sim?: string | boolean; board?: string }) => {
+    .action((id: string, options: { sim?: string | boolean; board?: string; force?: boolean }) => {
       const assistant = new XIAOAssistant();
       const example = assistant.getExampleById(id);
 
@@ -70,7 +72,7 @@ export function registerExampleCommand(program: Command) {
 function exportSim(
   assistant: XIAOAssistant,
   example: import('../core/types.js').XIAOExample,
-  options: { sim?: string | boolean; board?: string }
+  options: { sim?: string | boolean; board?: string; force?: boolean }
 ) {
   // Pick the board to simulate on: explicit --board, else the example's first
   // Wokwi-capable board.
@@ -104,9 +106,37 @@ function exportSim(
     typeof options.sim === 'string' && options.sim.trim()
       ? options.sim.trim()
       : `wokwi-${example.id}`;
+
+  // Path guard (same policy as init's project name): relative paths only, no
+  // '..' segments - an unguarded --sim could overwrite files anywhere the
+  // process can write (found by adversarial audit).
+  const isAbsolute = dir.startsWith('/') || /^[A-Za-z]:[\\/]/.test(dir);
+  const hasDotDot = dir.split(/[/\\]/).some((seg) => seg === '..');
+  if (!dir || dir === '.' || isAbsolute || hasDotDot) {
+    console.error(
+      pc.red(
+        `Invalid --sim directory "${dir}": use a plain name or a relative path without '..' segments.`
+      )
+    );
+    process.exitCode = 1;
+    return;
+  }
+  // Overwrite guard: refuse to clobber an existing export without --force.
+  if (!options.force) {
+    const clash = ['sketch.ino', 'diagram.json'].find((f) => existsSync(join(dir, f)));
+    if (clash) {
+      console.error(
+        pc.red(
+          `${dir}/${clash} already exists. Use --force to overwrite, or pick another directory.`
+        )
+      );
+      process.exitCode = 1;
+      return;
+    }
+  }
   mkdirSync(dir, { recursive: true });
   for (const [name, content] of Object.entries(project.files)) {
-    writeFileSync(`${dir}/${name}`, content);
+    writeFileSync(join(dir, name), content);
   }
   console.log(pc.cyan(`\n  Wokwi project exported: ${dir}/`));
   console.log(

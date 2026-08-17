@@ -138,7 +138,7 @@ Local-first web editor for the knowledge base.
 
 ## xiao mcp
 
-Starts the MCP stdio server (protocol 2025-06-18, 10 tools). See
+Starts the MCP stdio server (protocol 2025-06-18, 12 tools). See
 [MCP integration](./MCP.md).
 
 ## xiao quickstart <board>
@@ -153,7 +153,10 @@ the repo's own examples pass. FQBNs come from verified board data when present
 against YOUR installed cores, so no guessed board ids ship in data.
 
 ```bash
-xiao verify samd21 blink-arduino          # real compile (needs the core installed)
-xiao verify esp32c3 blink-arduino --dry-run  # print the plan only
-xiao verify samd21 --cli /path/to/arduino-cli
+xiao verify samd21 blink-arduino             # real compile (needs the core installed)
+xiao verify esp32c3 blink-arduino --dry-run   # print the plan only
+xiao verify samd21 --all --cli $(which arduino-cli)   # batch: every dependency-free example
 ```
+
+`--all` compiles each compatible, dependency-free Arduino example and reports
+pass/fail per sketch (CI runs this for samd21 on every PR).

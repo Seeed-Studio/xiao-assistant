@@ -404,7 +404,15 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           if (language) opts.language = language;
           const boardFilter = str('board', false);
           if (boardFilter) opts.board = boardFilter;
-          const examples = assistant.searchExamples(str('query') as string, opts);
+          const q0 = str('query') as string;
+          const examples = assistant.searchExamples(q0, opts);
+          recordQuery({
+            tool: 'search_examples',
+            query: q0,
+            board: opts.board,
+            hits: examples.length,
+            matched: examples.slice(0, 5).map((e) => e.id),
+          });
           if (examples.length === 0) {
             return {
               content: [
@@ -625,11 +633,20 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           const symptoms = str('symptoms') as string;
           const board = str('board', false);
           const entries = assistant.troubleshoot(symptoms, board);
+          const kb = assistant
+            .searchKnowledge(symptoms, board ? { board } : undefined)
+            .filter((k: XIAOKnowledge) => !entries.some((e) => e.id === k.id))
+            .slice(0, 2);
+          recordQuery({
+            tool: 'troubleshoot',
+            query: symptoms,
+            board: board ?? undefined,
+            hits: entries.length + kb.length,
+            matched: [...entries.slice(0, 5).map((e) => e.id), ...kb.map((k) => k.id)],
+          });
 
           if (entries.length === 0) {
-            const fallbackKnowledge = assistant
-              .searchKnowledge(symptoms, board ? { board } : undefined)
-              .slice(0, 2);
+            const fallbackKnowledge = kb;
             if (fallbackKnowledge.length > 0) {
               return {
                 content: [
@@ -677,10 +694,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
 
           // Merge internal-knowledge hits: the exact error text often lives in a
           // knowledge entry's problem field with a compile-verified fix.
-          const knowledge = assistant
-            .searchKnowledge(symptoms, board ? { board } : undefined)
-            .filter((k: XIAOKnowledge) => !entries.some((e) => e.id === k.id))
-            .slice(0, 2);
+          const knowledge = kb;
 
           return {
             content: [
@@ -718,6 +732,7 @@ Returns detailed problem descriptions, solutions, and often working code.`,
         case 'search_wiki': {
           const query = str('query') as string;
           const results = await assistant.searchWikiOnline(query);
+          recordQuery({ tool: 'search_wiki', query, hits: results.length, matched: [] });
 
           if (results.length === 0) {
             return {
@@ -743,6 +758,13 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           const query = str('query') as string;
           const board = str('board', false);
           const entries = assistant.searchKnowledge(query, board ? { board } : undefined);
+          recordQuery({
+            tool: 'search_knowledge',
+            query,
+            board: board ?? undefined,
+            hits: entries.length,
+            matched: entries.slice(0, 5).map((k) => k.id),
+          });
 
           if (entries.length === 0) {
             return {

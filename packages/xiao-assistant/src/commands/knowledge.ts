@@ -89,11 +89,18 @@ function validateEntry(
   };
   if (typeof e.code === 'string' && e.code) entry.code = e.code;
   if (typeof e.workaround === 'string' && e.workaround) entry.workaround = e.workaround;
-  // provenance passthrough (records)
-  if (typeof e.ticketUrl === 'string' && /^https?:\/\//.test(e.ticketUrl))
+  // provenance passthrough (records) - validated: URL shape for ticketUrl,
+  // ISO-ish date for timestamps (100k-char garbage used to persist, found by
+  // adversarial audit).
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?$/;
+  if (
+    typeof e.ticketUrl === 'string' &&
+    /^https?:\/\//.test(e.ticketUrl) &&
+    e.ticketUrl.length <= 500
+  )
     entry.ticketUrl = e.ticketUrl;
-  if (typeof e.createdAt === 'string' && e.createdAt) entry.createdAt = e.createdAt;
-  if (typeof e.lastVerifiedAt === 'string' && e.lastVerifiedAt)
+  if (typeof e.createdAt === 'string' && DATE_RE.test(e.createdAt)) entry.createdAt = e.createdAt;
+  if (typeof e.lastVerifiedAt === 'string' && DATE_RE.test(e.lastVerifiedAt))
     entry.lastVerifiedAt = e.lastVerifiedAt;
 
   return { ok: true, entry };

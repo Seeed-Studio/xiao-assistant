@@ -40,3 +40,40 @@ jobs:
 
       - name: Lint package exports (publint)
         run: cd packages/xiao-assistant && npx --yes publint
+
+  firmware:
+    # Real compile gate: every dependency-free Arduino example for XIAO SAMD21
+    # must build (backing the "compile-checked" claim with CI, not words).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from the packageManager field in package.json
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      - name: Cache arduino cores
+        uses: actions/cache@v4
+        with:
+          path: ~/.arduino15
+          key: arduino-seeeduino-samd
+
+      - name: Install arduino-cli + Seeeduino SAMD core
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR="$HOME/bin" sh
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://files.seeedstudio.com/arduino/package_seeeduino_index.json
+          arduino-cli core update-index
+          arduino-cli core install Seeeduino:samd
+
+      - name: Compile all samd21 examples (xiao verify --all)
+        run: cd packages/xiao-assistant && node dist/index.js verify samd21 --all --cli arduino-cli
