@@ -12,6 +12,7 @@ import { registerBoardsCommand } from './commands/boards.js';
 import { registerKnowledgeCommand } from './commands/knowledge.js';
 import { registerTroubleshootCommand } from './commands/troubleshoot.js';
 import { registerQuickstartCommand } from './commands/quickstart.js';
+import { registerVerifyCommand } from './commands/verify.js';
 import { startMcpServer } from './mcp/index.js';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
@@ -62,6 +63,7 @@ registerExampleCommand(program);
 registerKnowledgeCommand(program);
 registerTroubleshootCommand(program);
 registerQuickstartCommand(program);
+registerVerifyCommand(program);
 
 program
   .command('mcp')

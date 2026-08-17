@@ -10,6 +10,8 @@ xiao pinout      <board>          pin table + specs + low-power data for one boa
 xiao search      <query> [opts]   search examples and docs (fuzzy, Chinese OK)
 xiao example     <id>             print one example with its full source
 xiao troubleshoot <symptoms>      diagnose problems from symptoms
+xiao quickstart  <board>          IDE setup + first-upload guide
+xiao verify      <board> [id]     compile an example with arduino-cli
 xiao knowledge   [options]        launch the local knowledge editor (browser)
 xiao mcp                          start the MCP stdio server for AI tools
 ```
@@ -101,3 +103,20 @@ Local-first web editor for the knowledge base.
 
 Starts the MCP stdio server (protocol 2025-06-18, 10 tools). See
 [MCP integration](./MCP.md).
+
+## xiao quickstart <board>
+
+Prints the board's getting-started guide (IDE setup, board package, first upload).
+
+## xiao verify <board> [exampleId]
+
+Compiles a served example into real firmware with arduino-cli — the same gate
+the repo's own examples pass. FQBNs come from verified board data when present
+(samd21 today) or are discovered at runtime via `arduino-cli board listall`
+against YOUR installed cores, so no guessed board ids ship in data.
+
+```bash
+xiao verify samd21 blink-arduino          # real compile (needs the core installed)
+xiao verify esp32c3 blink-arduino --dry-run  # print the plan only
+xiao verify samd21 --cli /path/to/arduino-cli
+```

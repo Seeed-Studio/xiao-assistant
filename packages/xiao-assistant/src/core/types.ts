@@ -13,6 +13,9 @@ export interface XIAOBoard {
   fullName: string;
   /** Base board this variant extends ("esp32s3-sense" -> "esp32s3"). */
   variantOf?: string;
+  /** arduino-cli FQBN. Only stored when verified against a real core; verify
+   *  discovers the rest at runtime via `arduino-cli board listall`. */
+  fqbn?: string;
   microcontroller: string;
   architecture: string;
   clockSpeed: string;

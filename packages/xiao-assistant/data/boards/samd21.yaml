@@ -1,6 +1,7 @@
 - id: samd21
   name: XIAO SAMD21
   fullName: Seeed Studio XIAO SAMD21
+  fqbn: Seeeduino:samd:seeed_XIAO_m0
   microcontroller: SAMD21G18A
   architecture: ARM Cortex-M0+
   clockSpeed: 48 MHz
