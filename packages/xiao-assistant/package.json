@@ -1,6 +1,6 @@
 {
   "name": "@seeed-studio/xiao-assistant",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "XIAO Assistant - AI-powered development tools for Seeed Studio XIAO series",
   "type": "module",
   "main": "./dist/sdk.js",
