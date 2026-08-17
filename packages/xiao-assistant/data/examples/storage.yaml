@@ -61,7 +61,8 @@
     );\n  File dataFile = SD.open(\"/datalog.txt\", FILE_WRITE);\n  if (dataFile) {\n    dataFile.printf(\"Log entry at millis=%lu\\n\", millis());\n    dataFile.close();\n    Serial.println(\"Write successful\"\
     );\n  } else {\n    Serial.println(\"Failed to open file for writing\");\n  }\n\n  // Read the file back\n  dataFile = SD.open(\"/datalog.txt\");\n  if (dataFile) {\n    Serial.println(\"Contents of\
     \ /datalog.txt:\");\n    while (dataFile.available()) {\n      Serial.write(dataFile.read());\n    }\n    dataFile.close();\n  }\n}\n\nvoid loop() {\n  delay(10000);\n}\n"
-  requirements: []
+  requirements:
+  - SD library (bundled with Arduino IDE / arduino-cli lib install SD)
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
 - id: preferences-nvs-arduino
   title: Preferences NVS Storage

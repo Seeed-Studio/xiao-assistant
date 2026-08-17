@@ -62,7 +62,8 @@
     );\n  myStepper.step(STEPS_PER_REV);\n  delay(1000);\n\n  // Rotate counter-clockwise one full revolution\n  Serial.println(\"Counter-clockwise 1 revolution...\");\n  myStepper.step(-STEPS_PER_REV);\n\
     \  delay(1000);\n\n  // Rotate 90 degrees clockwise\n  Serial.println(\"Clockwise 90 degrees...\");\n  myStepper.step(STEPS_PER_REV / 4);\n  delay(1000);\n\n  // Rotate 90 degrees counter-clockwise\n\
     \  Serial.println(\"Counter-clockwise 90 degrees...\");\n  myStepper.step(-STEPS_PER_REV / 4);\n  delay(1000);\n}\n"
-  requirements: []
+  requirements:
+  - Stepper library (bundled with Arduino IDE / arduino-cli lib install Stepper)
   wikiUrl: https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/
 - id: dc-motor-hbridge-arduino
   title: DC Motor with H-Bridge

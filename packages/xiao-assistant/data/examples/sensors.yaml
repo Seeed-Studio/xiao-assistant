@@ -276,10 +276,11 @@
   - detection
   - security
   - presence
-  code: "// PIR Motion Sensor - XIAO\n// Connect PIR output to digital pin D0\n\n#define PIR_PIN 0\n#define LED_PIN LED_BUILTIN\n\nvolatile bool motionDetected = false;\n\nvoid IRAM_ATTR motionISR() {\n\
-    \  motionDetected = true;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while (!Serial) { delay(10); }\n\n  pinMode(PIR_PIN, INPUT);\n  pinMode(LED_PIN, OUTPUT);\n  digitalWrite(LED_PIN, LOW);\n\n\
-    \  // PIR sensor needs ~30 seconds to calibrate after power on\n  Serial.println(\"PIR sensor calibrating (30s)...\");\n  delay(30000);\n  Serial.println(\"PIR sensor ready!\");\n\n  attachInterrupt(digitalPinToInterrupt(PIR_PIN),\
-    \ motionISR, RISING);\n}\n\nvoid loop() {\n  if (motionDetected) {\n    Serial.println(\"Motion detected!\");\n    digitalWrite(LED_PIN, HIGH);\n    delay(2000);\n    digitalWrite(LED_PIN, LOW);\n \
-    \   motionDetected = false;\n    Serial.println(\"Armed again\");\n  }\n}\n"
+  code: "// PIR Motion Sensor - XIAO\n// Connect PIR output to digital pin D0\n\n#define PIR_PIN 0\n#define LED_PIN LED_BUILTIN\n\nvolatile bool motionDetected = false;\n\n// Note: on ESP32 you can mark\
+    \ this IRAM_ATTR; the macro is ESP32-only\n// and breaks the build on SAMD/RP2040/nRF/MG24 cores.\nvoid motionISR() {\n  motionDetected = true;\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  while\
+    \ (!Serial) { delay(10); }\n\n  pinMode(PIR_PIN, INPUT);\n  pinMode(LED_PIN, OUTPUT);\n  digitalWrite(LED_PIN, LOW);\n\n  // PIR sensor needs ~30 seconds to calibrate after power on\n  Serial.println(\"\
+    PIR sensor calibrating (30s)...\");\n  delay(30000);\n  Serial.println(\"PIR sensor ready!\");\n\n  attachInterrupt(digitalPinToInterrupt(PIR_PIN), motionISR, RISING);\n}\n\nvoid loop() {\n  if (motionDetected)\
+    \ {\n    Serial.println(\"Motion detected!\");\n    digitalWrite(LED_PIN, HIGH);\n    delay(2000);\n    digitalWrite(LED_PIN, LOW);\n    motionDetected = false;\n    Serial.println(\"Armed again\");\n\
+    \  }\n}\n"
   requirements: []
   wikiUrl: https://wiki.seeedstudio.com/Grove-PIR_Motion_Sensor/
