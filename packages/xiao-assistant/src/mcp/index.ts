@@ -542,7 +542,10 @@ Returns detailed problem descriptions, solutions, and often working code.`,
         case 'diagnose_ticket': {
           const text = str('text') as string;
           if (text.length > 32 * 1024) {
-            throw new McpError(ErrorCode.InvalidParams, `text too large (${text.length} bytes, max 32768).`);
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `text too large (${text.length} bytes, max 32768).`
+            );
           }
           const analysis = analyzeTicket(text, assistant);
           recordQuery({
@@ -558,7 +561,8 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           const triageDesc: Record<string, string> = {
             'L1-selfserve': 'L1 - self-serve: knowledge matched, reply below is ready to send',
             'L2-need-info': 'L2 - insufficient info: ask the follow-up questions below',
-            'L3-hardware': 'L3 - HARDWARE RISK: instruct the customer to STOP powering the board and go through RMA',
+            'L3-hardware':
+              'L3 - HARDWARE RISK: instruct the customer to STOP powering the board and go through RMA',
           };
           return {
             content: [
