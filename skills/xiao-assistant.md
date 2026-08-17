@@ -21,7 +21,7 @@ wiki. Chinese and misspelled queries both work.
 | User intent | Tool chain |
 |---|---|
 | Names a board ("esp32s3", "xiao with camera", "低功耗蓝牙板") | `resolve_board` → `get_pinout` (visual) or `get_board_info` (raw data) |
-| Wants working code | `search_examples` (top 3 come with full source + ids) → `get_example` for any listed id |
+| Wants working code | `search_examples` (top 3 come with full source + ids) → `get_example` for any listed id → **`compile_sketch` it before handing over** (Arduino sketches only; zephyr/micropython examples can't be compiled here) |
 | Hit an error / board misbehaves | `troubleshoot` with the **exact error text** → `search_knowledge` for field-tested fixes → `search_wiki` as last resort |
 | Choosing between boards | `resolve_board` with the requirement ("battery BLE under 10µA") — power data is indexed; then `get_board_info` on the shortlist |
 | Setup / first flash | `get_quickstart` |
@@ -39,6 +39,7 @@ first entry as the answer unless the query is genuinely ambiguous.
 | `get_pinout` | `board` id | formatted pin table |
 | `search_examples` | `query`, optional `language`, `board` | top 3 with full code + **ID** line; remainder listed by id |
 | `get_example` | `id` | one complete example with source |
+| `compile_sketch` | `board` + `code` or `exampleId` | real arduino-cli compile - verify sketches BEFORE giving them to the user |
 | `list_boards` | — | all 17 boards, one line each |
 | `get_quickstart` | `board` id | IDE setup + first-upload guide |
 | `troubleshoot` | `symptoms` (paste the exact message), optional `board` | diagnosis steps + solutions |

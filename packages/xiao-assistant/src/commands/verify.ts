@@ -1,29 +1,28 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { XIAOAssistant } from '../core/assistant.js';
+import type { XIAOBoard } from '../core/types.js';
+import { compileSketch, resolveFqbn } from '../core/compiler.js';
 
 /**
  * `xiao verify <board> [exampleId]` - compile a served example for real with
- * arduino-cli. The FQBN comes from board data when verified, otherwise it is
- * discovered at runtime via `arduino-cli board listall` against the cores the
- * user actually has installed (board ids drift between core versions; guessing
- * them in data would violate the wiki-verified-data rule).
+ * arduino-cli. FQBNs come from verified board data when present, otherwise
+ * they are discovered at runtime via `arduino-cli board listall` against the
+ * cores the user actually has installed (board ids drift between core
+ * versions; guessing them in data would violate the verified-data rule).
  */
 export function registerVerifyCommand(program: Command) {
   program
     .command('verify <board> [exampleId]')
-    .description('Compile an example for a board with arduino-cli (real firmware check)')
+    .description('Compile an example with arduino-cli (real firmware check)')
     .option('--dry-run', 'print the compile plan without running it')
+    .option('--all', 'compile every arduino example compatible with the board')
     .option('--cli <path>', 'arduino-cli binary', 'arduino-cli')
     .action(
       (
         board: string,
         exampleId: string | undefined,
-        options: { dryRun?: boolean; cli: string }
+        options: { dryRun?: boolean; all?: boolean; cli: string }
       ) => {
         const assistant = new XIAOAssistant();
         const boardInfo = assistant.getBoard(board);
@@ -34,6 +33,12 @@ export function registerVerifyCommand(program: Command) {
           process.exitCode = 1;
           return;
         }
+
+        if (options.all) {
+          verifyAll(assistant, boardInfo, options.cli);
+          return;
+        }
+
         const example = exampleId ? assistant.getExampleById(exampleId) : undefined;
         if (exampleId && !example) {
           console.error(
@@ -52,42 +57,7 @@ export function registerVerifyCommand(program: Command) {
           return;
         }
 
-        // 1) Resolve the FQBN: verified data first, runtime discovery second.
-        let fqbn = boardInfo.fqbn;
-        let discovered = false;
-        if (!fqbn) {
-          const listall = spawnSync(options.cli, ['board', 'listall', boardInfo.name], {
-            encoding: 'utf-8',
-          });
-          if (listall.status === 0) {
-            // Output rows: "Board Name     FQBN        Core"
-            const rows = (listall.stdout ?? '')
-              .split('\n')
-              .map((l) => l.trim())
-              .filter((l) => l.includes(':'));
-            const hit = rows.find((l) =>
-              l.toLowerCase().includes(boardInfo.name.toLowerCase().split(' ')[0] ?? '')
-            );
-            const fromRow = hit?.match(/([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)/)?.[1];
-            if (fromRow) {
-              fqbn = fromRow;
-              discovered = true;
-            }
-          }
-        }
-        if (!fqbn && !options.dryRun) {
-          console.error(
-            pc.red(
-              `No FQBN for ${boardInfo.fullName}: not in board data and \`arduino-cli board listall\` found nothing.\n` +
-                `Install the board's core (see: xiao quickstart ${boardInfo.id}), then retry - discovery uses YOUR installed cores.`
-            )
-          );
-          process.exitCode = 1;
-          return;
-        }
-        const shownFqbn = fqbn ?? '<fqbn>  # resolved at runtime from your installed cores';
-
-        // 2) Sketch source: the served example (blink fallback = init template logic).
+        const { fqbn, discovered, hint } = resolveFqbn(boardInfo, options.cli);
         const sketchName = example ? example.id : `${boardInfo.id}-blink-check`;
         const code =
           example?.code ??
@@ -95,50 +65,71 @@ export function registerVerifyCommand(program: Command) {
             ? `const int LED_PIN = 10;\nvoid setup() { Serial.begin(115200); pinMode(LED_PIN, OUTPUT); }\nvoid loop() { digitalWrite(LED_PIN, HIGH); delay(500); digitalWrite(LED_PIN, LOW); delay(500); }\n`
             : `void setup() { Serial.begin(115200); pinMode(LED_BUILTIN, OUTPUT); }\nvoid loop() { digitalWrite(LED_BUILTIN, HIGH); delay(500); digitalWrite(LED_BUILTIN, LOW); delay(500); }\n`);
 
-        const args = ['compile', '--fqbn', fqbn ?? '<fqbn>', sketchName];
         console.log(pc.cyan(`\n  verify: ${sketchName} → ${boardInfo.fullName}`));
+        if (!fqbn && options.dryRun) {
+          console.log(pc.dim(`  FQBN: <fqbn>  # resolved at runtime — ${hint}`));
+          console.log(pc.dim(`  plan: ${options.cli} compile --fqbn <fqbn> ${sketchName}`));
+          console.log(pc.green('\n  dry-run ok - rerun without --dry-run to compile.'));
+          return;
+        }
+        if (!fqbn) {
+          console.error(pc.red(`No FQBN for ${boardInfo.fullName}: ${hint}`));
+          process.exitCode = 1;
+          return;
+        }
         console.log(
           pc.dim(
-            `  FQBN: ${shownFqbn}${discovered ? pc.yellow('  (discovered from your installed cores)') : fqbn ? '  (verified board data)' : ''}`
+            `  FQBN: ${fqbn}${discovered ? pc.yellow('  (discovered from installed cores)') : '  (verified board data)'}`
           )
         );
 
         if (options.dryRun) {
-          console.log(pc.dim(`  plan: ${options.cli} ${args.join(' ')}  # in a temp sketch dir`));
+          console.log(pc.dim(`  plan: ${options.cli} compile --fqbn ${fqbn} ${sketchName}`));
           console.log(pc.green('\n  dry-run ok - rerun without --dry-run to compile.'));
           return;
         }
 
-        // 3) Real compile in a temp sketch folder named after the sketch.
-        const dir = mkdtempSync(join(tmpdir(), 'xiao-verify-'));
-        const sketchDir = join(dir, sketchName);
-        try {
-          mkdirSync(sketchDir, { recursive: true });
-          writeFileSync(join(sketchDir, `${sketchName}.ino`), code);
-          const res = spawnSync(options.cli, args, { cwd: dir, encoding: 'utf-8' });
-          const out = (res.stdout ?? '') + (res.stderr ?? '');
-          const sizeLine = out.split('\n').find((l) => l.includes('Sketch uses'));
-          if (res.status === 0) {
-            console.log(
-              pc.green(
-                `\n  ✅ compiles for ${boardInfo.fullName}${sizeLine ? ` — ${sizeLine.trim()}` : ''}`
-              )
-            );
-          } else {
-            console.error(pc.red('\n  ❌ compile failed:'));
-            console.error(
-              out
-                .split('\n')
-                .filter((l) => /error|Error|fatal/.test(l))
-                .slice(0, 6)
-                .map((l) => `     ${l.trim()}`)
-                .join('\n') || out.split('\n').slice(-8).join('\n')
-            );
-            process.exitCode = 1;
-          }
-        } finally {
-          rmSync(dir, { recursive: true, force: true });
+        const res = compileSketch({ board: boardInfo, sketchName, code, cliPath: options.cli });
+        if (res.ok) {
+          console.log(pc.green(`\n  ✅ compiles${res.sizeLine ? ` — ${res.sizeLine}` : ''}`));
+        } else {
+          console.error(pc.red('\n  ❌ compile failed:'));
+          for (const e of res.errors) console.error(`     ${e}`);
+          process.exitCode = 1;
         }
       }
     );
+}
+
+function verifyAll(assistant: XIAOAssistant, boardInfo: XIAOBoard, cli: string) {
+  const group = new Set(assistant.boardGroup(boardInfo.id));
+  const targets = assistant
+    .getAllExamples()
+    .filter((e) => e.language === 'arduino' && e.boards.some((b) => group.has(b)))
+    // skip sketches that need libraries the CLI can't assume are installed
+    .filter((e) => (e.requirements ?? []).length === 0);
+  if (targets.length === 0) {
+    console.log(pc.yellow('No dependency-free arduino examples for this board.'));
+    return;
+  }
+  console.log(pc.cyan(`\n  verify --all: ${targets.length} examples → ${boardInfo.fullName}\n`));
+  let pass = 0;
+  const failed: string[] = [];
+  for (const ex of targets) {
+    const res = compileSketch({ board: boardInfo, sketchName: ex.id, code: ex.code, cliPath: cli });
+    if (res.ok) {
+      pass++;
+      console.log(
+        `  ${pc.green('✅')} ${ex.id}${res.sizeLine ? pc.dim(`  ${res.sizeLine.split(',')[0]}`) : ''}`
+      );
+    } else {
+      failed.push(ex.id);
+      console.log(`  ${pc.red('❌')} ${ex.id}`);
+      for (const e of res.errors.slice(0, 2)) console.log(pc.red(`       ${e}`));
+    }
+  }
+  console.log(
+    `\n  ${pass}/${targets.length} compile${failed.length ? `, failed: ${failed.join(', ')}` : ''}`
+  );
+  if (failed.length > 0) process.exitCode = 1;
 }

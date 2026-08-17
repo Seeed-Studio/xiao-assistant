@@ -9,6 +9,7 @@ import {
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { compileSketch } from '../core/compiler.js';
 import {
   XIAOAssistant,
   type XIAOBoard,
@@ -156,6 +157,29 @@ Each result includes the complete source code ready to use.`,
           required: ['id'],
         },
         annotations: { readOnlyHint: true },
+      },
+      {
+        name: 'compile_sketch',
+        title: 'Compile a Sketch for a Board',
+        description: `Compile Arduino sketch code for a XIAO board with arduino-cli and report the real compiler result (firmware size, or exact error lines). Use this to verify code you write BEFORE handing it to the user - a sketch that fails here will fail in their IDE too. Requires arduino-cli installed locally; the first compile for a board downloads toolchains and can take minutes. Source: pass \`code\` directly, or \`exampleId\` to compile a bundled example.`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            board: {
+              type: 'string',
+              description: 'Board ID (resolve_board first if unsure)',
+            },
+            code: {
+              type: 'string',
+              description: 'Complete .ino source (max 64KB). Mutually exclusive with exampleId.',
+            },
+            exampleId: {
+              type: 'string',
+              description: 'Compile a bundled example by id instead of inline code.',
+            },
+          },
+          required: ['board'],
+        },
       },
       {
         name: 'list_boards',
@@ -422,6 +446,77 @@ Returns detailed problem descriptions, solutions, and often working code.`,
                     : '') +
                   (example.wikiUrl ? `**Wiki**: ${example.wikiUrl}\n` : '') +
                   `\n\`\`\`${example.language === 'arduino' || example.language === 'zephyr' ? 'cpp' : 'python'}\n${example.code}\n\`\`\``,
+              },
+            ],
+          };
+        }
+
+        case 'compile_sketch': {
+          const boardName = str('board') as string;
+          const boardInfo = assistant.getBoard(boardName);
+          if (!boardInfo) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Board "${short(a.board)}" not found. Use resolve_board first.`
+            );
+          }
+          const exampleId = str('exampleId', false);
+          const rawCode = a.code;
+          if (exampleId && rawCode !== undefined) {
+            throw new McpError(ErrorCode.InvalidParams, 'Pass either code or exampleId, not both.');
+          }
+          let code: string;
+          let sketchName: string;
+          if (exampleId) {
+            const ex = assistant.getExampleById(exampleId);
+            if (!ex)
+              throw new McpError(
+                ErrorCode.InvalidParams,
+                `Example "${short(exampleId)}" not found.`
+              );
+            if (ex.language !== 'arduino') {
+              throw new McpError(
+                ErrorCode.InvalidParams,
+                `Example is ${ex.language}; compile_sketch handles arduino only.`
+              );
+            }
+            code = ex.code;
+            sketchName = ex.id;
+          } else if (typeof rawCode === 'string') {
+            if (rawCode.length > 64 * 1024) {
+              throw new McpError(
+                ErrorCode.InvalidParams,
+                `code too large (${rawCode.length} bytes, max 65536).`
+              );
+            }
+            code = rawCode;
+            sketchName = 'mcp-sketch';
+          } else {
+            throw new McpError(ErrorCode.InvalidParams, 'Provide code (string) or exampleId.');
+          }
+          const res = compileSketch({ board: boardInfo, sketchName, code, cliPath: 'arduino-cli' });
+          if (res.ok) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text:
+                    `✅ **${sketchName} compiles for ${boardInfo.fullName}**\n` +
+                    `- FQBN: \`${res.fqbn}\`${res.discovered ? ' (discovered from installed cores)' : ''}\n` +
+                    (res.sizeLine ? `- ${res.sizeLine}\n` : '') +
+                    "\nThe sketch will build the same way in the user's Arduino IDE.",
+                },
+              ],
+            };
+          }
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text:
+                  `❌ **compile failed** for ${boardInfo.fullName} (FQBN \`${res.fqbn || 'unresolved'}\`)\n\n` +
+                  res.errors.map((e) => `- ${e}`).join('\n'),
               },
             ],
           };
