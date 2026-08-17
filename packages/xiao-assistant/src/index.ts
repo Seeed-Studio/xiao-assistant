@@ -13,6 +13,7 @@ import { registerKnowledgeCommand } from './commands/knowledge.js';
 import { registerTroubleshootCommand } from './commands/troubleshoot.js';
 import { registerQuickstartCommand } from './commands/quickstart.js';
 import { registerVerifyCommand } from './commands/verify.js';
+import { registerTicketCommand } from './commands/ticket.js';
 import { startMcpServer } from './mcp/index.js';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
@@ -64,6 +65,7 @@ registerKnowledgeCommand(program);
 registerTroubleshootCommand(program);
 registerQuickstartCommand(program);
 registerVerifyCommand(program);
+registerTicketCommand(program);
 
 program
   .command('mcp')

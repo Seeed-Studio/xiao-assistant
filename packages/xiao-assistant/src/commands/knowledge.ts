@@ -4,6 +4,7 @@ import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { parse, stringify } from 'yaml';
+import { readStats } from '../core/query-log.js';
 import pc from 'picocolors';
 import open from 'open';
 
@@ -88,6 +89,12 @@ function validateEntry(
   };
   if (typeof e.code === 'string' && e.code) entry.code = e.code;
   if (typeof e.workaround === 'string' && e.workaround) entry.workaround = e.workaround;
+  // provenance passthrough (records)
+  if (typeof e.ticketUrl === 'string' && /^https?:\/\//.test(e.ticketUrl))
+    entry.ticketUrl = e.ticketUrl;
+  if (typeof e.createdAt === 'string' && e.createdAt) entry.createdAt = e.createdAt;
+  if (typeof e.lastVerifiedAt === 'string' && e.lastVerifiedAt)
+    entry.lastVerifiedAt = e.lastVerifiedAt;
 
   return { ok: true, entry };
 }
@@ -112,7 +119,12 @@ export function registerKnowledgeCommand(program: Command) {
     .command('knowledge')
     .description('Launch the knowledge editor web UI')
     .option('-p, --port <port>', 'Port number', '3456')
-    .action(async (options: { port: string }) => {
+    .option('-s, --stats', 'print query-log stats (zero-hit backlog = knowledge worth writing)')
+    .action(async (options: { port: string; stats?: boolean }) => {
+      if (options.stats) {
+        printStats();
+        return;
+      }
       // Strict digits-only: parseInt('80a') === 80 would silently pass and
       // try to bind a privileged port.
       if (!/^\d+$/.test(options.port.trim())) {
@@ -293,4 +305,36 @@ export function registerKnowledgeCommand(program: Command) {
         process.exitCode = 1;
       });
     });
+}
+
+function printStats() {
+  // Imported lazily to avoid a cycle at module load.
+  const s = readStats();
+  if (s.total === 0) {
+    console.log('No query records yet (they accumulate as you use search/troubleshoot/ticket).');
+    return;
+  }
+  console.log(pc.cyan('\n  查询记录统计\n'));
+  console.log(`  总查询: ${s.total}`);
+  console.log(
+    `  按工具: ${Object.entries(s.byTool)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('  ')}`
+  );
+  if (s.zeroHit.length > 0) {
+    console.log(pc.yellow('\n  零命中(= 该写的新知识):'));
+    for (const z of s.zeroHit.slice(0, 8))
+      console.log(`    ${String(z.count).padStart(3)}x  ${z.query}`);
+  }
+  if (s.topQueries.length > 0) {
+    console.log(pc.cyan('\n  高频查询:'));
+    for (const q of s.topQueries.slice(0, 5))
+      console.log(`    ${String(q.count).padStart(3)}x  ${q.query}`);
+  }
+  if (s.entryHits.length > 0) {
+    console.log(pc.green('\n  条目命中(= 哪条知识在干活):'));
+    for (const h of s.entryHits.slice(0, 8))
+      console.log(`    ${String(h.count).padStart(3)}x  ${h.id}`);
+  }
+  console.log('');
 }

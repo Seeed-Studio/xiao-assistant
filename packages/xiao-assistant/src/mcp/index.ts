@@ -10,6 +10,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compileSketch } from '../core/compiler.js';
+import { analyzeTicket } from '../core/ticket.js';
+import { recordQuery } from '../core/query-log.js';
 import {
   XIAOAssistant,
   type XIAOBoard,
@@ -179,6 +181,21 @@ Each result includes the complete source code ready to use.`,
             },
           },
           required: ['board'],
+        },
+      },
+      {
+        name: 'diagnose_ticket',
+        title: 'Diagnose a Support Ticket',
+        description: `Paste a WHOLE support ticket (mixed prose + logs, Chinese or English) and get a triaged diagnosis: detected board/SKU, error fingerprints, matched troubleshooting/knowledge, triage level (L1 self-serve / L2 need-info / L3 hardware-risk RMA) and a ready-to-send Chinese customer reply. L3 replies never advise self-fixing - hardware safety first. Local only; no ticket-system integration.`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            text: {
+              type: 'string',
+              description: 'Full ticket text including any error logs (max 32KB)',
+            },
+          },
+          required: ['text'],
         },
       },
       {
@@ -517,6 +534,45 @@ Returns detailed problem descriptions, solutions, and often working code.`,
                 text:
                   `❌ **compile failed** for ${boardInfo.fullName} (FQBN \`${res.fqbn || 'unresolved'}\`)\n\n` +
                   res.errors.map((e) => `- ${e}`).join('\n'),
+              },
+            ],
+          };
+        }
+
+        case 'diagnose_ticket': {
+          const text = str('text') as string;
+          if (text.length > 32 * 1024) {
+            throw new McpError(ErrorCode.InvalidParams, `text too large (${text.length} bytes, max 32768).`);
+          }
+          const analysis = analyzeTicket(text, assistant);
+          recordQuery({
+            tool: 'ticket',
+            query: analysis.fingerprints.join('+') || '(no-fingerprint)',
+            board: analysis.detectedBoards[0],
+            hits: analysis.matches.troubleshooting.length + analysis.matches.knowledge.length,
+            matched: [
+              ...analysis.matches.troubleshooting.map((e) => e.id),
+              ...analysis.matches.knowledge.map((k) => k.id),
+            ],
+          });
+          const triageDesc: Record<string, string> = {
+            'L1-selfserve': 'L1 - self-serve: knowledge matched, reply below is ready to send',
+            'L2-need-info': 'L2 - insufficient info: ask the follow-up questions below',
+            'L3-hardware': 'L3 - HARDWARE RISK: instruct the customer to STOP powering the board and go through RMA',
+          };
+          return {
+            content: [
+              {
+                type: 'text',
+                text:
+                  `## Triage: ${triageDesc[analysis.triage]}\n\n` +
+                  `- **Boards**: ${analysis.detectedBoards.join(', ') || 'not detected'}${analysis.detectedSkus.length ? ` (SKU ${analysis.detectedSkus.join(', ')})` : ''}\n` +
+                  `- **Fingerprints**: ${analysis.fingerprints.join(' + ') || 'none'}\n` +
+                  `- **Matched**: ${[...analysis.matches.troubleshooting.map((e) => e.id), ...analysis.matches.knowledge.map((k) => k.id)].join(', ') || 'none'}\n\n` +
+                  `### Ready-to-send reply (Chinese)\n\n${analysis.reply}` +
+                  (analysis.followUp.length > 0
+                    ? `\n\n### Ask the customer\n${analysis.followUp.map((q) => `- ${q}`).join('\n')}`
+                    : ''),
               },
             ],
           };

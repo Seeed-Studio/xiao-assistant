@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { XIAOAssistant } from '../core/assistant.js';
+import { recordQuery } from '../core/query-log.js';
 
 export function registerTroubleshootCommand(program: Command) {
   program
@@ -18,6 +19,13 @@ export function registerTroubleshootCommand(program: Command) {
       }
 
       const entries = assistant.troubleshoot(symptoms, options.board);
+      recordQuery({
+        tool: 'troubleshoot',
+        query: symptoms,
+        board: options.board,
+        hits: entries.length,
+        matched: entries.slice(0, 5).map((e) => e.id),
+      });
       console.log(pc.cyan(`\n  Troubleshooting "${symptoms}"\n`));
 
       if (entries.length === 0) {

@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { XIAOAssistant } from '../core/assistant.js';
+import { recordQuery } from '../core/query-log.js';
 
 export function registerSearchCommand(program: Command) {
   program
@@ -33,6 +34,13 @@ export function registerSearchCommand(program: Command) {
         const { local: examples, wiki } = await assistant.searchExamplesWithFallback(query, {
           language: options.lang,
           board: options.board,
+        });
+        recordQuery({
+          tool: 'search',
+          query,
+          board: options.board,
+          hits: examples.length,
+          matched: examples.slice(0, 5).map((e) => e.id),
         });
         console.log(pc.cyan(`\n  Code Examples for "${query}"\n`));
         if (examples.length === 0) {

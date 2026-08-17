@@ -97,6 +97,28 @@ xiao example camera-capture-arduino --sim           # esp32s3-sense native part
 xiao example blink-arduino --sim --board rp2040     # explicit stand-in board
 ```
 
+## xiao ticket
+
+```bash
+xiao ticket "整段工单文本..."      # 参数直传
+xiao ticket -f ticket.txt          # 从文件读
+cat ticket.txt | xiao ticket       # 管道
+```
+
+Pastes a whole support ticket (mixed prose + logs, zh/en) and returns: detected
+board/SKU, error **fingerprints** (extracted first — full-blob search drowns
+the signal), triage level, matched entries, and a ready-to-send Chinese reply.
+L3 (发烫/短路/冒烟…) replies instruct the customer to stop powering the board
+and go through RMA — never self-fix advice. Local pure function: no ticket
+system integration; paste in, copy the reply out.
+
+## xiao knowledge --stats
+
+Prints query-log statistics from `~/.xiao-assistant/query-log.jsonl` (local
+only, no telemetry): zero-hit backlog (= knowledge worth writing), top
+queries, and which entries actually get matched. Knowledge entries also accept
+`ticketUrl`/`createdAt`/`lastVerifiedAt` provenance fields.
+
 ## xiao knowledge
 
 ```bash

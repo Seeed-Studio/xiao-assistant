@@ -86,6 +86,10 @@ export interface XIAOKnowledge {
   category: string;
   severity: 'easy' | 'medium' | 'hard';
   source: 'support-ticket' | 'internal-test' | 'community' | 'wiki';
+  /** Provenance / freshness (records, per the support workflow). */
+  ticketUrl?: string;
+  createdAt?: string;
+  lastVerifiedAt?: string;
   summary: string;
   problem: string;
   solution: string;
