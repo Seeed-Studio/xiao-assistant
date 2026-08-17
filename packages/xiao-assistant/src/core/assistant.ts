@@ -164,6 +164,20 @@ export class XIAOAssistant {
     return Array.from(this.boards.values());
   }
 
+  /**
+   * A base board and its variants form one hardware family: an example that
+   * runs on the base generally runs on the variant (Sense boards are
+   * supersets). Searching "--board esp32s3" should not silently drop every
+   * esp32s3-sense-only example (e.g. camera).
+   */
+  boardGroup(boardId: string): string[] {
+    const group = [boardId];
+    for (const b of this.boards.values()) {
+      if (b.variantOf === boardId) group.push(b.id);
+    }
+    return group;
+  }
+
   resolveBoard(query: string): XIAOBoard[] {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
@@ -206,13 +220,15 @@ export class XIAOAssistant {
     const q = XIAOAssistant.normalizeQuery(query);
     if (!q) return [];
     const ids = this.searchIndex(this.exampleIndex, q);
+    // Base-board filters widen to the board family (base + Sense variants).
+    const boardGroup = options?.board ? new Set(this.boardGroup(options.board)) : null;
     const byId = new Map(this.examples.map((e) => [e.id, e]));
     return ids
       .map((id) => byId.get(id))
       .filter((e): e is XIAOExample => {
         if (!e) return false;
         if (options?.language && e.language !== options.language) return false;
-        if (options?.board && !e.boards.includes(options.board)) return false;
+        if (boardGroup && !e.boards.some((b) => boardGroup.has(b))) return false;
         return true;
       });
   }
@@ -297,8 +313,20 @@ export class XIAOAssistant {
   }
 
   getQuickstart(boardName: string): XIAODocument | undefined {
-    return this.documents.find(
-      (d) => d.category === 'getting-started' && d.boards.includes(boardName)
+    // Exact board first; then the board family (variant or base share docs);
+    // then a doc that covers the family at all.
+    const board = this.getBoard(boardName);
+    if (!board) return undefined;
+    const group = new Set<string>([board.id]);
+    if (board.variantOf) group.add(board.variantOf);
+    for (const b of this.boards.values()) {
+      if (b.variantOf === board.id) group.add(b.id);
+    }
+    return (
+      this.documents.find(
+        (d) => d.category === 'getting-started' && d.boards.some((b) => group.has(b))
+      ) ??
+      this.documents.find((d) => d.category === 'getting-started' && d.boards.includes(board.id))
     );
   }
 

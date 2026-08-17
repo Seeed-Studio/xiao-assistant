@@ -76,3 +76,13 @@ node packages/xiao-assistant/dist/index.js mcp
 
 Pair the server with the bundled skill ([skills/xiao-assistant.md](../skills/xiao-assistant.md))
 for model-side usage rules and hardware gotchas.
+
+
+## Registry presence
+
+| Directory | Status | Submit at |
+|---|---|---|
+| Smithery | `smithery.yaml` in repo root | https://smithery.ai/new (import from GitHub) |
+| Glama | pending | https://glama.ai/register-mcp-server |
+| Cursor directory | pending | https://cursor.com/docs (mcp.json snippet is in this README) |
+| npm search | keywords cover esp32/mcp-server/pinout | — |

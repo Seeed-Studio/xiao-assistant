@@ -107,6 +107,7 @@
 - id: mg24-sense
   name: XIAO MG24 Sense
   fullName: Seeed Studio XIAO MG24 Sense
+  variantOf: mg24
   microcontroller: Silicon Labs EFR32MG24
   architecture: ARM Cortex-M33
   clockSpeed: 78 MHz

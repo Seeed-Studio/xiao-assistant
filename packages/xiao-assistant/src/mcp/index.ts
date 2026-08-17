@@ -472,6 +472,29 @@ Returns detailed problem descriptions, solutions, and often working code.`,
           const entries = assistant.troubleshoot(symptoms, board);
 
           if (entries.length === 0) {
+            const fallbackKnowledge = assistant
+              .searchKnowledge(symptoms, board ? { board } : undefined)
+              .slice(0, 2);
+            if (fallbackKnowledge.length > 0) {
+              return {
+                content: [
+                  {
+                    type: 'text',
+                    text:
+                      `No generic troubleshooting entry for "${symptoms}", but internal knowledge matches:\n\n` +
+                      fallbackKnowledge
+                        .map(
+                          (k: XIAOKnowledge) =>
+                            `### ${k.title}\n` +
+                            `**Severity**: ${k.severity} | **Boards**: ${k.boards.join(', ') || 'all'}\n\n` +
+                            `**Problem**: ${k.problem}\n\n**Fix**: ${k.solution}` +
+                            (k.code ? `\n\n\`\`\`cpp\n${k.code}\n\`\`\`` : '')
+                        )
+                        .join('\n\n'),
+                  },
+                ],
+              };
+            }
             const wikiResults = await assistant.searchWikiOnline(symptoms);
             if (wikiResults.length > 0) {
               return {
@@ -497,21 +520,41 @@ Returns detailed problem descriptions, solutions, and often working code.`,
             };
           }
 
+          // Merge internal-knowledge hits: the exact error text often lives in a
+          // knowledge entry's problem field with a compile-verified fix.
+          const knowledge = assistant
+            .searchKnowledge(symptoms, board ? { board } : undefined)
+            .filter((k: XIAOKnowledge) => !entries.some((e) => e.id === k.id))
+            .slice(0, 2);
+
           return {
             content: [
               {
                 type: 'text',
-                text: entries
-                  .map(
-                    (e: XIAOTroubleshootEntry) =>
-                      `## ${e.title}\n\n` +
-                      `**Category**: ${e.category}\n` +
-                      `**Applies to**: ${e.boards.join(', ')}\n\n` +
-                      `### Diagnosis\n${e.diagnosis.map((d: string) => `- ${d}`).join('\n')}\n\n` +
-                      `### Solutions\n${e.solutions.map((s: string) => `- ${s}`).join('\n')}` +
-                      (e.wikiUrl ? `\n\n📖 [More info](${e.wikiUrl})` : '')
-                  )
-                  .join('\n\n---\n\n'),
+                text:
+                  entries
+                    .map(
+                      (e: XIAOTroubleshootEntry) =>
+                        `## ${e.title}\n\n` +
+                        `**Category**: ${e.category}\n` +
+                        `**Applies to**: ${e.boards.join(', ')}\n\n` +
+                        `### Diagnosis\n${e.diagnosis.map((d: string) => `- ${d}`).join('\n')}\n\n` +
+                        `### Solutions\n${e.solutions.map((s: string) => `- ${s}`).join('\n')}` +
+                        (e.wikiUrl ? `\n\n📖 [More info](${e.wikiUrl})` : '')
+                    )
+                    .join('\n\n---\n\n') +
+                  (knowledge.length > 0
+                    ? '\n\n---\n\n## Internal knowledge\n\n' +
+                      knowledge
+                        .map(
+                          (k: XIAOKnowledge) =>
+                            `### ${k.title}\n` +
+                            `**Severity**: ${k.severity} | **Boards**: ${k.boards.join(', ') || 'all'}\n\n` +
+                            `${k.summary}\n\n**Fix**: ${k.solution}` +
+                            (k.code ? `\n\n\`\`\`cpp\n${k.code}\n\`\`\`` : '')
+                        )
+                        .join('\n\n')
+                    : ''),
               },
             ],
           };

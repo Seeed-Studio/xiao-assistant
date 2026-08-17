@@ -185,3 +185,26 @@ describe('troubleshoot + knowledge + quickstart', () => {
     expect(doc?.category).toBe('getting-started');
   });
 });
+
+describe('phase-2 quick wins (variant awareness, knowledge merge, quickstart)', () => {
+  it('base-board search includes Sense variants (camera on esp32s3)', () => {
+    const r = assistant.searchExamples('camera', { board: 'esp32s3' });
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.map((e) => e.id)).toContain('camera-capture-arduino');
+  });
+
+  it('boardGroup returns base + variants', () => {
+    expect(assistant.boardGroup('esp32s3')).toEqual(['esp32s3', 'esp32s3-sense']);
+    expect(assistant.boardGroup('esp32s3-sense')).toEqual(['esp32s3-sense']);
+  });
+
+  it('getQuickstart is family-aware and covers esp32c5', () => {
+    expect(assistant.getQuickstart('esp32c5')?.id).toBe('getting-started-esp32');
+    expect(assistant.getQuickstart('esp32s3')?.category).toBe('getting-started');
+  });
+
+  it('troubleshoot misses are covered by knowledge (LED_BUILTIN)', () => {
+    const knowledge = assistant.searchKnowledge('LED_BUILTIN was not declared in this scope');
+    expect(knowledge.map((k) => k.id)).toContain('esp32c3-no-onboard-led');
+  });
+});

@@ -72,6 +72,7 @@
 - id: nrf52840-sense
   name: XIAO nRF52840 Sense
   fullName: Seeed Studio XIAO nRF52840 Sense
+  variantOf: nrf52840
   microcontroller: nRF52840
   architecture: ARM Cortex-M4 (with FPU)
   clockSpeed: 64 MHz

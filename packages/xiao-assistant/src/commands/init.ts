@@ -112,9 +112,26 @@ export function registerInitCommand(program: Command) {
 
           writeFileSync(join(projectName, mainFile), code);
 
+          // README carries the steps a beginner actually gets stuck on:
+          // board-manager URL (from the quickstart data) + flashing gesture.
+          const boardInfo = assistant.getBoard(board);
+          const quickstart = assistant.getQuickstart(board);
+          const managerUrl =
+            quickstart?.content.match(/https:\/\/[^\s]+index\.json/)?.[0] ??
+            'https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/';
+          const bootGesture = board.startsWith('esp32')
+            ? 'If upload hangs at "Connecting...": hold BOOT, click Upload, release BOOT.'
+            : board.startsWith('rp2')
+              ? 'To enter bootloader: hold BOOT, press RESET, release BOOT (shows as RPI-RP2).'
+              : 'To enter bootloader: double-click RESET.';
           writeFileSync(
             join(projectName, 'README.md'),
-            `# ${projectName}\n\nXIAO ${board.toUpperCase()} project using ${language}.\n\n## Setup\n\nSee [XIAO Wiki](https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/) for getting started.\n`
+            `# ${projectName}\n\n${boardInfo?.fullName ?? `XIAO ${board.toUpperCase()}`} project using ${language}.\n\n## Setup\n\n` +
+              `1. Arduino IDE > File > Preferences > Additional Boards Manager URLs:\n   ${managerUrl}\n` +
+              `2. Tools > Board manager: install the board package, then select your XIAO.\n` +
+              `3. Select the port (Linux: /dev/ttyACM0), click Upload.\n\n` +
+              `> ${bootGesture}\n\n` +
+              `More: \`xiao quickstart ${board}\`, \`xiao pinout ${board}\`, [wiki](${boardInfo?.wikiUrl ?? 'https://wiki.seeedstudio.com/SeeedStudio_XIAO_Series_Introduction/'})\n`
           );
 
           spinner.succeed(pc.green(`Project "${projectName}" created!`));

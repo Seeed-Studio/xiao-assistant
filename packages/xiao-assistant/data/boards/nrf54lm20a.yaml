@@ -57,6 +57,7 @@
 - id: nrf54lm20a-sense
   name: XIAO nRF54LM20A Sense
   fullName: Seeed Studio XIAO nRF54LM20A Sense
+  variantOf: nrf54lm20a
   microcontroller: Nordic nRF54LM20A
   architecture: Arm Cortex-M33 + RISC-V coprocessor
   clockSpeed: 128 MHz

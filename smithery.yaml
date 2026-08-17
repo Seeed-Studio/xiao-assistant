@@ -1,0 +1,9 @@
+# Smithery MCP registry: https://smithery.ai/server/xiao-assistant
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties: {}
+  commandFunction:
+    # A config object is provided but unused - all tools are read-only.
+    | (config) => ({ command: 'npx', args: ['-y', '@seeed-studio/xiao-assistant', 'mcp'] })

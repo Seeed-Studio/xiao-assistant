@@ -83,6 +83,7 @@
 - id: nrf54l15-sense
   name: XIAO nRF54L15 Sense
   fullName: Seeed Studio XIAO nRF54L15 Sense
+  variantOf: nrf54l15
   microcontroller: Nordic nRF54L15
   architecture: Dual-core (Arm Cortex-M33 + RISC-V)
   clockSpeed: 128 MHz

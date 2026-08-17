@@ -77,6 +77,7 @@
 - id: esp32s3-sense
   name: XIAO ESP32S3 Sense
   fullName: Seeed Studio XIAO ESP32S3 Sense
+  variantOf: esp32s3
   microcontroller: ESP32-S3
   architecture: Xtensa dual-core LX7
   clockSpeed: 240 MHz

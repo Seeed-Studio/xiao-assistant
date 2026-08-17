@@ -11,6 +11,8 @@ export interface XIAOBoard {
   id: string;
   name: string;
   fullName: string;
+  /** Base board this variant extends ("esp32s3-sense" -> "esp32s3"). */
+  variantOf?: string;
   microcontroller: string;
   architecture: string;
   clockSpeed: string;
