@@ -74,8 +74,11 @@ jobs:
           # GITHUB_PATH only applies to LATER steps - use the absolute path here.
           CLI="$HOME/bin/arduino-cli"
           "$CLI" config init --overwrite
-          "$CLI" config add board_manager.additional_urls https://files.seeedstudio.com/arduino/package_seeeduino_index.json
           "$CLI" core update-index
+          # files.seeedstudio.com returns 403 worldwide; vendor the index and
+          # drop it where arduino-cli reads package_*_index.json files.
+          mkdir -p "$HOME/.arduino15"
+          cp .github/firmware/package_seeeduino_index.json "$HOME/.arduino15/package_seeeduino_boards_index.json"
           "$CLI" core install Seeeduino:samd
 
       - name: Compile all samd21 examples (xiao verify --all)
