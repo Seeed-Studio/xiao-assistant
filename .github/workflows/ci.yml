@@ -75,11 +75,15 @@ jobs:
           CLI="$HOME/bin/arduino-cli"
           "$CLI" config init --overwrite
           "$CLI" core update-index
-          # files.seeedstudio.com returns 403 worldwide; vendor the index and
-          # drop it where arduino-cli reads package_*_index.json files.
-          mkdir -p "$HOME/.arduino15"
-          cp .github/firmware/package_seeeduino_index.json "$HOME/.arduino15/package_seeeduino_boards_index.json"
+          # files.seeedstudio.com returns 403 worldwide; serve the vendored
+          # index over a loopback http server - arduino-cli requires indexes to
+          # come through additional_urls.
+          python3 -m http.server 8765 --directory .github/firmware &
+          echo "waiting for index server"; sleep 1
+          "$CLI" config add board_manager.additional_urls http://localhost:8765/package_seeeduino_index.json
+          "$CLI" core update-index
           "$CLI" core install Seeeduino:samd
+          kill %1
 
       - name: Compile all samd21 examples (xiao verify --all)
         run: cd packages/xiao-assistant && node dist/index.js verify samd21 --all --cli "$HOME/bin/arduino-cli"
