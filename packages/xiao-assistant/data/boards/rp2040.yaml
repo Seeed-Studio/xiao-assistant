@@ -68,6 +68,7 @@
   lowPowerMode: no low power mode documented
   wikiUrl: https://wiki.seeedstudio.com/XIAO-RP2040/
   sku: '102010428'
+  wokwiPart: wokwi-pi-pico
 - id: rp2350
   name: XIAO RP2350
   fullName: Seeed Studio XIAO RP2350

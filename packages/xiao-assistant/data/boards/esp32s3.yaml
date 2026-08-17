@@ -74,6 +74,7 @@
   lowPowerMode: 14µA deep sleep
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
   sku: '113991114'
+  wokwiPart: board-xiao-esp32-s3
 - id: esp32s3-sense
   name: XIAO ESP32S3 Sense
   fullName: Seeed Studio XIAO ESP32S3 Sense
@@ -159,3 +160,4 @@
   lowPowerMode: deep sleep ~3mA (camera/SD rail powered; cut their VCC for µA-level, see wiki)
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
   sku: '113991115'
+  wokwiPart: board-xiao-esp32-s3

@@ -208,3 +208,20 @@ describe('phase-2 quick wins (variant awareness, knowledge merge, quickstart)', 
     expect(knowledge.map((k) => k.id)).toContain('esp32c3-no-onboard-led');
   });
 });
+
+describe('Wokwi export (phase-2)', () => {
+  it('XIAO ESP32 boards carry verified wokwi part ids', () => {
+    const cases: Record<string, string> = {
+      esp32c3: 'board-xiao-esp32-c3',
+      esp32c6: 'board-xiao-esp32-c6',
+      esp32s3: 'board-xiao-esp32-s3',
+      'esp32s3-sense': 'board-xiao-esp32-s3',
+      rp2040: 'wokwi-pi-pico',
+    };
+    for (const [id, part] of Object.entries(cases)) {
+      expect(assistant.getBoard(id)?.wokwiPart, id).toBe(part);
+    }
+    // nRF/SAMD/MG24 boards have no Wokwi support
+    expect(assistant.getBoard('nrf52840')?.wokwiPart).toBeUndefined();
+  });
+});

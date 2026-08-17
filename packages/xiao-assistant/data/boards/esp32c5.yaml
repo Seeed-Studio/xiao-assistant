@@ -65,4 +65,5 @@
   hasBatteryCharging: true
   wikiUrl: https://wiki.seeedstudio.com/xiao_esp32c5_getting_started/
   sku: '100010048'
+  wokwiPart: board-esp32-c5-devkitc-1
   lowPowerMode: not yet documented on the wiki

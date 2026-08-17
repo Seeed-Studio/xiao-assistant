@@ -82,6 +82,21 @@ Matches the troubleshooting database with fuzzy + synonym expansion (English
 and Chinese symptom vocabulary). Prints diagnosis steps and solutions for the
 top 5 entries.
 
+## xiao example <id> --sim
+
+Exports an example as a Wokwi simulation project (sketch.ino + diagram.json +
+README) — run code with zero hardware. Wokwi has native parts for XIAO
+ESP32C3/C6/S3 (`board-xiao-esp32-c3|c6|s3`, verified against
+docs.wokwi.com/diagram-format); ESP32C5 uses the DevKitC-1 stand-in and RP2040
+uses the Pi Pico. Boards without Wokwi support (nRF/SAMD/MG24) are rejected
+with a clear message.
+
+```bash
+xiao example blink-arduino --sim                    # auto-picks a supported board
+xiao example camera-capture-arduino --sim           # esp32s3-sense native part
+xiao example blink-arduino --sim --board rp2040     # explicit stand-in board
+```
+
 ## xiao knowledge
 
 ```bash

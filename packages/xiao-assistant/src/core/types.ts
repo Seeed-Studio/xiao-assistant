@@ -16,6 +16,9 @@ export interface XIAOBoard {
   /** arduino-cli FQBN. Only stored when verified against a real core; verify
    *  discovers the rest at runtime via `arduino-cli board listall`. */
   fqbn?: string;
+  /** Wokwi part id (verified against docs.wokwi.com/diagram-format); boards
+   *  without Wokwi support omit this. */
+  wokwiPart?: string;
   microcontroller: string;
   architecture: string;
   clockSpeed: string;
