@@ -1,6 +1,6 @@
 {
   "name": "@seeed-studio/xiao-assistant",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server + CLI for Seeed Studio XIAO boards: verified pinouts for 17 boards (ESP32-C5, nRF54LM20A...), 64 compile-checked examples, fuzzy + Chinese search, flashing troubleshooting. Works with Claude, Cursor, or standalone.",
   "type": "module",
   "main": "./dist/sdk.js",
